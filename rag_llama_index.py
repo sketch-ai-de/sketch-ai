@@ -1,98 +1,130 @@
+# Examples:
+# python3 rag_llama_index.py -f="docs/ur/ur5e/ur5e_user_manual_en_us.pdf" -u="https://www.universal-robots.com/products/ur5-robot/" -c="ur5e_user_manual_en_us"
+# python3 rag_llama_index.py -f="docs/siemens/s71500_cpu1511_1_pn_manual_en-US_en-US/s71500_cpu1511_1_pn_manual_en-US_en-US.pdf" -u="https://mall.industry.siemens.com/mall/en/WW/Catalog/Product/6ES7511-1AL03-0AB0" -c="s71500_cpu1511_1_pn_manual_en-US_en-US"
+# python3 rag_llama_index.py -f="docs/technosoft/technosoft_ipos_233_canopen/technosoft_ipos_233_canopen.pdf" -u="https://technosoftmotion.com/en/intelligent-motors/\?SingleProduct\=174" -c="technosoft_ipos_233_canopen"
+# python3 rag_llama_index.py -f="docs/siemens/et200sp_system_manual/et200sp_system_manual.pdf" -u="https://mall.industry.siemens.com/mall/en/de/Catalog/Products/10360562\#" -c="et200sp_system_manual"
 
+import argparse
+parser = argparse.ArgumentParser(
+                    prog='RagLlamaindex',
+                    description='Retrieve information from different soures - PDFs and Web-Links'
+                    )
+parser.add_argument('-f', '--filename')           # positional argument
+parser.add_argument('-u', '--url')      # option that takes a value
+parser.add_argument('-c', '--collection')      # option that takes a value
 
-from llama_index.embeddings import HuggingFaceEmbedding
-
-# embed_model = HuggingFaceEmbedding(model_name="BAAI/bge-small-en")
-
-embed_model = HuggingFaceEmbedding(model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
-
-from pathlib import Path
-from llama_hub.file.pymu_pdf.base import PyMuPDFReader
-
-loader = PyMuPDFReader()
-documents = loader.load(file_path="./docs/233.pdf")
-documents = documents[10:-1]
-
-from llama_index.text_splitter import SentenceSplitter
-
-text_splitter = SentenceSplitter(
-    chunk_size=1024,
-    separator=" ",
-    )
-
-text_chunks = []
-# maintain relationship with source doc index, to help inject doc metadata in (3)
-doc_idxs = []
-for doc_idx, doc in enumerate(documents):
-    cur_text_chunks = text_splitter.split_text(" ".join(doc.text.split()))#text_splitter.split_text(doc.text)
-    text_chunks.extend(cur_text_chunks)
-    doc_idxs.extend([doc_idx] * len(cur_text_chunks))
-
-from llama_index.schema import TextNode
-
-nodes = []
-for idx, text_chunk in enumerate(text_chunks):
-    node = TextNode(
-        text=text_chunk,
-    )
-    src_doc = documents[doc_idxs[idx]]
-    node.metadata = src_doc.metadata
-    nodes.append(node)
-
-for node in nodes:
-    node_embedding = embed_model.get_text_embedding(
-        node.get_content(metadata_mode="all")
-    )
-    node.embedding = node_embedding
-
-import chromadb
-from llama_index.vector_stores import ChromaVectorStore
-# create client and a new collection
-chroma_client = chromadb.EphemeralClient()
-chroma_collection = chroma_client.create_collection("quickstart")
-vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
-
-
-vector_store.add(nodes)
-
-query_str = "What is this technical document/manual/specification about? What is company name? What is the product name?"
-query_str2 = "What is specific about iPOS drives? What is it for and what interfaces and protocols it is supporting?"
-
-query_embedding = embed_model.get_query_embedding(query_str2)
-
-
-# construct vector store query
-from llama_index.vector_stores import VectorStoreQuery
-
-query_mode = "default"
-# query_mode = "sparse"
-# query_mode = "hybrid"
-
-vector_store_query = VectorStoreQuery(
-    query_embedding=query_embedding, similarity_top_k=32, mode=query_mode
-)
-
-# returns a VectorStoreQueryResult
-query_result = vector_store.query(vector_store_query)
-print(query_result.nodes[0].get_content())
-
-
-from llama_index.schema import NodeWithScore
-from typing import Optional
-
-nodes_with_scores = []
-for index, node in enumerate(query_result.nodes):
-    score: Optional[float] = None
-    if query_result.similarities is not None:
-        score = query_result.similarities[index]
-    nodes_with_scores.append(NodeWithScore(node=node, score=score))
-
+args = parser.parse_args()
 
 from llama_index import QueryBundle
 from llama_index.retrievers import BaseRetriever
 from typing import Any, List
 
 
+from llama_index import ServiceContext
+
+import os
+import openai
+
+from llama_index import VectorStoreIndex
+
+from llama_index.vector_stores import ChromaVectorStore
+
+from llama_index.output_parsers import LangchainOutputParser
+from llama_index.prompts.prompts import QuestionAnswerPrompt, RefinePrompt
+from llama_index.prompts.default_prompts import DEFAULT_TEXT_QA_PROMPT_TMPL, DEFAULT_REFINE_PROMPT_TMPL
+from langchain.output_parsers import StructuredOutputParser, ResponseSchema
+
+from llama_index.llms import OpenAI
+
+from llama_index.embeddings import HuggingFaceEmbedding
+
+from llama_index.vector_stores import VectorStoreQuery
+
+from llama_index.schema import NodeWithScore
+from typing import Optional
+
+os.environ["OPENAI_API_KEY"] = "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"
+openai.api_key = os.environ["OPENAI_API_KEY"]
+
+embed_model = HuggingFaceEmbedding(model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
+
+llm = OpenAI(temperature=0.3, model="gpt-3.5-turbo")
+
+from llama_index.text_splitter import SentenceSplitter
+
+from pathlib import Path
+from llama_hub.file.pymu_pdf.base import PyMuPDFReader
+
+# chroma_client = chromadb.EphemeralClient()
+# chroma_collection = chroma_client.create_collection("quickstart")
+
+def load_data_to_db(filename, url, vector_store):
+
+    from llama_index import download_loader
+
+    ReadabilityWebPageReader = download_loader("ReadabilityWebPageReader")
+
+    # or set proxy server for playwright: loader = ReadabilityWebPageReader(proxy="http://your-proxy-server:port")
+    # For some specific web pages, you may need to set "wait_until" to "networkidle". loader = ReadabilityWebPageReader(wait_until="networkidle")
+    loader = ReadabilityWebPageReader()
+
+    #documents = loader.load_data(url=args.link)
+    documents = loader.load_data(url=url)
+
+    for doc in documents:
+        for key in doc.metadata:
+            if doc.metadata[key] is None:
+                doc.metadata[key] = 0
+
+    loader = PyMuPDFReader()
+    file = filename
+    documents2 = loader.load(file_path=file)
+    documents = documents + documents2
+
+    text_splitter = SentenceSplitter(
+        chunk_size=1024,
+        separator=" ",
+        )
+    text_chunks = []
+
+    sentences = []
+    window_size = 128
+    step_size = 100
+
+    # maintain relationship with source doc index, to help inject doc metadata in (3)
+    doc_idxs = []
+    for doc_idx, doc in enumerate(documents):
+        #cur_text_chunks = text_splitter.split_text(" ".join(doc.text.split()))#text_splitter.split_text(doc.text)
+        text_tokens = doc.text.split()
+        for i in range(0, len(text_tokens), step_size):
+            window = text_tokens[i : i + window_size]
+            if len(window) < window_size:
+                break
+            sentences.append(window)
+        paragraphs = [" ".join(s) for s in sentences]
+        #text_chunks.extend(paragraphs)
+        text_chunks = paragraphs
+        doc_idxs.extend([doc_idx] * len(paragraphs))
+
+
+    from llama_index.schema import TextNode
+
+    nodes = []
+    for idx, text_chunk in enumerate(text_chunks):
+        node = TextNode(
+            text=text_chunk,
+        )
+        src_doc = documents[doc_idxs[idx]]
+        node.metadata = src_doc.metadata
+        nodes.append(node)
+
+    for node in nodes:
+        node_embedding = embed_model.get_text_embedding(
+            node.get_content(metadata_mode="all")
+        )
+        node.embedding = node_embedding
+
+    vector_store.add(nodes)
 class VectorDBRetriever(BaseRetriever):
     """Retriever over a ChromaVectorStore vector store."""
 
@@ -101,7 +133,7 @@ class VectorDBRetriever(BaseRetriever):
         vector_store: ChromaVectorStore,
         embed_model: Any,
         query_mode: str = "default",
-        similarity_top_k: int = 5,
+        similarity_top_k: int = 10,
     ) -> None:
         """Init params."""
         self._vector_store = vector_store
@@ -127,24 +159,23 @@ class VectorDBRetriever(BaseRetriever):
             nodes_with_scores.append(NodeWithScore(node=node, score=score))
 
         return nodes_with_scores
+    
+import chromadb
+from llama_index.storage.storage_context import StorageContext
+db = chromadb.PersistentClient(path="./chroma_db")
+chroma_collection = db.get_or_create_collection(args.collection)
+vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
+storage_context = StorageContext.from_defaults(vector_store=vector_store) 
+
+if len(chroma_collection.get()['ids']) == 0:
+    print("load data to collection")
+    load_data_to_db(args.filename, args.url, vector_store)
+else:
+    print("data already exist in collection")
 
 retriever = VectorDBRetriever(
-    vector_store, embed_model, query_mode="default", similarity_top_k=5
+    vector_store, embed_model, query_mode="default", similarity_top_k=10
 )
-
-
-from llama_index import ServiceContext
-
-import os
-import openai
-
-os.environ["OPENAI_API_KEY"] = "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"
-openai.api_key = os.environ["OPENAI_API_KEY"]
-
-from llama_index.llms import OpenAI
-
-llm = OpenAI(temperature=0.1, model="gpt-3.5-turbo")
-
 
 service_context = ServiceContext.from_defaults(
     chunk_size=1024,
@@ -153,17 +184,50 @@ service_context = ServiceContext.from_defaults(
 
 service_context = ServiceContext.from_defaults(llm=llm, embed_model=embed_model)
 
-from llama_index.query_engine import RetrieverQueryEngine
-query_engine = RetrieverQueryEngine.from_args(
-    retriever, service_context=service_context
+index = VectorStoreIndex.from_vector_store(
+    vector_store,
+    service_context=service_context,
+    storage_context=storage_context,
 )
 
-from llama_index import VectorStoreIndex, SimpleDirectoryReader
-from llama_index.output_parsers import LangchainOutputParser
-from llama_index.llm_predictor import StructuredLLMPredictor
-from llama_index.prompts.prompts import QuestionAnswerPrompt, RefinePrompt
-from llama_index.prompts.default_prompts import DEFAULT_TEXT_QA_PROMPT_TMPL, DEFAULT_REFINE_PROMPT_TMPL
-from langchain.output_parsers import StructuredOutputParser, ResponseSchema
+from llama_index.query_engine import RetrieverQueryEngine
+#query_engine = RetrieverQueryEngine.from_args(
+#    retriever, service_context=service_context
+#)
+query_engine = index.as_query_engine(
+    chroma_collection=chroma_collection,
+    retriever = retriever
+)
+
+
+def get_query_engine(response_schemas):
+    # define output parser
+    lc_output_parser = StructuredOutputParser.from_response_schemas(response_schemas)
+    output_parser = LangchainOutputParser(lc_output_parser)
+
+    # format each prompt with output parser instructions
+    fmt_qa_tmpl = output_parser.format(DEFAULT_TEXT_QA_PROMPT_TMPL)
+    fmt_refine_tmpl = output_parser.format(DEFAULT_REFINE_PROMPT_TMPL)
+    qa_prompt = QuestionAnswerPrompt(fmt_qa_tmpl, output_parser=output_parser)
+    refine_prompt = RefinePrompt(fmt_refine_tmpl, output_parser=output_parser)
+
+    query_engine = RetrieverQueryEngine.from_args(
+        retriever, 
+        service_context=service_context,
+        text_qa_template=qa_prompt,
+        refine_template=refine_prompt,
+    )
+    
+    return query_engine
+
+device_types = [
+    'Motor',
+    'Motor Drive',
+    'PLC CPU',
+    'PLC IO Module System',
+    'PLC IO Module',
+    'Robot Arm'
+]
 
 
 # define output schema
@@ -181,83 +245,124 @@ response_schemas = [document_description,
                     product_name,
                     product_description]
 
-# define output parser
-lc_output_parser = StructuredOutputParser.from_response_schemas(response_schemas)
-output_parser = LangchainOutputParser(lc_output_parser)
-
-# format each prompt with output parser instructions
-fmt_qa_tmpl = output_parser.format(DEFAULT_TEXT_QA_PROMPT_TMPL)
-fmt_refine_tmpl = output_parser.format(DEFAULT_REFINE_PROMPT_TMPL)
-qa_prompt = QuestionAnswerPrompt(fmt_qa_tmpl, output_parser=output_parser)
-refine_prompt = RefinePrompt(fmt_refine_tmpl, output_parser=output_parser)
-
-query_engine = RetrieverQueryEngine.from_args(
-    retriever, 
-    service_context=service_context,
-    text_qa_template=qa_prompt,
-    refine_template=refine_prompt,
-)
+query_engine = get_query_engine(response_schemas)
 
 query_str = "What is this technical document/manual/specification about? What is company name? What is the product name?"
-query_str = "What is specific about iPOS drives? What is it for and what interfaces and protocols it is supporting?"
+response_device = query_engine.query(query_str)
+print(response_device)
+
+# define output schema
+device_type = ResponseSchema(name="device_type",
+                             description="What is the device type from the list {} on the following device description {}?".format(device_types,response_device.response))
+
+response_schemas = [device_type]
+
+query_engine = get_query_engine(response_schemas)
+
+query_str = "What is the device type from the list {} based on the following device description {}?".format(device_types, response_device.response)
 
 response = query_engine.query(query_str)
+print(response)
+####        
+####        # print(str(response))
+####        # Output:
+####        #   ```json
+####        #   {
+####        #   	"document_description": "This is a technical document/manual/specification about iPOS CANopen Programming.",
+####        #   	"company_name": "Technosoft",
+####        #   	"product_name": "iMOT233S XM-CAN 12-48V 1.6 Nm Stepper motor CANopen/TMLCAN",
+####        #   	"product_description": "The iMOT233S XM-CAN is an intelligent stepper motor with an embedded motion controller, position feedback, RS232 and CAN/CANopen interface. It offers high dynamics and efficiency through field-oriented control (FOC) and operates at a voltage range of 12-48 V with a nominal torque of 1.6 Nm. The motor is designed for simple integration in various drive systems and reduces the amount of wiring required for power supply and communication."
+####        #   }
+####        #   ```
+
+interface_types = [
+    'Ethernet',
+    'Ethercat',
+    'RS-232',
+    'CAN'
+]
+
+protocol_types = [
+    'Canopen',
+    'Profinet',
+    'Modbus'
+]
+
+# define output schema
+interfaces = ResponseSchema(name="interfaces",
+                             description="What interfaces is this product {} supporting from the list{}?".format(response_device.response,interface_types))
+specific_information_interfaces = ResponseSchema(name="specific_information_interfaces",
+                                    description="What specific about interfaces that this product supports {}?".format(response_device.response))
+
+response_schemas = [interfaces,
+                    specific_information_interfaces]
+
+query_engine = get_query_engine(response_schemas)
+
+query_str = "What interfaces is this product {} supporting from the list{}?".format(response_device.response,interface_types)
+
+response_interfaces = query_engine.query(query_str)
+print(response_interfaces)
+#   ```json
+#   {
+#   	"interfaces": "CANopen, RS-232",
+#   	"protocols": "TechnoCAN, CiA 301 v4.2 application layer and communication profile, CiA WD 305 v.2.2.130F1 Layer Setting Services, CiA (DSP) 402 v4.0 device profile for drives and motion control, IEC 61800-7-1 Annex A, IEC 61800-7-201, IEC 61800-7-301",
+#   	"specific_information": "Technosoft iPOS drives are intelligent drives that can be programmed using the CANopen protocol. They support the TechnoCAN protocol and conform to various communication profiles and device profiles. The drives can be set up and configured using EasySetup or EasyMotion Studio software. They also have the capability to store setup data in EEPROM and retrieve it at power-on. The drives can be used in distributed control systems and can be programmed using Technosoft Motion Language (TML)."
+#   }
+#   ```
+
+protocols = ResponseSchema(name="protocols",
+                                      description="What communication protocols is this product {} supporting from the list{}?".format(response_device.response, protocol_types))
+specific_information_protocols = ResponseSchema(name="specific_information_protocols",
+                                    description="What specific about communication protocols that this product supports {}?".format(response_device.response))
+
+response_schemas = [protocols,
+                    specific_information_protocols]
+
+query_engine = get_query_engine(response_schemas)
+
+query_str = "What protocols is this product {} supporting from the list{}?".format(response_device.response,protocol_types)
+
+response_protocol = query_engine.query(query_str)
+print(response_protocol)
 
 
-from langchain.output_parsers import ResponseSchema
-from langchain.output_parsers import StructuredOutputParser
+# define output schema
+missing_interfaces = ResponseSchema(name="missing_interfaces",
+                             description="Are there missing interfaces that devive {} is supporting and that are missing on this list?".format(response_device.response,response_interfaces.response))
+response_schemas = [missing_interfaces]
+
+query_engine = get_query_engine(response_schemas)
+
+query_str = "Are there missing interfaces that devive {} is supporting and that are missing on this list?".format(response_device.response,response_interfaces.response)
+
+response_missing_interfaces = query_engine.query(query_str)
+print(response_missing_interfaces)
 
 
-document_description = ResponseSchema(name="document_description",
-                             description="What is this technical document about?")
-company_name = ResponseSchema(name="company_name",
-                                      description="What is company name?")
-product_name = ResponseSchema(name="product_name",
-                                    description="What is the product name?")
-product_description = ResponseSchema(name="product_description",
-                                    description="What is this product about?")
-
-response_schemas = [document_description, 
-                    company_name,
-                    product_name,
-                    product_description]
-
-output_parser = StructuredOutputParser.from_response_schemas(response_schemas)
-format_instructions = output_parser.get_format_instructions()
-print(format_instructions)
-
-review_template_2 = """\
-give a short answer of what this technical document/manual/specification about in form of:
-
-document_description: What is this technical document about?
-
-company_name: What is company name?
-
-product_name: What is the product name?
-
-product_description: What is this product about?
-
-text: {text}
-
-{format_instructions}
-"""
-
-from langchain.prompts import ChatPromptTemplate
-
-prompt = ChatPromptTemplate.from_template(template=review_template_2)
-
-messages = prompt.format_messages(text=query_result.nodes[0].text + query_result.nodes[1].text + query_result.nodes[2].text + query_result.nodes[3].text + query_result.nodes[4].text, 
-                                format_instructions=format_instructions)
-
-text = """'may be reproduced or transmitted in any form or by any means, electrical or mechanical including photocopying, recording or by any information-retrieval system without permission in writing from Technosoft S.A. The information in this document is subject to change without notice. About This Manual This manual describes how to program Technosoft iPOS family of intelligent drives using CANopen protocol. 1 The iPOS drives are conforming to CiA 301 v4.2 application layer and communication profile, CiA WD 305 v.2.2.130F Layer Setting Services and to CiA (DSP) 402 v4.0 device profile for drives and motion control, now included in IEC 61800-7-1 Annex A, IEC 61800-7-201 and IEC 61800-7-301 standards. The manual presents the object dictionary associated with these three profiles. It also explains how to combine the Technosoft Motion Language',
- '2023 10 iPOS CANopen Programming 22.6 Customizing the Drive Reaction to Fault Conditions ......................................... 231 Read This First Whilst Technosoft believes that the information and guidance given in this manual is correct, all parties must rely upon their own skill and judgment when making use of it. Technosoft does not assume any liability to anyone for any loss or damage caused by any error or omission in the work, whether such error or omission is the result of negligence or any other cause. Any and all such liability is disclaimed. All rights reserved. No part or parts of this document may be reproduced or transmitted in any form or by any means, electrical or mechanical including photocopying, recording or by any information-retrieval system without permission in writing from',
- 'Name Object code Data type Access PDO mapping Value range Default value 100Ah Manufacturer software version VAR Visible String Const No No Product dependent 5.8.5 Object 2060h: Software version of a TML application By inspecting this object, the user can find out the software version of the TML application (drive setup plus motion setup and eventually cam tables) that is stored in the EEPROM memory of the drive. The object shows a string of the first 4 elements written in the TML application field, grouped in a 32-bit variable. If more character are written, only the first 4 will be displayed. Each byte represents an ASCII character. Object description: Entry description: Example: Index Name Object code Data type Access PDO mapping Units Value range Default value 2060h Software',
- '1018h: Identity Object This object provides general information about the device. Sub-index 01h shows the unique Vendor ID allocated to Technosoft (1A3h). Sub-index 02h contains the Technosoft drive product ID. It can be found physically on the drive label or in Drive Setup/ Drive info button under the field product ID. If the Technosoft product ID is P027.214.E121, sub-index 02h will be read as the number 27214121 in decimal. Sub-index 03h shows the Revision number. Sub-index 04h shows the drives Serial number. For example the number 0x4C451158 will be 0x4C (ASCII L); 0x45 (ASCII E); 0x1158 --> the serial number will be LE1158. Object description: Entry description: Index Name Object code Data type Sub-index Description Access PDO mapping Value range Default value Sub-index Description Access PDO mapping Value',
-"""
-messages = prompt.format_messages(text=text, 
-                                format_instructions=format_instructions)
-
-from langchain.chat_models import ChatOpenAI
-chat = ChatOpenAI(temperature=0.0, model="gpt-3.5-turbo")
-response = chat(messages)
-print(response.content)
+#   # define output schema
+#   operating_voltage = ResponseSchema(name="operating_voltage",
+#                                description="What is the operating supply voltage?")
+#   digital_inputs = ResponseSchema(name="digital_inputs",
+#                                         description="How many digital inputs is this device {} supporting?".format(response_device))
+#   digital_outputs = ResponseSchema(name="digital_outputs",
+#                                       description="How many digital outputs is this device {} supporting?".format(response_device))
+#   
+#   
+#   response_schemas = [operating_voltage, 
+#                       digital_inputs,
+#                       digital_outputs]
+#   
+#   query_engine = get_query_engine(response_schemas)
+#   
+#   query_str = "What are the operating voltage for this device? How many digital inputs and digital outputs does this device {} has?".format(response_device)
+#   
+#   response_ios = query_engine.query(query_str)
+#   print(response_ios)
+#   #   ```json
+#   #   {
+#   #   	"operating_voltage": "12 - 48 VDC",
+#   #   	"digital_inputs": "5",
+#   #   	"digital_outputs": "2"
+#   #   }
+#   #   ```
