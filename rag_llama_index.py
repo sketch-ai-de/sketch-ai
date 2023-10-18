@@ -1,8 +1,17 @@
-# Examples:
-# python3 rag_llama_index.py -f="docs/ur/ur5e/ur5e_user_manual_en_us.pdf" -u="https://www.universal-robots.com/products/ur5-robot/" -c="ur5e_user_manual_en_us"
-# python3 rag_llama_index.py -f="docs/siemens/s71500_cpu1511_1_pn_manual_en-US_en-US/s71500_cpu1511_1_pn_manual_en-US_en-US.pdf" -u="https://mall.industry.siemens.com/mall/en/WW/Catalog/Product/6ES7511-1AL03-0AB0" -c="s71500_cpu1511_1_pn_manual_en-US_en-US"
-# python3 rag_llama_index.py -f="docs/technosoft/technosoft_ipos_233_canopen/technosoft_ipos_233_canopen.pdf" -u="https://technosoftmotion.com/en/intelligent-motors/\?SingleProduct\=174" -c="technosoft_ipos_233_canopen"
-# python3 rag_llama_index.py -f="docs/siemens/et200sp_system_manual/et200sp_system_manual.pdf" -u="https://mall.industry.siemens.com/mall/en/de/Catalog/Products/10360562\#" -c="et200sp_system_manual"
+# examples:
+#   python3 rag_llama_index.py -f="docs/ur/ur5e/ur5e_user_manual_en_us.pdf" -u="https://www.universal-robots.com/products/ur5-robot/" -c="ur5e_user_manual_en_us"
+#   python3 rag_llama_index.py -f="docs/siemens/s71500_cpu1511_1_pn_manual_en-US_en-US/s71500_cpu1511_1_pn_manual_en-US_en-US.pdf" -u="https://mall.industry.siemens.com/mall/en/WW/Catalog/Product/6ES7511-1AL03-0AB0" -c="s71500_cpu1511_1_pn_manual_en-US_en-US"
+#   python3 rag_llama_index.py -f="docs/technosoft/technosoft_ipos_233_canopen/technosoft_ipos_233_canopen.pdf" -u="https://technosoftmotion.com/en/intelligent-motors/\?SingleProduct\=174" -c="technosoft_ipos_233_canopen"
+#   python3 rag_llama_index.py -f="docs/siemens/et200sp_system_manual/et200sp_system_manual.pdf" -u="https://mall.industry.siemens.com/mall/en/de/Catalog/Products/10360562\#" -c="et200sp_system_manual"
+
+# tbd:
+#   add additional sources
+#   improve sources parser
+#   integrate postgresql or another database
+#   create simple devices representation in database, e.g. device_type table, and populate it
+#   use sql requests to get data from the tables
+#   use sql requests to put data to he tables
+#   improve openai requsts / consider chains
 
 import argparse
 parser = argparse.ArgumentParser(
@@ -18,7 +27,6 @@ args = parser.parse_args()
 from llama_index import QueryBundle
 from llama_index.retrievers import BaseRetriever
 from typing import Any, List
-
 
 from llama_index import ServiceContext
 
@@ -43,21 +51,28 @@ from llama_index.vector_stores import VectorStoreQuery
 from llama_index.schema import NodeWithScore
 from typing import Optional
 
+# load open ai key
 os.environ["OPENAI_API_KEY"] = "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"
 openai.api_key = os.environ["OPENAI_API_KEY"]
 
-embed_model = HuggingFaceEmbedding(model_name="sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2")
+# load embedding model
+model_name = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+print("loading embedded model {}", model_name)
+embed_model = HuggingFaceEmbedding(model_name=model_name)
 
-llm = OpenAI(temperature=0.3, model="gpt-3.5-turbo")
+# define llm and its params
+llm_temperature = 0.3
+llm_model = "gpt-3.5-turbo"
+llm = OpenAI(temperature=llm_temperature, model=llm_model)
 
 from llama_index.text_splitter import SentenceSplitter
 
-from pathlib import Path
 from llama_hub.file.pymu_pdf.base import PyMuPDFReader
 
 # chroma_client = chromadb.EphemeralClient()
 # chroma_collection = chroma_client.create_collection("quickstart")
 
+# load data from different sources to vector database collection
 def load_data_to_db(filename, url, vector_store):
 
     from llama_index import download_loader
@@ -125,6 +140,27 @@ def load_data_to_db(filename, url, vector_store):
         node.embedding = node_embedding
 
     vector_store.add(nodes)
+
+# prepare query engine for the llm request
+def get_query_engine(response_schemas):
+    # define output parser
+    lc_output_parser = StructuredOutputParser.from_response_schemas(response_schemas)
+    output_parser = LangchainOutputParser(lc_output_parser)
+
+    # format each prompt with output parser instructions
+    fmt_qa_tmpl = output_parser.format(DEFAULT_TEXT_QA_PROMPT_TMPL)
+    fmt_refine_tmpl = output_parser.format(DEFAULT_REFINE_PROMPT_TMPL)
+    qa_prompt = QuestionAnswerPrompt(fmt_qa_tmpl, output_parser=output_parser)
+    refine_prompt = RefinePrompt(fmt_refine_tmpl, output_parser=output_parser)
+
+    query_engine = RetrieverQueryEngine.from_args(
+        retriever, 
+        service_context=service_context,
+        text_qa_template=qa_prompt,
+        refine_template=refine_prompt,
+    )
+    
+    return query_engine
 class VectorDBRetriever(BaseRetriever):
     """Retriever over a ChromaVectorStore vector store."""
 
@@ -159,7 +195,8 @@ class VectorDBRetriever(BaseRetriever):
             nodes_with_scores.append(NodeWithScore(node=node, score=score))
 
         return nodes_with_scores
-    
+
+# create vector store and get collection
 import chromadb
 from llama_index.storage.storage_context import StorageContext
 db = chromadb.PersistentClient(path="./chroma_db")
@@ -180,9 +217,8 @@ retriever = VectorDBRetriever(
 service_context = ServiceContext.from_defaults(
     chunk_size=1024,
     llm=llm,
+    embed_model=embed_model
 )
-
-service_context = ServiceContext.from_defaults(llm=llm, embed_model=embed_model)
 
 index = VectorStoreIndex.from_vector_store(
     vector_store,
@@ -191,34 +227,10 @@ index = VectorStoreIndex.from_vector_store(
 )
 
 from llama_index.query_engine import RetrieverQueryEngine
-#query_engine = RetrieverQueryEngine.from_args(
-#    retriever, service_context=service_context
-#)
 query_engine = index.as_query_engine(
     chroma_collection=chroma_collection,
     retriever = retriever
 )
-
-
-def get_query_engine(response_schemas):
-    # define output parser
-    lc_output_parser = StructuredOutputParser.from_response_schemas(response_schemas)
-    output_parser = LangchainOutputParser(lc_output_parser)
-
-    # format each prompt with output parser instructions
-    fmt_qa_tmpl = output_parser.format(DEFAULT_TEXT_QA_PROMPT_TMPL)
-    fmt_refine_tmpl = output_parser.format(DEFAULT_REFINE_PROMPT_TMPL)
-    qa_prompt = QuestionAnswerPrompt(fmt_qa_tmpl, output_parser=output_parser)
-    refine_prompt = RefinePrompt(fmt_refine_tmpl, output_parser=output_parser)
-
-    query_engine = RetrieverQueryEngine.from_args(
-        retriever, 
-        service_context=service_context,
-        text_qa_template=qa_prompt,
-        refine_template=refine_prompt,
-    )
-    
-    return query_engine
 
 device_types = [
     'Motor',
@@ -229,6 +241,18 @@ device_types = [
     'Robot Arm'
 ]
 
+interface_types = [
+    'Ethernet',
+    'Ethercat',
+    'RS-232',
+    'CAN'
+]
+
+protocol_types = [
+    'Canopen',
+    'Profinet',
+    'Modbus'
+]
 
 # define output schema
 document_description = ResponseSchema(name="document_description",
@@ -275,19 +299,6 @@ print(response)
 ####        #   }
 ####        #   ```
 
-interface_types = [
-    'Ethernet',
-    'Ethercat',
-    'RS-232',
-    'CAN'
-]
-
-protocol_types = [
-    'Canopen',
-    'Profinet',
-    'Modbus'
-]
-
 # define output schema
 interfaces = ResponseSchema(name="interfaces",
                              description="What interfaces is this product {} supporting from the list{}?".format(response_device.response,interface_types))
@@ -327,17 +338,17 @@ response_protocol = query_engine.query(query_str)
 print(response_protocol)
 
 
-# define output schema
-missing_interfaces = ResponseSchema(name="missing_interfaces",
-                             description="Are there missing interfaces that devive {} is supporting and that are missing on this list?".format(response_device.response,response_interfaces.response))
-response_schemas = [missing_interfaces]
-
-query_engine = get_query_engine(response_schemas)
-
-query_str = "Are there missing interfaces that devive {} is supporting and that are missing on this list?".format(response_device.response,response_interfaces.response)
-
-response_missing_interfaces = query_engine.query(query_str)
-print(response_missing_interfaces)
+#   # define output schema
+#   missing_interfaces = ResponseSchema(name="missing_interfaces",
+#                                description="Are there missing interfaces that devive {} is supporting and that are missing on this list?".format(response_device.response,response_interfaces.response))
+#   response_schemas = [missing_interfaces]
+#   
+#   query_engine = get_query_engine(response_schemas)
+#   
+#   query_str = "Are there missing interfaces that devive {} is supporting and that are missing on this list?".format(response_device.response,response_interfaces.response)
+#   
+#   response_missing_interfaces = query_engine.query(query_str)
+#   print(response_missing_interfaces)
 
 
 #   # define output schema
