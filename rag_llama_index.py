@@ -434,29 +434,27 @@ print(response_protocol)
 #   print(response_missing_interfaces)
 
 
-#   # define output schema
-#   operating_voltage = ResponseSchema(name="operating_voltage",
-#                                description="What is the operating supply voltage?")
-#   digital_inputs = ResponseSchema(name="digital_inputs",
-#                                         description="How many digital inputs is this device {} supporting?".format(response_device))
-#   digital_outputs = ResponseSchema(name="digital_outputs",
-#                                       description="How many digital outputs is this device {} supporting?".format(response_device))
-#   
-#   
-#   response_schemas = [operating_voltage, 
-#                       digital_inputs,
-#                       digital_outputs]
-#   
-#   query_engine = get_query_engine(response_schemas)
-#   
-#   query_str = "What are the operating voltage for this device? How many digital inputs and digital outputs does this device {} has?".format(response_device)
-#   
-#   response_ios = query_engine.query(query_str)
-#   print(response_ios)
-#   #   ```json
-#   #   {
-#   #   	"operating_voltage": "12 - 48 VDC",
-#   #   	"digital_inputs": "5",
-#   #   	"digital_outputs": "2"
-#   #   }
-#   #   ```
+# define output schema
+operating_voltage_min = ResponseSchema(name="operating_voltage_min",
+                             description="What is the recommended operating supply voltage minimum?")
+
+operating_voltage_max = ResponseSchema(name="operating_voltage_max",
+                             description="What is the recommended operating supply voltage maximum?")
+
+response_schemas = [operating_voltage_min,
+                    operating_voltage_max
+                    ]
+
+query_engine = get_query_engine(response_schemas)
+
+query_str = "What are the minimum and maximum operating supply voltage for this device?".format(response_device.response)
+
+response_voltage = query_engine.query(query_str)
+print(response_voltage)
+#   ```json
+#   {
+#   	"operating_voltage": "12 - 48 VDC",
+#   	"digital_inputs": "5",
+#   	"digital_outputs": "2"
+#   }
+#   ```
