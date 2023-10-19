@@ -66,12 +66,17 @@ os.environ["OPENAI_API_KEY"] = "sk-9hlKqMA6cmOYpaIv5TNDT3BlbkFJlcrUaIYVVacMC6Us8
 openai.api_key = os.environ["OPENAI_API_KEY"]
 
 # load embedding model
+#model_name = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
+model_name = "sentence-transformers/all-MiniLM-L12-v2"
+#model_name = "sentence-transformers/multi-qa-MiniLM-L6-cos-v1"
+
 logger.info("--------------------- Loading embedded model {} \n".format(model_name))
 embed_model = HuggingFaceEmbedding(model_name=model_name)
 
 # define llm and its params
-llm_temperature = 0.3
+llm_temperature = 0.1
 llm_model = "gpt-3.5-turbo"
+#llm_model = "gpt-4"
 logger.info("--------------------- Loading llm model {} \n".format(llm_model))
 llm = OpenAI(temperature=llm_temperature, model=llm_model)
 
