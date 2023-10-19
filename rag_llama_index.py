@@ -27,8 +27,7 @@ args = parser.parse_args()
 
 import logging
 import sys
-logger = logging.getLogger("nameOfTheLogger")
-logger.name = "DefaultLogger"
+logger = logging.getLogger("DefaultLogger")
 streamHandler = logging.StreamHandler(sys.stdout)
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 streamHandler.setFormatter(formatter)
@@ -68,11 +67,11 @@ openai.api_key = os.environ["OPENAI_API_KEY"]
 
 # load embedding model
 #model_name = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
-model_name = "sentence-transformers/all-MiniLM-L12-v2"
+embed_model_name = "sentence-transformers/all-MiniLM-L12-v2"
 #model_name = "sentence-transformers/multi-qa-MiniLM-L6-cos-v1"
 
-logger.info("--------------------- Loading embedded model {} \n".format(model_name))
-embed_model = HuggingFaceEmbedding(model_name=model_name)
+logger.info("--------------------- Loading embedded model {} \n".format(embed_model_name))
+embed_model = HuggingFaceEmbedding(model_name=embed_model_name)
 
 # define llm and its params
 llm_temperature = 0.1
@@ -89,20 +88,20 @@ from llama_hub.file.pymu_pdf.base import PyMuPDFReader
 # chroma_collection = chroma_client.create_collection("quickstart")
 
 def load_documents(filenames, url):    
-    #load url
+    ''' load documents from different sources'''
 
+    #load from url
     from llama_index import download_loader
     ReadabilityWebPageReader = download_loader("ReadabilityWebPageReader")
     # or set proxy server for playwright: loader = ReadabilityWebPageReader(proxy="http://your-proxy-server:port")
     # For some specific web pages, you may need to set "wait_until" to "networkidle". loader = ReadabilityWebPageReader(wait_until="networkidle")
-
     loader_url = ReadabilityWebPageReader()
     documents = []
     if url:
         logger.info("--------------------- Load urls \n")
         documents = loader_url.load_data(url=url)
 
-    # load PDFs
+    # load from PDFs
     loader_pdf = PyMuPDFReader()
     for file in filenames:
         logger.info("--------------------- Load document {} \n".format(file))
@@ -117,11 +116,10 @@ def load_documents(filenames, url):
 
     return documents
 
-# load data from different sources to vector database collection
 def load_documents_to_db(filenames, url, vector_store):
+    '''load data to vector database collection'''
 
     import re
-
     documents = load_documents(filenames, url)
 
     text_splitter = SentenceSplitter(
@@ -130,10 +128,12 @@ def load_documents_to_db(filenames, url, vector_store):
         )
     text_chunks = []
 
+    # old with k=10 was not good for different devices
     sentences = []
     window_size = 128
     step_size = 20
 
+    # new - gives much better results with k=20
     sentences = []
     window_size = 96
     step_size = 76
