@@ -18,7 +18,8 @@ parser = argparse.ArgumentParser(
                     prog='RagLlamaindex',
                     description='Retrieve information from different soures - PDFs and Web-Links'
                     )
-parser.add_argument('-f', '--filename')           # positional argument
+
+parser.add_argument('-fs', '--filenames', nargs='+', default=[])
 parser.add_argument('-u', '--url')      # option that takes a value
 parser.add_argument('-c', '--collection')      # option that takes a value
 
