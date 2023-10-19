@@ -24,6 +24,15 @@ parser.add_argument('-c', '--collection')      # option that takes a value
 
 args = parser.parse_args()
 
+import logging
+import sys
+logger = logging.getLogger("nameOfTheLogger")
+logger.name = "DefaultLogger"
+streamHandler = logging.StreamHandler(sys.stdout)
+formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
+streamHandler.setFormatter(formatter)
+logger.setLevel(logging.DEBUG)
+logger.addHandler(streamHandler)
 from llama_index import QueryBundle
 from llama_index.retrievers import BaseRetriever
 from typing import Any, List
@@ -56,13 +65,13 @@ os.environ["OPENAI_API_KEY"] = "sk-9hlKqMA6cmOYpaIv5TNDT3BlbkFJlcrUaIYVVacMC6Us8
 openai.api_key = os.environ["OPENAI_API_KEY"]
 
 # load embedding model
-model_name = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
-print("loading embedded model {}", model_name)
+logger.info("--------------------- Loading embedded model {} \n".format(model_name))
 embed_model = HuggingFaceEmbedding(model_name=model_name)
 
 # define llm and its params
 llm_temperature = 0.3
 llm_model = "gpt-3.5-turbo"
+logger.info("--------------------- Loading llm model {} \n".format(llm_model))
 llm = OpenAI(temperature=llm_temperature, model=llm_model)
 
 from llama_index.text_splitter import SentenceSplitter
@@ -83,9 +92,10 @@ def load_data_to_db(filename, url, vector_store):
     # For some specific web pages, you may need to set "wait_until" to "networkidle". loader = ReadabilityWebPageReader(wait_until="networkidle")
     loader = ReadabilityWebPageReader()
 
-    #documents = loader.load_data(url=args.link)
-    documents = loader.load_data(url=url)
+        logger.info("--------------------- Load urls \n")
 
+        logger.info("--------------------- Load document {} \n".format(file))
+        doc = loader_pdf.load(file_path=file)
     for doc in documents:
         for key in doc.metadata:
             if doc.metadata[key] is None:
@@ -205,10 +215,10 @@ vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
 storage_context = StorageContext.from_defaults(vector_store=vector_store) 
 
 if len(chroma_collection.get()['ids']) == 0:
-    print("load data to collection")
+    logger.info("--------------------- Load data to collection  \n")
     load_data_to_db(args.filename, args.url, vector_store)
 else:
-    print("data already exist in collection")
+    logger.info("--------------------- Data already exist in collection  \n")
 
 retriever = VectorDBRetriever(
     vector_store, embed_model, query_mode="default", similarity_top_k=10
