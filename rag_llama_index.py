@@ -1,8 +1,8 @@
 # examples:
-#   python3 rag_llama_index.py -f="docs/ur/ur5e/ur5e_user_manual_en_us.pdf" -u="https://www.universal-robots.com/products/ur5-robot/" -c="ur5e_user_manual_en_us"
-#   python3 rag_llama_index.py -f="docs/siemens/s71500_cpu1511_1_pn_manual_en-US_en-US/s71500_cpu1511_1_pn_manual_en-US_en-US.pdf" -u="https://mall.industry.siemens.com/mall/en/WW/Catalog/Product/6ES7511-1AL03-0AB0" -c="s71500_cpu1511_1_pn_manual_en-US_en-US"
-#   python3 rag_llama_index.py -f="docs/technosoft/technosoft_ipos_233_canopen/technosoft_ipos_233_canopen.pdf" -u="https://technosoftmotion.com/en/intelligent-motors/\?SingleProduct\=174" -c="technosoft_ipos_233_canopen"
-#   python3 rag_llama_index.py -f="docs/siemens/et200sp_system_manual/et200sp_system_manual.pdf" -u="https://mall.industry.siemens.com/mall/en/de/Catalog/Products/10360562\#" -c="et200sp_system_manual"
+#   python3 rag_llama_index.py -fs "docs/arduino/uno-rev3/arduino-uno-rev3.pdf" -u="https://store.arduino.cc/products/arduino-uno-rev3" -c="arduino-uno-rev3"
+#   python3 rag_llama_index.py -fs "docs/technosoft/technosoft_ipos_233_canopen/technosoft_ipos_233_canopen.pdf" "docs/technosoft/technosoft_ipos_233_canopen/imot23xs.pdf" -u="https://technosoftmotion.com/en/intelligent-motors/\?SingleProduct\=174" -c="technosoft_ipos_233_canopen"
+#   python3 rag_llama_index.py -fs "docs/raspberry/pi4/raspberry-pi-4-product-brief.pdf" "docs/raspberry/pi4/raspberry-pi-4-datasheet.pdf" -u="https://www.raspberrypi.com/products/raspberry-pi-4-model-b/" -c="raspberry-pi-4-product-brief"
+#   python3 rag_llama_index.py -fs "docs/ur/ur5e/ur5e_user_manual_en_us.pdf" "docs/ur/ur5e/ur5e-fact-sheet.pdf" -u="https://www.universal-robots.com/products/ur5-robot/" -c="ur5e_user_manual_en_us"
 
 # tbd:
 #   add additional sources
