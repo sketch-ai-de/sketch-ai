@@ -125,7 +125,11 @@ def load_documents(filenames, url):
 
     sentences = []
     window_size = 128
-    step_size = 100
+    step_size = 20
+
+    sentences = []
+    window_size = 96
+    step_size = 76
 
     # maintain relationship with source doc index, to help inject doc metadata in (3)
     doc_idxs = []
