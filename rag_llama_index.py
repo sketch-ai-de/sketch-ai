@@ -34,6 +34,7 @@ formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(messag
 streamHandler.setFormatter(formatter)
 logger.setLevel(logging.DEBUG)
 logger.addHandler(streamHandler)
+
 from llama_index import QueryBundle
 from llama_index.retrievers import BaseRetriever
 from typing import Any, List
@@ -116,6 +117,12 @@ def load_documents(filenames, url):
 
     return documents
 
+# load data from different sources to vector database collection
+def load_documents_to_db(filenames, url, vector_store):
+
+    import re
+
+    documents = load_documents(filenames, url)
 
     text_splitter = SentenceSplitter(
         chunk_size=1024,
@@ -196,7 +203,7 @@ class VectorDBRetriever(BaseRetriever):
         vector_store: ChromaVectorStore,
         embed_model: Any,
         query_mode: str = "default",
-        similarity_top_k: int = 10,
+        similarity_top_k: int = 5,
     ) -> None:
         """Init params."""
         self._vector_store = vector_store
@@ -233,12 +240,12 @@ storage_context = StorageContext.from_defaults(vector_store=vector_store)
 
 if len(chroma_collection.get()['ids']) == 0:
     logger.info("--------------------- Load data to collection  \n")
-    load_data_to_db(args.filename, args.url, vector_store)
+    load_documents_to_db(args.filenames, args.url, vector_store)
 else:
     logger.info("--------------------- Data already exist in collection  \n")
 
 retriever = VectorDBRetriever(
-    vector_store, embed_model, query_mode="default", similarity_top_k=10
+    vector_store, embed_model, query_mode="default", similarity_top_k=20
 )
 
 service_context = ServiceContext.from_defaults(
@@ -342,17 +349,6 @@ query_str = "What is the device type from the list {} based on the following dev
 
 response = query_engine.query(query_str)
 print(response)
-####        
-####        # print(str(response))
-####        # Output:
-####        #   ```json
-####        #   {
-####        #   	"document_description": "This is a technical document/manual/specification about iPOS CANopen Programming.",
-####        #   	"company_name": "Technosoft",
-####        #   	"product_name": "iMOT233S XM-CAN 12-48V 1.6 Nm Stepper motor CANopen/TMLCAN",
-####        #   	"product_description": "The iMOT233S XM-CAN is an intelligent stepper motor with an embedded motion controller, position feedback, RS232 and CAN/CANopen interface. It offers high dynamics and efficiency through field-oriented control (FOC) and operates at a voltage range of 12-48 V with a nominal torque of 1.6 Nm. The motor is designed for simple integration in various drive systems and reduces the amount of wiring required for power supply and communication."
-####        #   }
-####        #   ```
 
 # define output schema
 interfaces = ResponseSchema(name="interfaces",
