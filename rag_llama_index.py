@@ -87,30 +87,35 @@ from llama_hub.file.pymu_pdf.base import PyMuPDFReader
 # chroma_client = chromadb.EphemeralClient()
 # chroma_collection = chroma_client.create_collection("quickstart")
 
-# load data from different sources to vector database collection
-def load_data_to_db(filename, url, vector_store):
+def load_documents(filenames, url):    
+    #load url
 
     from llama_index import download_loader
-
     ReadabilityWebPageReader = download_loader("ReadabilityWebPageReader")
-
     # or set proxy server for playwright: loader = ReadabilityWebPageReader(proxy="http://your-proxy-server:port")
     # For some specific web pages, you may need to set "wait_until" to "networkidle". loader = ReadabilityWebPageReader(wait_until="networkidle")
-    loader = ReadabilityWebPageReader()
 
+    loader_url = ReadabilityWebPageReader()
+    documents = []
+    if url:
         logger.info("--------------------- Load urls \n")
+        documents = loader_url.load_data(url=url)
 
+    # load PDFs
+    loader_pdf = PyMuPDFReader()
+    for file in filenames:
         logger.info("--------------------- Load document {} \n".format(file))
         doc = loader_pdf.load(file_path=file)
+        documents = documents + doc
+    
+    # remove fields having value None -> cause error
     for doc in documents:
         for key in doc.metadata:
             if doc.metadata[key] is None:
                 doc.metadata[key] = 0
 
-    loader = PyMuPDFReader()
-    file = filename
-    documents2 = loader.load(file_path=file)
-    documents = documents + documents2
+    return documents
+
 
     text_splitter = SentenceSplitter(
         chunk_size=1024,
