@@ -142,6 +142,8 @@ def load_documents(filenames, url):
                 break
             sentences.append(window)
         paragraphs = [" ".join(s) for s in sentences]
+        for i, p in enumerate(paragraphs):
+            paragraphs[i] = re.sub(r'\.+', ".", p) # remove dots
         #text_chunks.extend(paragraphs)
         text_chunks = paragraphs
         doc_idxs.extend([doc_idx] * len(paragraphs))
