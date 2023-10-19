@@ -307,6 +307,29 @@ query_str = "What is this technical document/manual/specification about? What is
 response_device = query_engine.query(query_str)
 print(response_device)
 
+#    gpt3.5-turbo:
+#   ```json
+#   {
+#   	"document_description": "This technical document is a manual for the iPOS 233 CANopen drive.",
+#   	"company_name": "Technosoft",
+#   	"product_name": "iPOS 233 CANopen",
+#   	"product_description": "The iPOS 233 CANopen is a drive/motor system that offers various features such as integrated 
+#           absolute position sensor, over-current and over-temperature protection, data acquisition capabilities, and multiple h/w addresses."
+#   }
+#   ```
+#   gpt4 output:
+#     ```json
+#     {
+#     	"document_description": "This technical document appears to be a manual or specification for a drive or motor controller, detailing 
+#           its various modes of operation, input and output specifications, and various other technical details.",
+#     	"company_name": "Technosoft",
+#     	"product_name": "iPOS 233 CANopen",
+#     	"product_description": "The iPOS 233 CANopen is a drive or motor controller. It features digital and analogue I/Os, 
+#           integrated absolute position sensor, protections such as over-current and over-temperature, and has hardware addresses 
+#           selectable by hex switch. It also has SRAM for data acquisition and E2ROM for motion programs and data storage."
+#     }
+#      ```
+
 # define output schema
 device_type = ResponseSchema(name="device_type",
                              description="What is the device type from the list {} on the following device description {}?".format(device_types,response_device.response))
@@ -346,13 +369,25 @@ query_str = "What interfaces is this product {} supporting from the list{}?".for
 
 response_interfaces = query_engine.query(query_str)
 print(response_interfaces)
+#    gpt3.5-turbo:
 #   ```json
 #   {
-#   	"interfaces": "CANopen, RS-232",
-#   	"protocols": "TechnoCAN, CiA 301 v4.2 application layer and communication profile, CiA WD 305 v.2.2.130F1 Layer Setting Services, CiA (DSP) 402 v4.0 device profile for drives and motion control, IEC 61800-7-1 Annex A, IEC 61800-7-201, IEC 61800-7-301",
-#   	"specific_information": "Technosoft iPOS drives are intelligent drives that can be programmed using the CANopen protocol. They support the TechnoCAN protocol and conform to various communication profiles and device profiles. The drives can be set up and configured using EasySetup or EasyMotion Studio software. They also have the capability to store setup data in EEPROM and retrieve it at power-on. The drives can be used in distributed control systems and can be programmed using Technosoft Motion Language (TML)."
+#   	"interfaces": ["CAN"],
+#   	"specific_information_interfaces": "The iPOS 233 CANopen drive supports the CAN interface. 
+#           It also has digital inputs (IN0, IN1, IN2/LSP, IN3/LSN, Enable) and digital outputs (OUT0, OUT1) for general-purpose use."
 #   }
 #   ```
+#   
+#   gpt4 output
+#   ```json
+#   {
+#   	"interfaces": "RS-232, CAN",
+#   	"specific_information_interfaces": "The iPOS 233 CANopen supports RS-232 and CAN interfaces. 
+#           The RS-232 interface has a software selectable bit rate between 9600 and 115200 Baud. 
+#           The CAN interface complies with ISO11898 and CiA 402v3.0, with a software selectable bit rate between 125 and 1000 Kbps."
+#   }
+#   ```
+
 
 protocols = ResponseSchema(name="protocols",
                                       description="What communication protocols is this product {} supporting from the list{}?".format(response_device.response, protocol_types))
@@ -368,6 +403,22 @@ query_str = "What protocols is this product {} supporting from the list{}?".form
 
 response_protocol = query_engine.query(query_str)
 print(response_protocol)
+
+#   gpt3.5-turbo: 
+#   ```json
+#   {
+#   	"protocols": "Canopen",
+#   	"specific_information_protocols": "The iPOS 233 CANopen drive supports the CANopen protocol for communication."
+#   }
+#   ```
+#   
+#   gpt4 output:
+#   ```json
+#   {
+#   	"protocols": "Canopen",
+#   	"specific_information_protocols": "The iPOS 233 CANopen supports the TMLCAN and CANopen (CiA 402 v3.0) protocols, which are selectable by a hardware pin. It does not support Profinet or Modbus protocols."
+#   }
+#   ```
 
 
 #   # define output schema
