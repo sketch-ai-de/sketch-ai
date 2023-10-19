@@ -265,14 +265,19 @@ device_types = [
     'PLC CPU',
     'PLC IO Module System',
     'PLC IO Module',
-    'Robot Arm'
+    'Robot Arm',
+    'Microcontroller Board'
 ]
 
 interface_types = [
     'Ethernet',
     'Ethercat',
     'RS-232',
-    'CAN'
+    'CAN',
+    'Bluetooth',
+    'LTE',
+    'USB',
+    'Wireless LAN / WLAN'
 ]
 
 protocol_types = [
