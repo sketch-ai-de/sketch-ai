@@ -62,8 +62,9 @@ from llama_index.schema import NodeWithScore
 from typing import Optional
 
 # load open ai key
-os.environ["OPENAI_API_KEY"] = "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"
-openai.api_key = os.environ["OPENAI_API_KEY"]
+from dotenv import load_dotenv
+load_dotenv()
+openai.api_key = os.getenv("OPENAI_API_KEY")
 
 # load embedding model
 #model_name = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
