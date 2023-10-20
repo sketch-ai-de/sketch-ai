@@ -23,4 +23,4 @@ pip install -r requirements.txt
 
 ## Use
 
-see examples in ```rag_llama_index.py``````
+see examples in ```rag_llama_index.py```
