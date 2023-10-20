@@ -2,3 +2,4 @@ llama-index
 llama-hub
 openai
 langchain
+chromadb
