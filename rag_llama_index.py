@@ -83,7 +83,8 @@ embed_model = HuggingFaceEmbedding(model_name=embed_model_name)
 # define llm and its params
 llm_temperature = 0.1
 llm_model = "gpt-3.5-turbo"
-#llm_model = "gpt-4"
+#llm_model = "gpt-3.5-turbo-instruct" # not good - responces are too unprecise
+#llm_model = "gpt-4" # good responces but way too expencive
 logger.info("--------------------- Loading llm model {} \n".format(llm_model))
 llm = OpenAI(temperature=llm_temperature, model=llm_model)
 
