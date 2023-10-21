@@ -92,6 +92,7 @@ from llama_index.text_splitter import SentenceSplitter
 
 from llama_hub.file.pymu_pdf.base import PyMuPDFReader
 
+import re 
 # chroma_client = chromadb.EphemeralClient()
 # chroma_collection = chroma_client.create_collection("quickstart")
 
@@ -158,7 +159,7 @@ def load_documents_to_db(filenames, url, vector_store):
             sentences.append(window)
         paragraphs = [" ".join(s) for s in sentences]
         for i, p in enumerate(paragraphs):
-            paragraphs[i] = re.sub(r'\.+', ".", p) # remove dots
+            paragraphs[i] = re.sub(r'\.\.\.\.+', " ", p) # remove dots
         #text_chunks.extend(paragraphs)
         text_chunks = paragraphs
         doc_idxs.extend([doc_idx] * len(paragraphs))
@@ -320,6 +321,8 @@ query_engine = get_query_engine(response_schemas)
 
 query_str = "What is this technical document/manual/specification about? What is company name? What is the product name?"
 response_device = query_engine.query(query_str)
+
+response_device_dict = json.loads(re.sub(r'json', "", re.sub(r'```', "", response_device.response)))
 print(response_device)
 
 #    gpt3.5-turbo:
@@ -355,8 +358,9 @@ query_engine = get_query_engine(response_schemas)
 
 query_str = "What is the device type from the list {} based on the following device description {}?".format(device_types, response_device.response)
 
-response = query_engine.query(query_str)
-print(response)
+response_device_type = query_engine.query(query_str)
+response_device_type_dict = json.loads(re.sub(r'json', "", re.sub(r'```', "", response_device_type.response)))
+print(response_device_type_dict)
 
 # define output schema
 interfaces = ResponseSchema(name="interfaces",
