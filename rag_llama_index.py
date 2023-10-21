@@ -135,7 +135,6 @@ def load_documents(filenames, url):
 def load_documents_to_db(filenames, url, vector_store):
     '''load data to vector database collection'''
 
-    import re
     documents = load_documents(filenames, url)
 
     text_splitter = SentenceSplitter(
