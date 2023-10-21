@@ -392,16 +392,21 @@ print(response_device_type_dict)
 
 # define output schema
 interfaces = ResponseSchema(name="interfaces",
-                             description="What interfaces is this product {} supporting from the list{}?".format(response_device.response,interface_types))
+                             description="What interfaces is this product {} supporting?".format(response_device.response),
+                             type = "list")
+interfaces_choices = ResponseSchema(name="interfaces_choices",
+                             description="Select zero, one or multiple only and only from this list {}".format(interface_types),
+                             type = "list")
 specific_information_interfaces = ResponseSchema(name="specific_information_interfaces",
                                     description="What specific about interfaces that this product supports {}?".format(response_device.response))
 
 response_schemas = [interfaces,
+                    interfaces_choices,
                     specific_information_interfaces]
 
 query_engine = get_query_engine(response_schemas)
 
-query_str = "What interfaces is this product {} supporting from the list{}?".format(response_device.response,interface_types)
+query_str = "What interfaces is this product {} supporting? Select zero, one or multiple from the list {}.".format(response_device.response,interface_types)
 
 response_interfaces = query_engine.query(query_str)
 print(response_interfaces)
@@ -426,16 +431,22 @@ print(response_interfaces)
 
 
 protocols = ResponseSchema(name="protocols",
-                                      description="What communication protocols is this product {} supporting from the list{}?".format(response_device.response, protocol_types))
+                           description="What communication protocols is this product {} supporting? ".format(response_device.response),
+                           type = "list")
 specific_information_protocols = ResponseSchema(name="specific_information_protocols",
                                     description="What specific about communication protocols that this product supports {}?".format(response_device.response))
 
+protocols_choices = ResponseSchema(name="protocols_choices",
+                             description="Select zero, one or multiple only and only from this list {}".format(protocol_types),
+                             type = "list")
+
 response_schemas = [protocols,
+                    protocols_choices,
                     specific_information_protocols]
 
 query_engine = get_query_engine(response_schemas)
 
-query_str = "What protocols is this product {} supporting from the list{}?".format(response_device.response,protocol_types)
+query_str = "What protocols is this product {} supporting? Select zero, one or multiple from the list {}.".format(response_device.response,protocol_types)
 
 response_protocol = query_engine.query(query_str)
 print(response_protocol)
@@ -470,6 +481,27 @@ print(response_protocol)
 #   print(response_missing_interfaces)
 
 
+serial_communication = ResponseSchema(name="serial_connection",
+                                      description="What serial protocols is this product {} supporting?".format(response_device.response),
+                                      type = "list")
+specific_information_serial_communication = ResponseSchema(name="specific_information_protocols",
+                                    description="What specific about serial protocols that this product supports {}?".format(response_device.response))
+
+serial_communication_choices = ResponseSchema(name="serial_communication_choices",
+                             description="Select zero, one or multiple only and only from this list {}".format(serial_connection_types),
+                             type = "list")
+
+response_schemas = [serial_communication,
+                    serial_communication_choices,
+                    specific_information_serial_communication]
+
+query_engine = get_query_engine(response_schemas)
+
+query_str = "What serial protocols is this product {} supporting? ".format(response_device.response)
+
+response_serial_communication = query_engine.query(query_str)
+print(response_serial_communication)
+
 # define output schema
 operating_voltage_min = ResponseSchema(name="operating_voltage_min",
                              description="What is the recommended operating supply voltage minimum?")
@@ -483,7 +515,7 @@ response_schemas = [operating_voltage_min,
 
 query_engine = get_query_engine(response_schemas)
 
-query_str = "What are the minimum and maximum operating supply voltage for this device?".format(response_device.response)
+query_str = "What are the minimum and maximum operating supply voltage for this device {}?".format(response_device.response)
 
 response_voltage = query_engine.query(query_str)
 print(response_voltage)
@@ -494,3 +526,28 @@ print(response_voltage)
 #   	"digital_outputs": "2"
 #   }
 #   ```
+
+def ask_robot_specs():
+    payload = ResponseSchema(name="payload",
+                             description="What is the robots maximum payload?")
+
+    reach = ResponseSchema(name="reach",
+                                 description="What is reach of the robots end-effector?")
+    
+    workspace_coverage = ResponseSchema(name="reach",
+                                 description="What is the robots workspace_coverage?")
+
+    response_schemas = [payload,
+                        reach,
+                        workspace_coverage
+                        ]
+
+    query_engine = get_query_engine(response_schemas)
+
+    query_str = "What are the specifications as payload, reach and workspace coverage for the device {} with the description?".format(response_device_type_dict["device_type"], response_device.response)
+
+    response_voltage = query_engine.query(query_str)
+    print(response_voltage)
+
+if response_device_type_dict["device_type"] == "Robot Arm":
+    ask_robot_specs()
