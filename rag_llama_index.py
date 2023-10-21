@@ -7,11 +7,17 @@
 # tbd:
 #   add additional sources
 #   improve sources parser
-#   integrate postgresql or another database
-#   create simple devices representation in database, e.g. device_type table, and populate it
-#   use sql requests to get data from the tables
-#   use sql requests to put data to he tables
+#       -> better parsing of the web pages and PDF
+#   DB integration
+#      integrate postgresql or another database
+#       create simple devices representation in database, e.g. device_type table, and populate it
+#       use sql requests to get data from the tables
+#       use sql requests to put data to he tables
+#        metadata filtering
 #   improve openai requsts / consider chains
+#       -> e.g. if device=robot get this and this data
+#       -> if another type, e.g. inductive sensor ask for another data
+
 
 import argparse
 parser = argparse.ArgumentParser(
