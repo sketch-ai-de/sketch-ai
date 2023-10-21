@@ -29,6 +29,8 @@ parser = argparse.ArgumentParser(
 parser.add_argument("-fs", "--filenames", nargs="+", default=[])
 parser.add_argument("-u", "--url")  # option that takes a value
 parser.add_argument("-c", "--collection")  # option that takes a value
+parser.add_argument("-k", "--similarity_top_k", default=3)  # option that takes a value
+
 
 args = parser.parse_args()
 
@@ -102,6 +104,8 @@ from llama_hub.file.pymu_pdf.base import PyMuPDFReader
 
 import re
 import json
+from llmsherpa.readers import LayoutPDFReader
+
 
 # chroma_client = chromadb.EphemeralClient()
 # chroma_collection = chroma_client.create_collection("quickstart")
@@ -131,10 +135,12 @@ def load_documents(filenames, url):
 
     # load from PDFs
     loader_pdf = PyMuPDFReader()
+    llmsherpa_api_url = "https://readers.llmsherpa.com/api/document/developer/parseDocument?renderFormat=all"
+    pdf_reader = LayoutPDFReader(llmsherpa_api_url)
     for file in filenames:
         logger.info("--------------------- Load document {} \n".format(file))
-        doc = loader_pdf.load(file_path=file)
-        documents = documents + doc
+        # doc = loader_pdf.load(file_path=file)
+        doc_sherpa = pdf_reader.read_pdf(file)
 
     # remove fields having value None -> cause error
     for doc in documents:
@@ -142,13 +148,13 @@ def load_documents(filenames, url):
             if doc.metadata[key] is None:
                 doc.metadata[key] = 0
 
-    return documents
+    return documents, doc_sherpa
 
 
 def load_documents_to_db(filenames, url, vector_store):
     """load data to vector database collection"""
 
-    documents = load_documents(filenames, url)
+    documents, doc_sherpa = load_documents(filenames, url)
 
     text_splitter = SentenceSplitter(
         chunk_size=1024,
@@ -194,6 +200,12 @@ def load_documents_to_db(filenames, url, vector_store):
         node.metadata = src_doc.metadata
         nodes.append(node)
 
+    # add from sherpas pdf rearder
+    from llama_index.readers.schema.base import Document
+
+    for chunk in doc_sherpa.chunks():
+        nodes.append(Document(text=chunk.to_context_text(), extra_info={}))
+
     for node in nodes:
         node_embedding = embed_model.get_text_embedding(
             node.get_content(metadata_mode="all")
@@ -219,7 +231,7 @@ def get_query_engine(response_schemas):
         retriever,
         service_context=service_context,
         text_qa_template=qa_prompt,
-        refine_template=refine_prompt,
+        # refine_template=refine_prompt,
     )
 
     return query_engine
@@ -277,7 +289,10 @@ else:
     logger.info("--------------------- Data already exist in collection  \n")
 
 retriever = VectorDBRetriever(
-    vector_store, embed_model, query_mode="default", similarity_top_k=20
+    vector_store,
+    embed_model,
+    query_mode="default",
+    similarity_top_k=int(args.similarity_top_k),
 )
 
 service_context = ServiceContext.from_defaults(
