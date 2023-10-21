@@ -3,3 +3,7 @@ llama-hub
 openai
 langchain
 chromadb
+transformers
+torch
+pymupdf
+frontend
