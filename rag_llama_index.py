@@ -289,12 +289,14 @@ device_types = [
     'PLC IO Module System',
     'PLC IO Module',
     'Robot Arm',
-    'Microcontroller Board'
+    'Microcontroller Board',
+    'Inductive Sensor',
+    'Computer'
 ]
 
 interface_types = [
     'Ethernet',
-    'Ethercat',
+    'EtherCAT',
     'RS-232',
     'CAN',
     'Bluetooth',
@@ -304,10 +306,29 @@ interface_types = [
 ]
 
 protocol_types = [
-    'Canopen',
+    'CANopen',
     'Profinet',
-    'Modbus'
+    'Modbus',
+    'EtherNet/IP',
+    'Profibus', 
+    'IO-Link'
 ]
+
+motor_types = [
+    'Stepper motor',
+    'DC motor',
+    'Brushless DC motor / BLDC',
+    'Servomotor'
+]
+
+serial_connection_types = [
+    'I2C / IIC',
+    '1-Wire',
+    'SPI',
+    'UART',
+    'RS-232'
+]
+
 
 # define output schema
 document_description = ResponseSchema(name="document_description",
