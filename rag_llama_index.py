@@ -117,21 +117,24 @@ def load_documents(filenames, url):
     # load from url
     from llama_index import download_loader
     from langchain.document_loaders import WebBaseLoader
+    from llama_index import Document
 
     ReadabilityWebPageReader = download_loader("ReadabilityWebPageReader")
     # or set proxy server for playwright: loader = ReadabilityWebPageReader(proxy="http://your-proxy-server:port")
     # For some specific web pages, you may need to set "wait_until" to "networkidle". loader = ReadabilityWebPageReader(wait_until="networkidle")
     loader_url = ReadabilityWebPageReader()
-    documents = []
+    url_docs = []
     if url:
         logger.info("--------------------- Load urls \n")
-        loader_url_lang = WebBaseLoader(url)
-        data = loader_url_lang.load()
-        doc = loader_url.load_data(url=url)
-        doc[0].text = (
-            doc[0].text + data[0].page_content
-        )  # add information from different url reader
-        documents = documents + doc
+        # loader_url_lang = WebBaseLoader(url)
+        # data = loader_url_lang.load()
+        url_docs = loader_url.load_data(url=url)
+        url_docs[0].metadata["file_path"] = url
+        t = re.sub("\n\n", " ", url_docs[0].text)
+        url_docs[0].text = t
+        # url_docs.append(
+        #    Document(text=data[0].page_content)
+        # )  # add information from different url reader
 
     # load from PDFs
     loader_pdf = PyMuPDFReader()
