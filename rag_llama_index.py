@@ -179,34 +179,68 @@ def load_documents_to_db(
     sentences = []
     window_size = 96
     step_size = 76
+    # window_size = 64
+    # step_size = 20
 
     # maintain relationship with source doc index, to help inject doc metadata in (3)
     doc_idxs = []
-    for doc_idx, doc in enumerate(documents):
-        # cur_text_chunks = text_splitter.split_text(" ".join(doc.text.split()))#text_splitter.split_text(doc.text)
-        text_tokens = doc.text.split()
-        for i in range(0, len(text_tokens), step_size):
-            window = text_tokens[i : i + window_size]
-            if len(window) < window_size:
-                break
-            sentences.append(window)
-        paragraphs = [" ".join(s) for s in sentences]
-        for i, p in enumerate(paragraphs):
-            paragraphs[i] = re.sub(r"\.\.\.\.+", " ", p)  # remove dots
-        # text_chunks.extend(paragraphs)
-        text_chunks = paragraphs
-        doc_idxs.extend([doc_idx] * len(paragraphs))
-
-    from llama_index.schema import TextNode
-
     nodes = []
-    for idx, text_chunk in enumerate(text_chunks):
-        node = TextNode(
-            text=text_chunk,
+    if not sherpa_pdf and not sherpa_table:
+        logger.info("--------------------- Process normal PDF \n")
+        qa_prompt = PromptTemplate(
+            """\
+            read this PDF page and prepare a detailed summary of it. Start each sentence with new line. Retain all the technical specification data.
+            PDF page: '{pdf_page}'
+            Answer: \
+            """
         )
-        src_doc = documents[doc_idxs[idx]]
-        node.metadata = src_doc.metadata
-        nodes.append(node)
+        from llama_index.schema import TextNode
+
+        for doc_idx, doc in enumerate(documents):
+            if len(doc.text) > 200:
+                logger.info(
+                    "--------------------- Ask LLM to summarize page {page} from PDF {pdf} \n".format(
+                        page=doc_idx, pdf=doc.metadata["file_path"]
+                    )
+                )
+                fmt_qa_prompt = qa_prompt.format(pdf_page=doc.text)
+                response = llm.complete(fmt_qa_prompt)
+                for line in response.text.splitlines():
+                    src_doc = documents[doc_idx]
+                    node = TextNode(
+                        text=line,
+                    )
+                    node.metadata = src_doc.metadata
+                    nodes.append(node)
+                    print("text:::::::::::::::::::::::::::::::::::\n", line)
+
+        # for doc_idx, doc in enumerate(documents):
+        #     # cur_text_chunks = text_splitter.split_text(" ".join(doc.text.split()))#text_splitter.split_text(doc.text)
+        #     text_tokens = doc.text.split()
+        #     for i in range(0, len(text_tokens), step_size):
+        #         window = text_tokens[i : i + window_size]
+        #         if len(window) < window_size:
+        #             break
+        #         sentences.append(window)
+        #     paragraphs = [" ".join(s) for s in sentences]
+        #     for i, p in enumerate(paragraphs):
+        #         pp = re.sub(r"\.\.\.\.+", " ", p)  # remove dots
+        #         paragraphs[i] = re.sub(r"\. \. \. \. +", " ", pp)  # remove dots
+        #         if "cookie" in paragraphs[i]:  # remove paragraphs with word cookie
+        #             paragraphs[i] = ""
+        #     # text_chunks.extend(paragraphs)
+        #     text_chunks = paragraphs
+        #     doc_idxs.extend([doc_idx] * len(paragraphs))
+    #
+    # from llama_index.schema import TextNode
+    #
+    # for idx, text_chunk in enumerate(text_chunks):
+    #     node = TextNode(
+    #         text=text_chunk,
+    #     )
+    #     src_doc = documents[doc_idxs[idx]]
+    #     node.metadata = src_doc.metadata
+    #     nodes.append(node)
 
     # add from sherpas pdf rearder
     from llama_index.readers.schema.base import Document
