@@ -315,7 +315,7 @@ def load_documents_to_db(
 
 
 # prepare query engine for the llm request
-def get_query_engine(response_schemas):
+def get_query_engine(response_schemas, retriever):
     # define output parser
     lc_output_parser = StructuredOutputParser.from_response_schemas(response_schemas)
     output_parser = LangchainOutputParser(lc_output_parser)
