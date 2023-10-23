@@ -140,10 +140,13 @@ def load_documents(filenames, url):
     loader_pdf = PyMuPDFReader()
     llmsherpa_api_url = "https://readers.llmsherpa.com/api/document/developer/parseDocument?renderFormat=all"
     pdf_reader = LayoutPDFReader(llmsherpa_api_url)
+    pdf_docs = []
+    pdf_docs_sherpa = []
     for file in filenames:
-        logger.info("--------------------- Load document {} \n".format(file))
-        # doc = loader_pdf.load(file_path=file)
-        doc_sherpa = pdf_reader.read_pdf(file)
+        logger.info("--------------------- Load local PDF document {} \n".format(file))
+        pdf_docs.append(loader_pdf.load(file_path=file))
+        logger.info("--------------------- Ask Sherpa to analyze PDF document\n")
+        pdf_docs_sherpa.append(pdf_reader.read_pdf(file))
 
     # remove fields having value None -> cause error
     for doc in documents:
