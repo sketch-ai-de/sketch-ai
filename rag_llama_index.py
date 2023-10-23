@@ -149,12 +149,12 @@ def load_documents(filenames, url):
         pdf_docs_sherpa.append(pdf_reader.read_pdf(file))
 
     # remove fields having value None -> cause error
-    for doc in documents:
+    for doc in url_docs:
         for key in doc.metadata:
             if doc.metadata[key] is None:
                 doc.metadata[key] = 0
 
-    return documents, doc_sherpa
+    return url_docs, pdf_docs, pdf_docs_sherpa
 
 
 def load_documents_to_db(filenames, url, vector_store):
