@@ -157,7 +157,9 @@ def load_documents(filenames, url):
     return url_docs, pdf_docs, pdf_docs_sherpa
 
 
-def load_documents_to_db(filenames, url, vector_store):
+def load_documents_to_db(
+    llm, vector_store, documents, sherpa_pdf=False, sherpa_table=False
+):
     """load data to vector database collection"""
 
     documents, doc_sherpa = load_documents(filenames, url)
