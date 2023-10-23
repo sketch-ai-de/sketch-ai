@@ -395,20 +395,17 @@ class VectorDBRetriever(BaseRetriever):
         return nodes_with_scores[0:30]
 
 
-# create vector store and get collection
-import chromadb
-from llama_index.storage.storage_context import StorageContext
+def get_collection_from_db(collection):
+    # create vector store and get collection
+    import chromadb
+    from llama_index.storage.storage_context import StorageContext
 
-db = chromadb.PersistentClient(path="./chroma_db")
-chroma_collection = db.get_or_create_collection(args.collection)
-vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
-storage_context = StorageContext.from_defaults(vector_store=vector_store)
+    db = chromadb.PersistentClient(path="./chroma_db")
+    chroma_collection = db.get_or_create_collection(collection)
+    vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
+    storage_context = StorageContext.from_defaults(vector_store=vector_store)
 
-if len(chroma_collection.get()["ids"]) == 0:
-    logger.info("--------------------- Load data to collection  \n")
-    load_documents_to_db(args.filenames, args.url, vector_store)
-else:
-    logger.info("--------------------- Data already exist in collection  \n")
+    return vector_store, storage_context, chroma_collection
 
 retriever = VectorDBRetriever(
     vector_store,
