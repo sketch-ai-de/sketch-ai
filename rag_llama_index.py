@@ -407,6 +407,7 @@ def get_collection_from_db(collection):
 
     return vector_store, storage_context, chroma_collection
 
+
 def create_collection_dict(filenames, url, collection_name):
     url_docs, pdf_docs, pdf_docs_sherpa = load_documents(filenames, url)
     collection_dict = {}
