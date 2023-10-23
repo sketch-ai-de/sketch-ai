@@ -436,6 +436,52 @@ def create_collection_dict(filenames, url, collection_name):
     #        )
 
     return collection_dict
+
+
+collection_dict = create_collection_dict(args.filenames, args.url, args.collection)
+
+# print(collection_dict)
+
+vector_stores = []
+
+for coll_name in collection_dict.keys():
+    vector_store, storage_context, chroma_collection = get_collection_from_db(coll_name)
+
+    sherpa_pdf = False
+    sherpa_table = False
+
+    if "_pdf_sherpa_" in coll_name and not "_pdf_sherpa_table_" in coll_name:
+        sherpa_pdf = True
+        sherpa_table = False
+    if "_pdf_sherpa_table_" in coll_name:
+        sherpa_table = True
+        sherpa_pdf = False
+    if len(chroma_collection.get()["ids"]) == 0:
+        logger.info("--------------------- Load data to collection  \n")
+        print(
+            "*******************************coll_name, sherpa_table, sherpa_pdf: ",
+            coll_name,
+            sherpa_table,
+            sherpa_pdf,
+        )
+        load_documents_to_db(
+            llm,
+            vector_store,
+            collection_dict[coll_name],
+            sherpa_pdf=sherpa_pdf,
+            sherpa_table=sherpa_table,
+        )
+    else:
+        logger.info("--------------------- Data already exist in collection  \n")
+
+    vector_stores.append(vector_store)
+
+for v in vector_stores:
+    print(
+        "vector_stores client --------------------------------------------------\n",
+        v.client,
+    )
+
 retriever = VectorDBRetriever(
     vector_store,
     embed_model,
