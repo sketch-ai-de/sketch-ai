@@ -521,8 +521,9 @@ device_types = [
 interface_types = [
     "Ethernet",
     "EtherCAT",
-    "RS-232",
-    "CAN",
+    "Recommended Standard RS-232",
+    "Recommended Standard RS-485",
+    "CAN Bus",
     "Bluetooth",
     "LTE",
     "USB",
