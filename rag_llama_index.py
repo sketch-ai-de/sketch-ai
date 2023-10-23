@@ -407,6 +407,35 @@ def get_collection_from_db(collection):
 
     return vector_store, storage_context, chroma_collection
 
+def create_collection_dict(filenames, url, collection_name):
+    url_docs, pdf_docs, pdf_docs_sherpa = load_documents(filenames, url)
+    collection_dict = {}
+    collection_dict[collection_name + "_url1"] = [url_docs[0]]
+    # collection_dict[collection_name + "_url2"] = [url_docs[1]]
+    for idx, name in enumerate(filenames):
+        for i in range(len(pdf_docs[0])):
+            collection_dict[collection_name + "_pdf_" + str(idx) + str(i)] = [
+                pdf_docs[idx][i]
+            ]
+        # collection_dict[collection_name + "_pdf_sherpa_" + str(idx)] = pdf_docs_sherpa[
+        #    idx
+        # ]
+        for table_id, table in enumerate(pdf_docs_sherpa[idx].tables()):
+            collection_dict[
+                collection_name + "_pdf_sherpa_table_" + str(idx) + str(table_id)
+            ] = pdf_docs_sherpa[idx].tables()[table_id]
+    #    collection_dict[collection_name + "_pdf_sherpa_" + str(idx)] = []
+    #    collection_dict[collection_name + "_pdf_sherpa_table_" + str(idx)] = []
+    #    for chunk in pdf_docs_sherpa[idx].chunks():
+    #        collection_dict[collection_name + "_pdf_sherpa_" + str(idx)].append(
+    #            chunk.to_context_text()
+    #        )
+    #    for table in pdf_docs_sherpa[idx].tables():
+    #        collection_dict[collection_name + "_pdf_sherpa_table_" + str(idx)].append(
+    #            table.to_context_text()
+    #        )
+
+    return collection_dict
 retriever = VectorDBRetriever(
     vector_store,
     embed_model,
