@@ -29,7 +29,7 @@ parser = argparse.ArgumentParser(
 parser.add_argument("-fs", "--filenames", nargs="+", default=[])
 parser.add_argument("-u", "--url")  # option that takes a value
 parser.add_argument("-c", "--collection")  # option that takes a value
-parser.add_argument("-k", "--similarity_top_k", default=3)  # option that takes a value
+parser.add_argument("-k", "--similarity_top_k", default=10)  # option that takes a value
 
 
 args = parser.parse_args()
