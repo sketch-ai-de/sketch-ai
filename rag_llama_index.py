@@ -245,8 +245,65 @@ def load_documents_to_db(
     # add from sherpas pdf rearder
     from llama_index.readers.schema.base import Document
 
-    for chunk in doc_sherpa.chunks():
-        nodes.append(Document(text=chunk.to_context_text(), extra_info={}))
+    # if sherpa_pdf and not sherpa_table:
+    #    print(documents)
+    #    logger.info("--------------------- Process sherpa PDF \n")
+    #    for chunk in documents.chunks():
+    #        nodes.append(Document(text=chunk.to_context_text(), extra_info={}))
+
+    qa_prompt = PromptTemplate(
+        """\
+        read this table and prepare a detailed summary of it:
+        Table: '{table}'
+        Answer: \
+        """
+    )
+
+    if sherpa_table and not sherpa_pdf:
+        logger.info("--------------------- Process sherpa table PDF \n")
+        table_text = documents.to_context_text()
+        fmt_qa_prompt = qa_prompt.format(table=table_text)
+        logger.info("--------------------- Ask LLM to summarize table\n")
+        response = llm.complete(fmt_qa_prompt)
+        lines = str(response.text).splitlines()
+        for i in lines:
+            if not i:
+                lines.remove(i)
+        for i in range(len(lines)):
+            if lines[i]:
+                text = lines[i]
+                nodes.append(
+                    Document(
+                        text=text,
+                        extra_info={},
+                    )
+                )
+                print("text:::::::::::::::::::::::::::::::::::\n", text)
+            # nodes.append(Document(text=str(response.text), extra_info={}))
+        # for table_id, table in enumerate(documents.tables()):
+        #    table_text = table.to_context_text()
+        #    fmt_qa_prompt = qa_prompt.format(table=table_text)
+        #    logger.info(
+        #        "--------------------- Ask LLM to summarize table {} from {} tables.\n".format(
+        #            table_id, len(documents.tables())
+        #        )
+        #    )
+        #    response = llm.complete(fmt_qa_prompt)
+        #    lines = str(response.text).splitlines()
+        #    for i in lines:
+        #        if not i:
+        #            lines.remove(i)
+        #    for i in range(len(lines)):
+        #        if lines[i]:
+        #            text = lines[i]
+        #            nodes.append(
+        #                Document(
+        #                    text=text,
+        #                    extra_info={},
+        #                )
+        #            )
+        #            print("text:::::::::::::::::::::::::::::::::::\n", text)
+        #        # nodes.append(Document(text=str(response.text), extra_info={}))
 
     for node in nodes:
         node_embedding = embed_model.get_text_embedding(
