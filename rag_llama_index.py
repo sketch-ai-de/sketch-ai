@@ -537,6 +537,30 @@ motor_types = ["Stepper motor", "DC motor", "Brushless DC motor / BLDC", "Servom
 serial_connection_types = ["I2C / IIC", "1-Wire", "SPI", "UART", "RS-232"]
 
 
+def make_llm_request(query_engine, query_str):
+    response_dict = []
+    response = query_engine.query(query_str)
+    print("response:::::::::::::::::::::\n", response)
+    # response_dict = json.loads(
+    #    re.sub(r"json", "", re.sub(r"```", "", response.response))
+    # )
+
+    if logger.getEffectiveLevel() == logging.DEBUG:
+        for idx, node in enumerate(response.source_nodes):
+            print(
+                "######################################### \
+                  Node {} with text \n: {}".format(
+                    idx, node.text
+                )
+            )
+            print("######################################### \n")
+
+    return response, response_dict
+
+
+################################################# ask product details ################################################
+
+
 # define output schema
 document_description = ResponseSchema(
     name="document_description", description="What is this technical document about?"
