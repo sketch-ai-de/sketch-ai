@@ -162,7 +162,7 @@ def load_documents_to_db(
 ):
     """load data to vector database collection"""
 
-    documents, doc_sherpa = load_documents(filenames, url)
+    from llama_index.prompts import PromptTemplate
 
     text_splitter = SentenceSplitter(
         chunk_size=1024,
