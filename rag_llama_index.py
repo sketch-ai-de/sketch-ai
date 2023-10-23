@@ -342,34 +342,57 @@ class VectorDBRetriever(BaseRetriever):
     def __init__(
         self,
         vector_store: ChromaVectorStore,
+        vector_stores: [],
         embed_model: Any,
         query_mode: str = "default",
-        similarity_top_k: int = 5,
+        similarity_top_k: int = 10,
     ) -> None:
         """Init params."""
         self._vector_store = vector_store
+        self._vector_stores = vector_stores
         self._embed_model = embed_model
         self._query_mode = query_mode
         self._similarity_top_k = similarity_top_k
 
     def _retrieve(self, query_bundle: QueryBundle) -> List[NodeWithScore]:
         """Retrieve."""
-        query_embedding = embed_model.get_query_embedding(query_str)
-        vector_store_query = VectorStoreQuery(
-            query_embedding=query_embedding,
-            similarity_top_k=self._similarity_top_k,
-            mode=self._query_mode,
-        )
-        query_result = vector_store.query(vector_store_query)
+        nodes_with_scores_matrix = [[] for _ in range(len(vector_stores))]
+        for store_index, store in enumerate(self._vector_stores):
+            nodes_with_scores = []
+            self._vector_store = store
+            print(
+                "vector_store client::::::::::::::::::::::::::::::::::::::::::::::::::::\n",
+                self._vector_store.client,
+            )
+            query_embedding = embed_model.get_query_embedding(query_str)
+            vector_store_query = VectorStoreQuery(
+                query_embedding=query_embedding,
+                similarity_top_k=self._similarity_top_k,
+                mode=self._query_mode,
+            )
+            query_result = self._vector_store.query(vector_store_query)
 
-        nodes_with_scores = []
-        for index, node in enumerate(query_result.nodes):
-            score: Optional[float] = None
-            if query_result.similarities is not None:
-                score = query_result.similarities[index]
-            nodes_with_scores.append(NodeWithScore(node=node, score=score))
+            for index, node in enumerate(query_result.nodes):
+                score: Optional[float] = None
+                if query_result.similarities is not None:
+                    score = query_result.similarities[index]
+                nodes_with_scores.append(NodeWithScore(node=node, score=score))
+            print(
+                "nodes_with_scores::::::::::::::::::::::::::::::::::::::::::::::::::::\n",
+                nodes_with_scores,
+            )
+            nodes_with_scores_matrix[store_index] = nodes_with_scores
 
-        return nodes_with_scores
+        nodes_with_scores_ = []
+        for store_v in nodes_with_scores_matrix:
+            # store_v.sort(key=lambda x: x.score, reverse=True)
+            nodes_with_scores_.extend(store_v[0:3])
+            # nodes_with_scores_.extend(store_v)
+        # nodes_with_scores.sort(key=lambda x: x.score, reverse=True)
+        nodes_with_scores = nodes_with_scores_
+        # nodes_with_scores.sort(key=lambda x: x.score, reverse=True)
+        print("nodes_with_scores MERGED-----------------------\n ", nodes_with_scores)
+        return nodes_with_scores[0:30]
 
 
 # create vector store and get collection
