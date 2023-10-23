@@ -484,6 +484,7 @@ for v in vector_stores:
 
 retriever = VectorDBRetriever(
     vector_store,
+    vector_stores,
     embed_model,
     query_mode="default",
     similarity_top_k=int(args.similarity_top_k),
