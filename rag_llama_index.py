@@ -102,15 +102,12 @@ import openai
 
 from llama_index import VectorStoreIndex
 
-from llama_index.vector_stores import ChromaVectorStore
 
-from llama_index.output_parsers import LangchainOutputParser
-from llama_index.prompts.prompts import QuestionAnswerPrompt, RefinePrompt
 from llama_index.prompts.default_prompts import (
     DEFAULT_TEXT_QA_PROMPT_TMPL,
     DEFAULT_REFINE_PROMPT_TMPL,
 )
-from langchain.output_parsers import StructuredOutputParser, ResponseSchema
+from langchain.output_parsers import ResponseSchema
 
 from llama_index.llms import OpenAI
 
@@ -160,163 +157,9 @@ from llmsherpa.readers import LayoutPDFReader
 from langchain.document_loaders import WebBaseLoader
 import re
 
+from llama_index.vector_stores import ChromaVectorStore
 
-def load_url_documents(url):
-    """Load documents from a URL using a WebBaseLoader."""
-    logger.info("--------------------- Load urls \n")
-    ReadabilityWebPageReader = download_loader("ReadabilityWebPageReader")
-    loader_url = ReadabilityWebPageReader()
-    docs = loader_url.load_data(url=url)
-    if docs:
-        doc = docs[0]
-        doc.metadata["file_path"] = url
-        t = re.sub("\n\n", " ", doc.text)
-        doc.text = t
-        return [doc]
-    return []
-
-
-def load_pdf_documents(filenames):
-    """Load documents from PDF files using a PyMuPDFReader and a LayoutPDFReader."""
-    loader_pdf = PyMuPDFReader()
-    llmsherpa_api_url = "https://readers.llmsherpa.com/api/document/developer/parseDocument?renderFormat=all"
-    pdf_reader = LayoutPDFReader(llmsherpa_api_url)
-    pdf_docs = []
-    pdf_docs_sherpa = []
-    for file in filenames:
-        logger.info("--------------------- Load local PDF document {} \n".format(file))
-        pdf_docs.append(loader_pdf.load(file_path=file))
-        logger.info("--------------------- Ask Sherpa to analyze PDF document\n")
-        pdf_docs_sherpa.append(pdf_reader.read_pdf(file))
-    return pdf_docs, pdf_docs_sherpa
-
-
-def remove_none_fields(docs):
-    """Remove fields with None values from a list of documents."""
-    for doc in docs:
-        for key in doc.metadata:
-            if doc.metadata[key] is None:
-                doc.metadata[key] = 0
-
-
-def load_documents(filenames, url):
-    """Load documents from different sources."""
-    url_docs = load_url_documents(url)
-    pdf_docs, pdf_docs_sherpa = load_pdf_documents(filenames)
-    remove_none_fields(url_docs)
-    return url_docs, pdf_docs, pdf_docs_sherpa
-
-
-def process_normal_pdf(llm, documents, nodes):
-    """Process normal PDF documents."""
-    from llama_index.prompts import PromptTemplate
-    from llama_index.schema import TextNode
-
-    qa_prompt = PromptTemplate(
-        """\
-        read this PDF page and prepare a detailed summary of it. Start each sentence with new line. Retain all the technical specification data.
-        PDF page: '{pdf_page}'
-        Answer: \
-        """
-    )
-
-    for doc_idx, doc in enumerate(documents):
-        if len(doc.text) > 200:
-            logger.info(
-                "--------------------- Ask LLM to summarize page {page} from PDF {pdf} \n".format(
-                    page=doc_idx, pdf=doc.metadata["file_path"]
-                )
-            )
-            fmt_qa_prompt = qa_prompt.format(pdf_page=doc.text)
-            response = llm.complete(fmt_qa_prompt)
-            for line in response.text.splitlines():
-                src_doc = documents[doc_idx]
-                node = TextNode(
-                    text=line,
-                )
-                node.metadata = src_doc.metadata
-                nodes.append(node)
-                logger.debug("text: {}".format(line))
-
-
-def process_sherpa_table(llm, documents, nodes):
-    """Process sherpa table PDF documents."""
-    from llama_index.prompts import PromptTemplate
-    from llama_index.readers.schema.base import Document
-
-    qa_prompt = PromptTemplate(
-        """\
-        read this table and prepare a detailed summary of it:
-        Table: '{table}'
-        Answer: \
-        """
-    )
-
-    logger.info("--------------------- Process sherpa table PDF \n")
-    table_text = documents.to_context_text()
-    fmt_qa_prompt = qa_prompt.format(table=table_text)
-    logger.info("--------------------- Ask LLM to summarize table\n")
-    response = llm.complete(fmt_qa_prompt)
-    lines = str(response.text).splitlines()
-    for i in lines:
-        if not i:
-            lines.remove(i)
-    for i in range(len(lines)):
-        if lines[i]:
-            text = lines[i]
-            nodes.append(
-                Document(
-                    text=text,
-                    extra_info={},
-                )
-            )
-            logger.debug("text: {}".format(text))
-
-
-def load_documents_to_db(
-    llm, vector_store, documents, sherpa_pdf=False, sherpa_table=False
-):
-    """Load data to vector database collection."""
-    from llama_index.schema import TextNode
-
-    nodes = []
-
-    if not sherpa_pdf and not sherpa_table:
-        logger.info("--------------------- Process normal PDF \n")
-        process_normal_pdf(llm, documents, nodes)
-
-    if sherpa_table and not sherpa_pdf:
-        process_sherpa_table(llm, documents, nodes)
-
-    for node in nodes:
-        node_embedding = embed_model.get_text_embedding(
-            node.get_content(metadata_mode="all")
-        )
-        node.embedding = node_embedding
-
-    vector_store.add(nodes)
-
-
-# prepare query engine for the llm request
-def get_query_engine(response_schemas, retriever):
-    # define output parser
-    lc_output_parser = StructuredOutputParser.from_response_schemas(response_schemas)
-    output_parser = LangchainOutputParser(lc_output_parser)
-
-    # format each prompt with output parser instructions
-    fmt_qa_tmpl = output_parser.format(DEFAULT_TEXT_QA_PROMPT_TMPL)
-    fmt_refine_tmpl = output_parser.format(DEFAULT_REFINE_PROMPT_TMPL)
-    qa_prompt = QuestionAnswerPrompt(fmt_qa_tmpl, output_parser=output_parser)
-    refine_prompt = RefinePrompt(fmt_refine_tmpl, output_parser=output_parser)
-
-    query_engine = RetrieverQueryEngine.from_args(
-        retriever,
-        service_context=service_context,
-        text_qa_template=qa_prompt,
-        # refine_template=refine_prompt,
-    )
-
-    return query_engine
+from vector_db_loader import VectorDBLoader
 
 
 class VectorDBRetriever(BaseRetriever):
@@ -369,96 +212,36 @@ class VectorDBRetriever(BaseRetriever):
         return nodes_with_scores[0:30]
 
 
-def get_collection_from_db(collection):
-    # create vector store and get collection
-    import chromadb
-    from llama_index.storage.storage_context import StorageContext
+from document_preprocessor import DocumentPreprocessor
 
-    db = chromadb.PersistentClient(path="./chroma_db")
-    chroma_collection = db.get_or_create_collection(collection)
-    vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
-    storage_context = StorageContext.from_defaults(vector_store=vector_store)
+service_context = ServiceContext.from_defaults(
+    chunk_size=1024, llm=llm, embed_model=embed_model
+)
 
-    return vector_store, storage_context, chroma_collection
+print(logger)
+Docs = DocumentPreprocessor(
+    logger=logger,
+    url=args.url,
+    pdf_filenames=args.filenames,
+    collection_name=args.collection,
+)
 
+DBLoader = VectorDBLoader(
+    llm=llm,
+    logger=logger,
+    service_context=service_context,
+    collection_dict=Docs.create_collection_dict(),
+)
 
-def create_collection_dict(filenames, url, collection_name):
-    url_docs, pdf_docs, pdf_docs_sherpa = load_documents(filenames, url)
-    collection_dict = {}
-    collection_dict[collection_name + "_url1"] = [url_docs[0]]
-    # collection_dict[collection_name + "_url2"] = [url_docs[1]]
-    for idx, name in enumerate(filenames):
-        for i in range(len(pdf_docs[0])):
-            collection_dict[collection_name + "_pdf_" + str(idx) + str(i)] = [
-                pdf_docs[idx][i]
-            ]
-
-        for table_id, table in enumerate(pdf_docs_sherpa[idx].tables()):
-            collection_dict[
-                collection_name + "_pdf_sherpa_table_" + str(idx) + str(table_id)
-            ] = pdf_docs_sherpa[idx].tables()[table_id]
-
-    return collection_dict
-
-
-collection_dict = create_collection_dict(args.filenames, args.url, args.collection)
-
-
-def get_vector_stores(collection_dict):
-    vector_stores = []
-
-    for coll_name in collection_dict.keys():
-        vector_store, storage_context, chroma_collection = get_collection_from_db(
-            coll_name
-        )
-
-        sherpa_pdf = (
-            "_pdf_sherpa_" in coll_name and not "_pdf_sherpa_table_" in coll_name
-        )
-        sherpa_table = "_pdf_sherpa_table_" in coll_name
-
-        if sherpa_table and not chroma_collection.get()["ids"]:
-            logger.info("--------------------- Load data to collection  \n")
-            logger.debug(
-                "coll_name, sherpa_table, sherpa_pdf: %s, %s, %s",
-                coll_name,
-                sherpa_table,
-                sherpa_pdf,
-            )
-            load_documents_to_db(
-                llm,
-                vector_store,
-                collection_dict[coll_name],
-                sherpa_pdf=sherpa_pdf,
-                sherpa_table=sherpa_table,
-            )
-        elif sherpa_table:
-            logger.info("--------------------- Data already exist in collection  \n")
-
-        vector_stores.append(vector_store)
-
-    for v in vector_stores:
-        logger.debug(
-            "vector_stores client --------------------------------------------------\n%s",
-            v.client,
-        )
-
-    return vector_stores, storage_context, chroma_collection
-
-
-vector_stores, storage_context, chroma_collection = get_vector_stores(collection_dict)
+vector_stores, storage_context, chroma_collection = DBLoader.get_vector_stores()
 vector_store = vector_stores[0]
 
 retriever = VectorDBRetriever(
-    vector_stores[0],  # default vector store
+    vector_store,  # default vector store
     vector_stores,
     embed_model,
     query_mode="default",
     similarity_top_k=int(args.similarity_top_k),
-)
-
-service_context = ServiceContext.from_defaults(
-    chunk_size=1024, llm=llm, embed_model=embed_model
 )
 
 index = VectorStoreIndex.from_vector_store(
@@ -467,7 +250,6 @@ index = VectorStoreIndex.from_vector_store(
     storage_context=storage_context,
 )
 
-from llama_index.query_engine import RetrieverQueryEngine
 
 query_engine = index.as_query_engine(
     chroma_collection=chroma_collection, retriever=retriever
@@ -518,7 +300,7 @@ response_schemas = [
     product_description,
 ]
 
-query_engine = get_query_engine(response_schemas, retriever)
+query_engine = DBLoader.get_query_engine(response_schemas, retriever)
 query_str = "What is this technical document/manual/specification about? What is company name? What is the product name?"
 response_device, response_device_dict = make_llm_request(query_engine, query_str)
 response_device_dict = json.loads(
@@ -539,7 +321,7 @@ device_type = ResponseSchema(
 )
 
 response_schemas = [device_type]
-query_engine = get_query_engine(response_schemas, retriever)
+query_engine = DBLoader.get_query_engine(response_schemas, retriever)
 query_str = """What is the device type from the list below on the following device description?\n
           List:{device_types} \n
           Description: {product_description}.""".format(
@@ -575,7 +357,7 @@ specific_information_interfaces = ResponseSchema(
 
 response_schemas = [interfaces, specific_information_interfaces]
 
-query_engine = get_query_engine(response_schemas, retriever)
+query_engine = DBLoader.get_query_engine(response_schemas, retriever)
 query_str = """What communication interfaces is this {device} supporting from the given list.\n
         List: {interfaces_types}""".format(
     device=response_device_type_dict["device_type"], interfaces_types=interface_types
@@ -601,7 +383,7 @@ specific_information_protocols = ResponseSchema(
 
 response_schemas = [protocols, specific_information_protocols]
 
-query_engine = get_query_engine(response_schemas, retriever)
+query_engine = DBLoader.get_query_engine(response_schemas, retriever)
 query_str = """What communication protocols is this product {device} supporting from the given list of available protocols \n
         List of protocols: {protocol_types}""".format(
     device=response_device_type_dict["device_type"], protocol_types=protocol_types
@@ -628,7 +410,7 @@ response_schemas = [
     specific_information_serial_communication,
 ]
 
-query_engine = get_query_engine(response_schemas, retriever)
+query_engine = DBLoader.get_query_engine(response_schemas, retriever)
 
 query_str = """What serial communication protocols is this product {device} supporting from the given list of available protocols \n
         List of protocols: {serial_connection_types}""".format(
@@ -660,7 +442,7 @@ operating_voltage_max = ResponseSchema(
 
 response_schemas = [operating_voltage_min, operating_voltage_max]
 
-query_engine = get_query_engine(response_schemas, retriever)
+query_engine = DBLoader.get_query_engine(response_schemas, retriever)
 
 query_str = "What are the minimum and maximum operating rated supply voltage?"
 
@@ -682,7 +464,7 @@ def ask_robot_specs(retriever):
     )
     response_schemas = [payload]
 
-    query_engine = get_query_engine(response_schemas, retriever)
+    query_engine = DBLoader.get_query_engine(response_schemas, retriever)
 
     query_str = "What is the {} maximum payload in kilograms [kg]?".format(
         response_device_type_dict["device_type"]
@@ -702,7 +484,7 @@ def ask_robot_specs2(retriever):
 
     response_schemas = [reach]
 
-    query_engine = get_query_engine(response_schemas, retriever)
+    query_engine = DBLoader.get_query_engine(response_schemas, retriever)
 
     query_str = "What is the {} maximum reach in millimeters [mm]?".format(
         response_device_type_dict["device_type"]
@@ -722,7 +504,7 @@ def ask_robot_specs3(retriever):
 
     response_schemas = [workspace_coverage]
 
-    query_engine = get_query_engine(response_schemas, retriever)
+    query_engine = DBLoader.get_query_engine(response_schemas, retriever)
 
     query_str = "What is the {} maximum reach in percentage [%]?".format(
         response_device_type_dict["device_type"]
@@ -742,7 +524,7 @@ def ask_robot_specs4(retriever):
 
     response_schemas = [weight]
 
-    query_engine = get_query_engine(response_schemas, retriever)
+    query_engine = DBLoader.get_query_engine(response_schemas, retriever)
 
     query_str = "What are the device weight in [kg]? How much it weighs in [kg]?"
 
@@ -760,7 +542,7 @@ def ask_robot_specs5(retriever):
 
     response_schemas = [number_of_axes]
 
-    query_engine = get_query_engine(response_schemas, retriever)
+    query_engine = DBLoader.get_query_engine(response_schemas, retriever)
 
     query_str = "What number of axes does this device has?"
 
