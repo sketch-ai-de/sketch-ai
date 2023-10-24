@@ -107,10 +107,6 @@ import json
 from llmsherpa.readers import LayoutPDFReader
 
 
-# chroma_client = chromadb.EphemeralClient()
-# chroma_collection = chroma_client.create_collection("quickstart")
-
-
 def load_documents(filenames, url):
     """load documents from different sources"""
 
@@ -163,24 +159,7 @@ def load_documents_to_db(
     """load data to vector database collection"""
 
     from llama_index.prompts import PromptTemplate
-
-    text_splitter = SentenceSplitter(
-        chunk_size=1024,
-        separator=" ",
-    )
-    text_chunks = []
-
-    # old with k=10 was not good for different devices
-    sentences = []
-    window_size = 128
-    step_size = 20
-
-    # new - gives much better results with k=20
-    sentences = []
-    window_size = 96
-    step_size = 76
-    # window_size = 64
-    # step_size = 20
+    from llama_index.readers.schema.base import Document
 
     # maintain relationship with source doc index, to help inject doc metadata in (3)
     doc_idxs = []
@@ -214,42 +193,7 @@ def load_documents_to_db(
                     nodes.append(node)
                     print("text:::::::::::::::::::::::::::::::::::\n", line)
 
-        # for doc_idx, doc in enumerate(documents):
-        #     # cur_text_chunks = text_splitter.split_text(" ".join(doc.text.split()))#text_splitter.split_text(doc.text)
-        #     text_tokens = doc.text.split()
-        #     for i in range(0, len(text_tokens), step_size):
-        #         window = text_tokens[i : i + window_size]
-        #         if len(window) < window_size:
-        #             break
-        #         sentences.append(window)
-        #     paragraphs = [" ".join(s) for s in sentences]
-        #     for i, p in enumerate(paragraphs):
-        #         pp = re.sub(r"\.\.\.\.+", " ", p)  # remove dots
-        #         paragraphs[i] = re.sub(r"\. \. \. \. +", " ", pp)  # remove dots
-        #         if "cookie" in paragraphs[i]:  # remove paragraphs with word cookie
-        #             paragraphs[i] = ""
-        #     # text_chunks.extend(paragraphs)
-        #     text_chunks = paragraphs
-        #     doc_idxs.extend([doc_idx] * len(paragraphs))
-    #
-    # from llama_index.schema import TextNode
-    #
-    # for idx, text_chunk in enumerate(text_chunks):
-    #     node = TextNode(
-    #         text=text_chunk,
-    #     )
-    #     src_doc = documents[doc_idxs[idx]]
-    #     node.metadata = src_doc.metadata
-    #     nodes.append(node)
-
     # add from sherpas pdf rearder
-    from llama_index.readers.schema.base import Document
-
-    # if sherpa_pdf and not sherpa_table:
-    #    print(documents)
-    #    logger.info("--------------------- Process sherpa PDF \n")
-    #    for chunk in documents.chunks():
-    #        nodes.append(Document(text=chunk.to_context_text(), extra_info={}))
 
     qa_prompt = PromptTemplate(
         """\
@@ -279,31 +223,6 @@ def load_documents_to_db(
                     )
                 )
                 print("text:::::::::::::::::::::::::::::::::::\n", text)
-            # nodes.append(Document(text=str(response.text), extra_info={}))
-        # for table_id, table in enumerate(documents.tables()):
-        #    table_text = table.to_context_text()
-        #    fmt_qa_prompt = qa_prompt.format(table=table_text)
-        #    logger.info(
-        #        "--------------------- Ask LLM to summarize table {} from {} tables.\n".format(
-        #            table_id, len(documents.tables())
-        #        )
-        #    )
-        #    response = llm.complete(fmt_qa_prompt)
-        #    lines = str(response.text).splitlines()
-        #    for i in lines:
-        #        if not i:
-        #            lines.remove(i)
-        #    for i in range(len(lines)):
-        #        if lines[i]:
-        #            text = lines[i]
-        #            nodes.append(
-        #                Document(
-        #                    text=text,
-        #                    extra_info={},
-        #                )
-        #            )
-        #            print("text:::::::::::::::::::::::::::::::::::\n", text)
-        #        # nodes.append(Document(text=str(response.text), extra_info={}))
 
     for node in nodes:
         node_embedding = embed_model.get_text_embedding(
@@ -385,12 +304,9 @@ class VectorDBRetriever(BaseRetriever):
 
         nodes_with_scores_ = []
         for store_v in nodes_with_scores_matrix:
-            # store_v.sort(key=lambda x: x.score, reverse=True)
             nodes_with_scores_.extend(store_v[0:3])
-            # nodes_with_scores_.extend(store_v)
-        # nodes_with_scores.sort(key=lambda x: x.score, reverse=True)
         nodes_with_scores = nodes_with_scores_
-        # nodes_with_scores.sort(key=lambda x: x.score, reverse=True)
+
         print("nodes_with_scores MERGED-----------------------\n ", nodes_with_scores)
         return nodes_with_scores[0:30]
 
@@ -418,30 +334,16 @@ def create_collection_dict(filenames, url, collection_name):
             collection_dict[collection_name + "_pdf_" + str(idx) + str(i)] = [
                 pdf_docs[idx][i]
             ]
-        # collection_dict[collection_name + "_pdf_sherpa_" + str(idx)] = pdf_docs_sherpa[
-        #    idx
-        # ]
+
         for table_id, table in enumerate(pdf_docs_sherpa[idx].tables()):
             collection_dict[
                 collection_name + "_pdf_sherpa_table_" + str(idx) + str(table_id)
             ] = pdf_docs_sherpa[idx].tables()[table_id]
-    #    collection_dict[collection_name + "_pdf_sherpa_" + str(idx)] = []
-    #    collection_dict[collection_name + "_pdf_sherpa_table_" + str(idx)] = []
-    #    for chunk in pdf_docs_sherpa[idx].chunks():
-    #        collection_dict[collection_name + "_pdf_sherpa_" + str(idx)].append(
-    #            chunk.to_context_text()
-    #        )
-    #    for table in pdf_docs_sherpa[idx].tables():
-    #        collection_dict[collection_name + "_pdf_sherpa_table_" + str(idx)].append(
-    #            table.to_context_text()
-    #        )
 
     return collection_dict
 
 
 collection_dict = create_collection_dict(args.filenames, args.url, args.collection)
-
-# print(collection_dict)
 
 vector_stores = []
 
