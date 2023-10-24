@@ -19,6 +19,37 @@
 #       -> if another type, e.g. inductive sensor ask for another data
 
 
+device_types = [
+    "Motor",
+    "Motor Drive",
+    "PLC CPU",
+    "PLC IO Module System",
+    "PLC IO Module",
+    "Robot Arm",
+    "Microcontroller Board",
+    "Inductive Sensor",
+    "Computer",
+]
+
+interface_types = [
+    "Ethernet",
+    "EtherCAT",
+    "Recommended Standard RS-232",
+    "Recommended Standard RS-485",
+    "CAN Bus",
+    "Bluetooth",
+    "LTE",
+    "USB",
+    "Wireless LAN / WLAN",
+]
+
+protocol_types = ["CANopen", "Profinet", "Modbus", "EtherNet/IP", "Profibus", "IO-Link"]
+
+motor_types = ["Stepper motor", "DC motor", "Brushless DC motor / BLDC", "Servomotor"]
+
+serial_connection_types = ["I2C / IIC", "1-Wire", "SPI", "UART", "RS-232"]
+
+
 import argparse
 
 parser = argparse.ArgumentParser(
@@ -26,13 +57,24 @@ parser = argparse.ArgumentParser(
     description="Retrieve information from different soures - PDFs and Web-Links",
 )
 
-parser.add_argument("-fs", "--filenames", nargs="+", default=[])
-parser.add_argument("-u", "--url")  # option that takes a value
-parser.add_argument("-c", "--collection")  # option that takes a value
-parser.add_argument("-k", "--similarity_top_k", default=10)  # option that takes a value
+from typing import List
+
+# Define command line arguments
+# -fs: filenames of PDFs to retrieve information from
+# -u: URL of a webpage to retrieve information from
+# -c: name of the collection to store retrieved information in
+# -k: number of top similar documents to retrieve
+# -d: flag to enable debug mode
 
 
-args = parser.parse_args()
+def parse_args():
+    parser.add_argument("-fs", "--filenames", nargs="+", default=[], type=str)
+    parser.add_argument("-u", "--url", type=str)
+    parser.add_argument("-c", "--collection", type=str)
+    parser.add_argument("-k", "--similarity_top_k", default=10, type=int)
+    parser.add_argument("-d", "--debug", action="store_true")
+    return parser.parse_args()
+
 
 import logging
 import sys
@@ -43,6 +85,11 @@ formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(messag
 streamHandler.setFormatter(formatter)
 logger.setLevel(logging.DEBUG)
 logger.addHandler(streamHandler)
+
+
+args = parse_args()
+
+logger.setLevel(logging.DEBUG if args.debug else logging.INFO)
 
 from llama_index import QueryBundle
 from llama_index.retrievers import BaseRetriever
@@ -107,32 +154,30 @@ import json
 from llmsherpa.readers import LayoutPDFReader
 
 
-def load_documents(filenames, url):
-    """load documents from different sources"""
+from llama_index import download_loader, Document
+from llama_hub.file.pymu_pdf.base import PyMuPDFReader
+from llmsherpa.readers import LayoutPDFReader
+from langchain.document_loaders import WebBaseLoader
+import re
 
-    # load from url
-    from llama_index import download_loader
-    from langchain.document_loaders import WebBaseLoader
-    from llama_index import Document
 
+def load_url_documents(url):
+    """Load documents from a URL using a WebBaseLoader."""
+    logger.info("--------------------- Load urls \n")
     ReadabilityWebPageReader = download_loader("ReadabilityWebPageReader")
-    # or set proxy server for playwright: loader = ReadabilityWebPageReader(proxy="http://your-proxy-server:port")
-    # For some specific web pages, you may need to set "wait_until" to "networkidle". loader = ReadabilityWebPageReader(wait_until="networkidle")
     loader_url = ReadabilityWebPageReader()
-    url_docs = []
-    if url:
-        logger.info("--------------------- Load urls \n")
-        # loader_url_lang = WebBaseLoader(url)
-        # data = loader_url_lang.load()
-        url_docs = loader_url.load_data(url=url)
-        url_docs[0].metadata["file_path"] = url
-        t = re.sub("\n\n", " ", url_docs[0].text)
-        url_docs[0].text = t
-        # url_docs.append(
-        #    Document(text=data[0].page_content)
-        # )  # add information from different url reader
+    docs = loader_url.load_data(url=url)
+    if docs:
+        doc = docs[0]
+        doc.metadata["file_path"] = url
+        t = re.sub("\n\n", " ", doc.text)
+        doc.text = t
+        return [doc]
+    return []
 
-    # load from PDFs
+
+def load_pdf_documents(filenames):
+    """Load documents from PDF files using a PyMuPDFReader and a LayoutPDFReader."""
     loader_pdf = PyMuPDFReader()
     llmsherpa_api_url = "https://readers.llmsherpa.com/api/document/developer/parseDocument?renderFormat=all"
     pdf_reader = LayoutPDFReader(llmsherpa_api_url)
@@ -143,57 +188,61 @@ def load_documents(filenames, url):
         pdf_docs.append(loader_pdf.load(file_path=file))
         logger.info("--------------------- Ask Sherpa to analyze PDF document\n")
         pdf_docs_sherpa.append(pdf_reader.read_pdf(file))
+    return pdf_docs, pdf_docs_sherpa
 
-    # remove fields having value None -> cause error
-    for doc in url_docs:
+
+def remove_none_fields(docs):
+    """Remove fields with None values from a list of documents."""
+    for doc in docs:
         for key in doc.metadata:
             if doc.metadata[key] is None:
                 doc.metadata[key] = 0
 
+
+def load_documents(filenames, url):
+    """Load documents from different sources."""
+    url_docs = load_url_documents(url)
+    pdf_docs, pdf_docs_sherpa = load_pdf_documents(filenames)
+    remove_none_fields(url_docs)
     return url_docs, pdf_docs, pdf_docs_sherpa
 
 
-def load_documents_to_db(
-    llm, vector_store, documents, sherpa_pdf=False, sherpa_table=False
-):
-    """load data to vector database collection"""
+def process_normal_pdf(llm, documents, nodes):
+    """Process normal PDF documents."""
+    from llama_index.prompts import PromptTemplate
+    from llama_index.schema import TextNode
 
+    qa_prompt = PromptTemplate(
+        """\
+        read this PDF page and prepare a detailed summary of it. Start each sentence with new line. Retain all the technical specification data.
+        PDF page: '{pdf_page}'
+        Answer: \
+        """
+    )
+
+    for doc_idx, doc in enumerate(documents):
+        if len(doc.text) > 200:
+            logger.info(
+                "--------------------- Ask LLM to summarize page {page} from PDF {pdf} \n".format(
+                    page=doc_idx, pdf=doc.metadata["file_path"]
+                )
+            )
+            fmt_qa_prompt = qa_prompt.format(pdf_page=doc.text)
+            response = llm.complete(fmt_qa_prompt)
+            for line in response.text.splitlines():
+                src_doc = documents[doc_idx]
+                node = TextNode(
+                    text=line,
+                )
+                node.metadata = src_doc.metadata
+                nodes.append(node)
+                logger.debug("text: {}".format(line))
+
+
+def process_sherpa_table(llm, documents, nodes):
+    """Process sherpa table PDF documents."""
     from llama_index.prompts import PromptTemplate
     from llama_index.readers.schema.base import Document
-
-    # maintain relationship with source doc index, to help inject doc metadata in (3)
-    doc_idxs = []
-    nodes = []
-    if not sherpa_pdf and not sherpa_table:
-        logger.info("--------------------- Process normal PDF \n")
-        qa_prompt = PromptTemplate(
-            """\
-            read this PDF page and prepare a detailed summary of it. Start each sentence with new line. Retain all the technical specification data.
-            PDF page: '{pdf_page}'
-            Answer: \
-            """
-        )
-        from llama_index.schema import TextNode
-
-        for doc_idx, doc in enumerate(documents):
-            if len(doc.text) > 200:
-                logger.info(
-                    "--------------------- Ask LLM to summarize page {page} from PDF {pdf} \n".format(
-                        page=doc_idx, pdf=doc.metadata["file_path"]
-                    )
-                )
-                fmt_qa_prompt = qa_prompt.format(pdf_page=doc.text)
-                response = llm.complete(fmt_qa_prompt)
-                for line in response.text.splitlines():
-                    src_doc = documents[doc_idx]
-                    node = TextNode(
-                        text=line,
-                    )
-                    node.metadata = src_doc.metadata
-                    nodes.append(node)
-                    print("text:::::::::::::::::::::::::::::::::::\n", line)
-
-    # add from sherpas pdf rearder
 
     qa_prompt = PromptTemplate(
         """\
@@ -203,26 +252,41 @@ def load_documents_to_db(
         """
     )
 
-    if sherpa_table and not sherpa_pdf:
-        logger.info("--------------------- Process sherpa table PDF \n")
-        table_text = documents.to_context_text()
-        fmt_qa_prompt = qa_prompt.format(table=table_text)
-        logger.info("--------------------- Ask LLM to summarize table\n")
-        response = llm.complete(fmt_qa_prompt)
-        lines = str(response.text).splitlines()
-        for i in lines:
-            if not i:
-                lines.remove(i)
-        for i in range(len(lines)):
-            if lines[i]:
-                text = lines[i]
-                nodes.append(
-                    Document(
-                        text=text,
-                        extra_info={},
-                    )
+    logger.info("--------------------- Process sherpa table PDF \n")
+    table_text = documents.to_context_text()
+    fmt_qa_prompt = qa_prompt.format(table=table_text)
+    logger.info("--------------------- Ask LLM to summarize table\n")
+    response = llm.complete(fmt_qa_prompt)
+    lines = str(response.text).splitlines()
+    for i in lines:
+        if not i:
+            lines.remove(i)
+    for i in range(len(lines)):
+        if lines[i]:
+            text = lines[i]
+            nodes.append(
+                Document(
+                    text=text,
+                    extra_info={},
                 )
-                print("text:::::::::::::::::::::::::::::::::::\n", text)
+            )
+            logger.debug("text: {}".format(text))
+
+
+def load_documents_to_db(
+    llm, vector_store, documents, sherpa_pdf=False, sherpa_table=False
+):
+    """Load data to vector database collection."""
+    from llama_index.schema import TextNode
+
+    nodes = []
+
+    if not sherpa_pdf and not sherpa_table:
+        logger.info("--------------------- Process normal PDF \n")
+        process_normal_pdf(llm, documents, nodes)
+
+    if sherpa_table and not sherpa_pdf:
+        process_sherpa_table(llm, documents, nodes)
 
     for node in nodes:
         node_embedding = embed_model.get_text_embedding(
@@ -279,10 +343,7 @@ class VectorDBRetriever(BaseRetriever):
         for store_index, store in enumerate(self._vector_stores):
             nodes_with_scores = []
             self._vector_store = store
-            print(
-                "vector_store client::::::::::::::::::::::::::::::::::::::::::::::::::::\n",
-                self._vector_store.client,
-            )
+            logger.debug("vector_store client: {}".format(self._vector_store.client))
             query_embedding = embed_model.get_query_embedding(query_str)
             vector_store_query = VectorStoreQuery(
                 query_embedding=query_embedding,
@@ -296,10 +357,7 @@ class VectorDBRetriever(BaseRetriever):
                 if query_result.similarities is not None:
                     score = query_result.similarities[index]
                 nodes_with_scores.append(NodeWithScore(node=node, score=score))
-            print(
-                "nodes_with_scores::::::::::::::::::::::::::::::::::::::::::::::::::::\n",
-                nodes_with_scores,
-            )
+            logger.debug("nodes_with_scores: {}".format(nodes_with_scores))
             nodes_with_scores_matrix[store_index] = nodes_with_scores
 
         nodes_with_scores_ = []
@@ -307,7 +365,7 @@ class VectorDBRetriever(BaseRetriever):
             nodes_with_scores_.extend(store_v[0:3])
         nodes_with_scores = nodes_with_scores_
 
-        print("nodes_with_scores MERGED-----------------------\n ", nodes_with_scores)
+        logger.debug("nodes_with_scores MERGED: {}".format(nodes_with_scores))
         return nodes_with_scores[0:30]
 
 
@@ -345,48 +403,54 @@ def create_collection_dict(filenames, url, collection_name):
 
 collection_dict = create_collection_dict(args.filenames, args.url, args.collection)
 
-vector_stores = []
 
-for coll_name in collection_dict.keys():
-    vector_store, storage_context, chroma_collection = get_collection_from_db(coll_name)
+def get_vector_stores(collection_dict):
+    vector_stores = []
 
-    sherpa_pdf = False
-    sherpa_table = False
-
-    if "_pdf_sherpa_" in coll_name and not "_pdf_sherpa_table_" in coll_name:
-        sherpa_pdf = True
-        sherpa_table = False
-    if "_pdf_sherpa_table_" in coll_name:
-        sherpa_table = True
-        sherpa_pdf = False
-    if len(chroma_collection.get()["ids"]) == 0:
-        logger.info("--------------------- Load data to collection  \n")
-        print(
-            "*******************************coll_name, sherpa_table, sherpa_pdf: ",
-            coll_name,
-            sherpa_table,
-            sherpa_pdf,
+    for coll_name in collection_dict.keys():
+        vector_store, storage_context, chroma_collection = get_collection_from_db(
+            coll_name
         )
-        load_documents_to_db(
-            llm,
-            vector_store,
-            collection_dict[coll_name],
-            sherpa_pdf=sherpa_pdf,
-            sherpa_table=sherpa_table,
+
+        sherpa_pdf = (
+            "_pdf_sherpa_" in coll_name and not "_pdf_sherpa_table_" in coll_name
         )
-    else:
-        logger.info("--------------------- Data already exist in collection  \n")
+        sherpa_table = "_pdf_sherpa_table_" in coll_name
 
-    vector_stores.append(vector_store)
+        if sherpa_table and not chroma_collection.get()["ids"]:
+            logger.info("--------------------- Load data to collection  \n")
+            logger.debug(
+                "coll_name, sherpa_table, sherpa_pdf: %s, %s, %s",
+                coll_name,
+                sherpa_table,
+                sherpa_pdf,
+            )
+            load_documents_to_db(
+                llm,
+                vector_store,
+                collection_dict[coll_name],
+                sherpa_pdf=sherpa_pdf,
+                sherpa_table=sherpa_table,
+            )
+        elif sherpa_table:
+            logger.info("--------------------- Data already exist in collection  \n")
 
-for v in vector_stores:
-    print(
-        "vector_stores client --------------------------------------------------\n",
-        v.client,
-    )
+        vector_stores.append(vector_store)
+
+    for v in vector_stores:
+        logger.debug(
+            "vector_stores client --------------------------------------------------\n%s",
+            v.client,
+        )
+
+    return vector_stores, storage_context, chroma_collection
+
+
+vector_stores, storage_context, chroma_collection = get_vector_stores(collection_dict)
+vector_store = vector_stores[0]
 
 retriever = VectorDBRetriever(
-    vector_store,
+    vector_stores[0],  # default vector store
     vector_stores,
     embed_model,
     query_mode="default",
@@ -408,36 +472,6 @@ from llama_index.query_engine import RetrieverQueryEngine
 query_engine = index.as_query_engine(
     chroma_collection=chroma_collection, retriever=retriever
 )
-
-device_types = [
-    "Motor",
-    "Motor Drive",
-    "PLC CPU",
-    "PLC IO Module System",
-    "PLC IO Module",
-    "Robot Arm",
-    "Microcontroller Board",
-    "Inductive Sensor",
-    "Computer",
-]
-
-interface_types = [
-    "Ethernet",
-    "EtherCAT",
-    "Recommended Standard RS-232",
-    "Recommended Standard RS-485",
-    "CAN Bus",
-    "Bluetooth",
-    "LTE",
-    "USB",
-    "Wireless LAN / WLAN",
-]
-
-protocol_types = ["CANopen", "Profinet", "Modbus", "EtherNet/IP", "Profibus", "IO-Link"]
-
-motor_types = ["Stepper motor", "DC motor", "Brushless DC motor / BLDC", "Servomotor"]
-
-serial_connection_types = ["I2C / IIC", "1-Wire", "SPI", "UART", "RS-232"]
 
 
 def make_llm_request(query_engine, query_str):
