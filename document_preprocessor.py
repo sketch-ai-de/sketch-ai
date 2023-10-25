@@ -1,19 +1,9 @@
 import re
-import json
 from llmsherpa.readers import LayoutPDFReader
-
-
 from llama_index import download_loader, Document
 from llama_hub.file.pymu_pdf.base import PyMuPDFReader
-from llmsherpa.readers import LayoutPDFReader
-from langchain.document_loaders import WebBaseLoader
-import re
-
-
-from llama_hub.file.pymu_pdf.base import PyMuPDFReader
-from llmsherpa.readers import LayoutPDFReader
-from langchain.document_loaders import WebBaseLoader
-import re
+from llama_index.prompts import PromptTemplate
+from llama_index.schema import TextNode
 
 
 class DocumentPreprocessor:
