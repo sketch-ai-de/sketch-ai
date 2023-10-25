@@ -73,6 +73,10 @@ class DocumentPreprocessor:
         self.remove_none_fields(url_docs)
         return url_docs, pdf_docs, pdf_docs_sherpa
 
+    def process_sherpa_pdf(self, documents):
+        """Process normal PDF documents."""
+        for chunk in documents.chunks():
+            self.nodes.append(Document(text=chunk.to_context_text(), extra_info={}))
 
     def clear_nodes(self):
         self.nodes = []
