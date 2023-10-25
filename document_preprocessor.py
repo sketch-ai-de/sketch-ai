@@ -73,8 +73,6 @@ class DocumentPreprocessor:
 
     def process_normal_pdf(self, llm, documents):
         """Process normal PDF documents."""
-        from llama_index.prompts import PromptTemplate
-        from llama_index.schema import TextNode
 
         qa_prompt = PromptTemplate(
             """\
@@ -141,13 +139,18 @@ class DocumentPreprocessor:
     def create_collection_dict(self) -> dict:
         url_docs, pdf_docs, pdf_docs_sherpa = self.load_documents()
         collection_dict = {}
-        collection_dict[self.collection_name + "_url1"] = [url_docs[0]]
+        if url_docs:
+            collection_dict[self.collection_name + "_url1"] = [url_docs[0]]
         # collection_dict[self.collection_name + "_url2"] = [url_docs[1]]
         for idx, name in enumerate(self.pdf_filenames):
             for i in range(len(pdf_docs[0])):
                 collection_dict[self.collection_name + "_pdf_" + str(idx) + str(i)] = [
                     pdf_docs[idx][i]
                 ]
+
+            collection_dict[
+                self.collection_name + "_pdf_sherpa_" + str(idx)
+            ] = pdf_docs_sherpa[idx]
 
             for table_id, table in enumerate(pdf_docs_sherpa[idx].tables()):
                 collection_dict[
