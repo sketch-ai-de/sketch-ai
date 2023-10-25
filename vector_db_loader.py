@@ -1,7 +1,6 @@
 from typing import List, Tuple
 from llama_index.schema import TextNode
 from llama_index.storage.storage_context import StorageContext
-from document_preprocessor import DocumentPreprocessor
 
 from llama_index.query_engine import RetrieverQueryEngine
 
@@ -28,24 +27,34 @@ class VectorDBLoader:
         logger,
         service_context,
         collection_dict: List[str],
+        Docs,
+        embed_model,
     ):
         self.llm = llm
         self.logger = logger
         self.service_context = service_context
         self.collection_dict = collection_dict
+        self.Docs = Docs
+        self.embed_model = embed_model
 
     def load_documents_to_db(
-        self, vector_store, sherpa_pdf=False, sherpa_table=False
+        self, vector_store, documents, sherpa_pdf=False, sherpa_table=False
     ) -> List[TextNode]:
         """Load data to vector database collection."""
         nodes = []
+        self.Docs.clear_nodes()
 
         if not sherpa_pdf and not sherpa_table:
             self.logger.info("--------------------- Process normal PDF \n")
-            self.Docs.process_normal_pdf(self.llm, self.documents, nodes)
+            self.Docs.process_normal_pdf(self.llm, documents)
+
+        if sherpa_pdf and not sherpa_table:
+            print(documents)
+            self.logger.info("--------------------- Process sherpa PDF \n")
+            self.Docs.process_sherpa_pdf(documents)
 
         if sherpa_table and not sherpa_pdf:
-            self.Docs.process_sherpa_table(self.llm, self.documents, nodes)
+            self.Docs.process_sherpa_table(self.llm, documents)
 
         nodes = self.Docs.get_nodes()
 
@@ -55,6 +64,9 @@ class VectorDBLoader:
             )
             node.embedding = node_embedding
 
+        self.logger.debug(
+            "adding node to vector_store client: {}".format(vector_store.client)
+        )
         vector_store.add(nodes)
         return nodes
 
@@ -106,7 +118,16 @@ class VectorDBLoader:
             )
             sherpa_table = "_pdf_sherpa_table_" in coll_name
 
-            if sherpa_table and not chroma_collection.get()["ids"]:
+            self.logger.debug(
+                ":::::::::::::::::::::::::::::::::::::::::\n ",
+                coll_name,
+                " ",
+                sherpa_table,
+                " ",
+                chroma_collection.get()["ids"],
+            )
+
+            if len(chroma_collection.get()["ids"]) == 0:
                 self.logger.info("--------------------- Load data to collection  \n")
                 self.logger.debug(
                     "coll_name, sherpa_table, sherpa_pdf: %s, %s, %s",
@@ -116,10 +137,11 @@ class VectorDBLoader:
                 )
                 self.load_documents_to_db(
                     vector_store,
+                    self.collection_dict[coll_name],
                     sherpa_pdf=sherpa_pdf,
                     sherpa_table=sherpa_table,
                 )
-            elif sherpa_table:
+            else:
                 self.logger.info(
                     "--------------------- Data already exist in collection  \n"
                 )
