@@ -88,7 +88,10 @@ class DocumentPreprocessor:
 
         qa_prompt = PromptTemplate(
             """\
-            read this PDF page and prepare a detailed summary of it. Start each sentence with new line. Retain all the technical specification data.
+            Read this PDF page and summarize semantically in form of list of sentences. \
+            Start each sentence with a new line. \
+            Retain all the technical specification data. \
+            Translate to english before if required. \
             PDF page: '{pdf_page}'
             Answer: \
             """
