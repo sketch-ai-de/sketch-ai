@@ -73,6 +73,10 @@ class DocumentPreprocessor:
         self.remove_none_fields(url_docs)
         return url_docs, pdf_docs, pdf_docs_sherpa
 
+
+    def clear_nodes(self):
+        self.nodes = []
+
     def process_normal_pdf(self, llm, documents):
         """Process normal PDF documents."""
         from llama_index.prompts import PromptTemplate
