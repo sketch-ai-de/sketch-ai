@@ -186,249 +186,264 @@ response_device_dict = json.loads(
 )
 
 
-# define output schema
-device_type = ResponseSchema(
-    name="device_type",
-    description="""What is the device type from the list below on the following device description?\n
-          List:{device_types} \n
-          Description: {product_description}.""".format(
-        device_types=device_types,
-        product_description=response_device_dict["product_description"],
-    ),
-)
-
-response_schemas = [device_type]
-query_engine = DBLoader.get_query_engine(response_schemas, retriever)
-query_str = """What is the device type from the list below on the following device description?\n
-          List:{device_types} \n
-          Description: {product_description}.""".format(
-    device_types=device_types,
-    product_description=response_device_dict["product_description"],
-)
-response_device_type, response_device_type_dict = make_llm_request(
-    query_engine, query_str
-)
-response_device_type_dict = json.loads(
-    re.sub(r"json", "", re.sub(r"```", "", response_device_type.response))
-)
-
-################################################# ask interfaces ################################################
-
-# define output schema
-interfaces = ResponseSchema(
-    name="interfaces",
-    description="""What communication interfaces is this {device} supporting from the given list of available interfaces.\n
-        List of interfaces: {interfaces_types}""".format(
-        device=response_device_type_dict["device_type"],
-        interfaces_types=interface_types,
-    ),
-    type="list",
-)
-specific_information_interfaces = ResponseSchema(
-    name="specific_information_interfaces",
-    description="What specific about communication interfaces that this {device} supports?".format(
-        device=response_device_type_dict["device_type"]
-    ),
-    type="string",
-)
-
-response_schemas = [interfaces, specific_information_interfaces]
-
-query_engine = DBLoader.get_query_engine(response_schemas, retriever)
-query_str = """What communication interfaces is this {device} supporting from the given list.\n
-        List: {interfaces_types}""".format(
-    device=response_device_type_dict["device_type"], interfaces_types=interface_types
-)
-response_interfaces, response_interfaces_dict = make_llm_request(
-    query_engine, query_str
-)
-
-################################################# ask protocols ################################################
-
-protocols = ResponseSchema(
-    name="protocols",
-    description="""What communication protocols is this product {device} supporting from the given list of available protocols \n
-        List of protocols: {protocol_types}""".format(
-        device=response_device_type_dict["device_type"], protocol_types=protocol_types
-    ),
-    type="list",
-)
-specific_information_protocols = ResponseSchema(
-    name="specific_information_protocols",
-    description="What specific about communication protocols that this device supports ?",
-)
-
-response_schemas = [protocols, specific_information_protocols]
-
-query_engine = DBLoader.get_query_engine(response_schemas, retriever)
-query_str = """What communication protocols is this product {device} supporting from the given list of available protocols \n
-        List of protocols: {protocol_types}""".format(
-    device=response_device_type_dict["device_type"], protocol_types=protocol_types
-)
-response_protocol, response_protocol_dict = make_llm_request(query_engine, query_str)
-
-################################################# ask serial protocols ################################################
-
-serial_communication = ResponseSchema(
-    name="serial_connection",
-    description="""What serial communication protocols is this product {device} supporting from the given list of available protocols \n
-        List of protocols: {serial_connection_types}""".format(
-        device=response_device_type_dict["device_type"],
-        serial_connection_types=serial_connection_types,
-    ),
-    type="list",
-)
-specific_information_serial_communication = ResponseSchema(
-    name="specific_information_protocols",
-    description="What specific about serial communication protocols that this product supports?",
-)
-response_schemas = [
-    serial_communication,
-    specific_information_serial_communication,
-]
-
-query_engine = DBLoader.get_query_engine(response_schemas, retriever)
-
-query_str = """What serial communication protocols is this product {device} supporting from the given list of available protocols \n
-        List of protocols: {serial_connection_types}""".format(
-    device=response_device_type_dict["device_type"],
-    serial_connection_types=serial_connection_types,
-)
-response_serial_communication, response_serial_communication_dict = make_llm_request(
-    query_engine, query_str
-)
-
-################################################# ask operating voltage ################################################
-
-# define output schema
-operating_voltage_min = ResponseSchema(
-    name="operating_voltage_min",
-    description="What is the minimum operating rated supply voltage in volts [V] for the device {}?".format(
-        response_device_dict["product_name"]
-    ),
-    type="int",
-)
-
-operating_voltage_max = ResponseSchema(
-    name="operating_voltage_max",
-    description="What is the maximum operating rated supply voltage in volts [V] for the device {}?".format(
-        response_device_dict["product_name"]
-    ),
-    type="int",
-)
-
-response_schemas = [operating_voltage_min, operating_voltage_max]
-
-query_engine = DBLoader.get_query_engine(response_schemas, retriever)
-
-query_str = "What are the minimum and maximum operating rated supply voltage?"
-
-response_voltage, response_voltage_dict = (
-    response_protocol,
-    response_protocol_dict,
-) = make_llm_request(query_engine, query_str)
-
-################################################# ask robot specs ################################################
-
-
-def ask_robot_specs(retriever):
-    payload = ResponseSchema(
-        name="payload",
-        description="What is the {} maximum payload in kilograms [kg]?".format(
-            response_device_type_dict["device_type"]
-        ),
-        type="int",
+while True:
+    query_str = input("Enter a question about document:\n")
+    answer = ResponseSchema(
+        name="answer",
+        description="Give the answer to question: \n Question: "
+        + query_str
+        + "\n Answer:",
     )
-    response_schemas = [payload]
-
+    response_schemas = [answer]
     query_engine = DBLoader.get_query_engine(response_schemas, retriever)
+    response_query, response_query_dict = make_llm_request(query_engine, query_str)
 
-    query_str = "What is the {} maximum payload in kilograms [kg]?".format(
-        response_device_type_dict["device_type"]
-    )
-
-    response_voltage, response_voltage_dict = make_llm_request(query_engine, query_str)
-
-
-def ask_robot_specs2(retriever):
-    reach = ResponseSchema(
-        name="reach",
-        description="What is the {} maximum reach in millimeters [mm]?".format(
-            response_device_type_dict["device_type"]
-        ),
-        type="int",
-    )
-
-    response_schemas = [reach]
-
-    query_engine = DBLoader.get_query_engine(response_schemas, retriever)
-
-    query_str = "What is the {} maximum reach in millimeters [mm]?".format(
-        response_device_type_dict["device_type"]
-    )
-
-    response_voltage, response_voltage_dict = make_llm_request(query_engine, query_str)
-
-
-def ask_robot_specs3(retriever):
-    workspace_coverage = ResponseSchema(
-        name="workspace_coverage",
-        description="What is the {} maximum reach in percentage [%]?".format(
-            response_device_type_dict["device_type"]
-        ),
-        type="int",
-    )
-
-    response_schemas = [workspace_coverage]
-
-    query_engine = DBLoader.get_query_engine(response_schemas, retriever)
-
-    query_str = "What is the {} maximum reach in percentage [%]?".format(
-        response_device_type_dict["device_type"]
-    )
-
-    response_voltage, response_voltage_dict = make_llm_request(query_engine, query_str)
-
-
-def ask_robot_specs4(retriever):
-    weight = ResponseSchema(
-        name="weight",
-        description="What is the device {} weight in kilograms [kg]? How much it weighs in [kg]?".format(
-            response_device_type_dict["device_type"]
-        ),
-        type="int",
-    )
-
-    response_schemas = [weight]
-
-    query_engine = DBLoader.get_query_engine(response_schemas, retriever)
-
-    query_str = "What are the device weight in [kg]? How much it weighs in [kg]?"
-
-    response_voltage, response_voltage_dict = make_llm_request(query_engine, query_str)
-
-
-def ask_robot_specs5(retriever):
-    number_of_axes = ResponseSchema(
-        name="number_of_axes",
-        description="What number of axes does this device {} has?".format(
-            response_device_type_dict["device_type"]
-        ),
-        type="int",
-    )
-
-    response_schemas = [number_of_axes]
-
-    query_engine = DBLoader.get_query_engine(response_schemas, retriever)
-
-    query_str = "What number of axes does this device has?"
-
-    response_voltage, response_voltage_dict = make_llm_request(query_engine, query_str)
-
-
-if response_device_type_dict["device_type"] == "Robot Arm":
-    ask_robot_specs(retriever)
-    ask_robot_specs2(retriever)
-    ask_robot_specs3(retriever)
-    ask_robot_specs4(retriever)
-    ask_robot_specs5(retriever)
+#   ################################################# ask device type ################################################
+#
+#   # define output schema
+#   device_type = ResponseSchema(
+#       name="device_type",
+#       description="""What is the device type from the list below on the following device description?\n
+#             List:{device_types} \n
+#             Description: {product_description}.""".format(
+#           device_types=device_types,
+#           product_description=response_device_dict["product_description"],
+#       ),
+#   )
+#
+#   response_schemas = [device_type]
+#   query_engine = DBLoader.get_query_engine(response_schemas, retriever)
+#   query_str = """What is the device type from the list below on the following device description?\n
+#             List:{device_types} \n
+#             Description: {product_description}.""".format(
+#       device_types=device_types,
+#       product_description=response_device_dict["product_description"],
+#   )
+#   response_device_type, response_device_type_dict = make_llm_request(
+#       query_engine, query_str
+#   )
+#   response_device_type_dict = json.loads(
+#       re.sub(r"json", "", re.sub(r"```", "", response_device_type.response))
+#   )
+#
+#   ################################################# ask interfaces ################################################
+#
+#   # define output schema
+#   interfaces = ResponseSchema(
+#       name="interfaces",
+#       description="""What communication interfaces is this {device} supporting from the given list of available interfaces.\n
+#           List of interfaces: {interfaces_types}""".format(
+#           device=response_device_type_dict["device_type"],
+#           interfaces_types=interface_types,
+#       ),
+#       type="list",
+#   )
+#   specific_information_interfaces = ResponseSchema(
+#       name="specific_information_interfaces",
+#       description="What specific about communication interfaces that this {device} supports?".format(
+#           device=response_device_type_dict["device_type"]
+#       ),
+#       type="string",
+#   )
+#
+#   response_schemas = [interfaces, specific_information_interfaces]
+#
+#   query_engine = DBLoader.get_query_engine(response_schemas, retriever)
+#   query_str = """What communication interfaces is this {device} supporting from the given list.\n
+#           List: {interfaces_types}""".format(
+#       device=response_device_type_dict["device_type"], interfaces_types=interface_types
+#   )
+#   response_interfaces, response_interfaces_dict = make_llm_request(
+#       query_engine, query_str
+#   )
+#
+#   ################################################# ask protocols ################################################
+#
+#   protocols = ResponseSchema(
+#       name="protocols",
+#       description="""What communication protocols is this product {device} supporting from the given list of available protocols \n
+#           List of protocols: {protocol_types}""".format(
+#           device=response_device_type_dict["device_type"], protocol_types=protocol_types
+#       ),
+#       type="list",
+#   )
+#   specific_information_protocols = ResponseSchema(
+#       name="specific_information_protocols",
+#       description="What specific about communication protocols that this device supports ?",
+#   )
+#
+#   response_schemas = [protocols, specific_information_protocols]
+#
+#   query_engine = DBLoader.get_query_engine(response_schemas, retriever)
+#   query_str = """What communication protocols is this product {device} supporting from the given list of available protocols \n
+#           List of protocols: {protocol_types}""".format(
+#       device=response_device_type_dict["device_type"], protocol_types=protocol_types
+#   )
+#   response_protocol, response_protocol_dict = make_llm_request(query_engine, query_str)
+#
+#   ################################################# ask serial protocols ################################################
+#
+#   serial_communication = ResponseSchema(
+#       name="serial_connection",
+#       description="""What serial communication protocols is this product {device} supporting from the given list of available protocols \n
+#           List of protocols: {serial_connection_types}""".format(
+#           device=response_device_type_dict["device_type"],
+#           serial_connection_types=serial_connection_types,
+#       ),
+#       type="list",
+#   )
+#   specific_information_serial_communication = ResponseSchema(
+#       name="specific_information_protocols",
+#       description="What specific about serial communication protocols that this product supports?",
+#   )
+#   response_schemas = [
+#       serial_communication,
+#       specific_information_serial_communication,
+#   ]
+#
+#   query_engine = DBLoader.get_query_engine(response_schemas, retriever)
+#
+#   query_str = """What serial communication protocols is this product {device} supporting from the given list of available protocols \n
+#           List of protocols: {serial_connection_types}""".format(
+#       device=response_device_type_dict["device_type"],
+#       serial_connection_types=serial_connection_types,
+#   )
+#   response_serial_communication, response_serial_communication_dict = make_llm_request(
+#       query_engine, query_str
+#   )
+#
+#   ################################################# ask operating voltage ################################################
+#
+#   # define output schema
+#   operating_voltage_min = ResponseSchema(
+#       name="operating_voltage_min",
+#       description="What is the minimum operating rated supply voltage in volts [V] for the device {}?".format(
+#           response_device_dict["product_name"]
+#       ),
+#       type="int",
+#   )
+#
+#   operating_voltage_max = ResponseSchema(
+#       name="operating_voltage_max",
+#       description="What is the maximum operating rated supply voltage in volts [V] for the device {}?".format(
+#           response_device_dict["product_name"]
+#       ),
+#       type="int",
+#   )
+#
+#   response_schemas = [operating_voltage_min, operating_voltage_max]
+#
+#   query_engine = DBLoader.get_query_engine(response_schemas, retriever)
+#
+#   query_str = "What are the minimum and maximum operating rated supply voltage?"
+#
+#   response_voltage, response_voltage_dict = (
+#       response_protocol,
+#       response_protocol_dict,
+#   ) = make_llm_request(query_engine, query_str)
+#
+#   ################################################# ask robot specs ################################################
+#
+#
+#   def ask_robot_specs(retriever):
+#       payload = ResponseSchema(
+#           name="payload",
+#           description="What is the {} maximum payload in kilograms [kg]?".format(
+#               response_device_type_dict["device_type"]
+#           ),
+#           type="int",
+#       )
+#       response_schemas = [payload]
+#
+#       query_engine = DBLoader.get_query_engine(response_schemas, retriever)
+#
+#       query_str = "What is the {} maximum payload in kilograms [kg]?".format(
+#           response_device_type_dict["device_type"]
+#       )
+#
+#       response_voltage, response_voltage_dict = make_llm_request(query_engine, query_str)
+#
+#
+#   def ask_robot_specs2(retriever):
+#       reach = ResponseSchema(
+#           name="reach",
+#           description="What is the {} maximum reach in millimeters [mm]?".format(
+#               response_device_type_dict["device_type"]
+#           ),
+#           type="int",
+#       )
+#
+#       response_schemas = [reach]
+#
+#       query_engine = DBLoader.get_query_engine(response_schemas, retriever)
+#
+#       query_str = "What is the {} maximum reach in millimeters [mm]?".format(
+#           response_device_type_dict["device_type"]
+#       )
+#
+#       response_voltage, response_voltage_dict = make_llm_request(query_engine, query_str)
+#
+#
+#   def ask_robot_specs3(retriever):
+#       workspace_coverage = ResponseSchema(
+#           name="workspace_coverage",
+#           description="What is the {} maximum reach in percentage [%]?".format(
+#               response_device_type_dict["device_type"]
+#           ),
+#           type="int",
+#       )
+#
+#       response_schemas = [workspace_coverage]
+#
+#       query_engine = DBLoader.get_query_engine(response_schemas, retriever)
+#
+#       query_str = "What is the {} maximum reach in percentage [%]?".format(
+#           response_device_type_dict["device_type"]
+#       )
+#
+#       response_voltage, response_voltage_dict = make_llm_request(query_engine, query_str)
+#
+#
+#   def ask_robot_specs4(retriever):
+#       weight = ResponseSchema(
+#           name="weight",
+#           description="What is the device {} weight in kilograms [kg]? How much it weighs in [kg]?".format(
+#               response_device_type_dict["device_type"]
+#           ),
+#           type="int",
+#       )
+#
+#       response_schemas = [weight]
+#
+#       query_engine = DBLoader.get_query_engine(response_schemas, retriever)
+#
+#       query_str = "What are the device weight in [kg]? How much it weighs in [kg]?"
+#
+#       response_voltage, response_voltage_dict = make_llm_request(query_engine, query_str)
+#
+#
+#   def ask_robot_specs5(retriever):
+#       number_of_axes = ResponseSchema(
+#           name="number_of_axes",
+#           description="What number of axes does this device {} has?".format(
+#               response_device_type_dict["device_type"]
+#           ),
+#           type="int",
+#       )
+#
+#       response_schemas = [number_of_axes]
+#
+#       query_engine = DBLoader.get_query_engine(response_schemas, retriever)
+#
+#       query_str = "What number of axes does this device has?"
+#
+#       response_voltage, response_voltage_dict = make_llm_request(query_engine, query_str)
+#
+#
+#   if response_device_type_dict["device_type"] == "Robot Arm":
+#       ask_robot_specs(retriever)
+#       ask_robot_specs2(retriever)
+#       ask_robot_specs3(retriever)
+#       ask_robot_specs4(retriever)
+#       ask_robot_specs5(retriever)
+#
