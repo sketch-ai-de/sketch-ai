@@ -1,23 +1,36 @@
-# examples:
-#   python3 rag_llama_index.py -fs "docs/arduino/uno-rev3/arduino-uno-rev3.pdf" -u="https://store.arduino.cc/products/arduino-uno-rev3" -c="arduino-uno-rev3"
-#   python3 rag_llama_index.py -fs "docs/technosoft/technosoft_ipos_233_canopen/technosoft_ipos_233_canopen.pdf" "docs/technosoft/technosoft_ipos_233_canopen/imot23xs.pdf" -u="https://technosoftmotion.com/en/intelligent-motors/\?SingleProduct\=174" -c="technosoft_ipos_233_canopen"
-#   python3 rag_llama_index.py -fs "docs/raspberry/pi4/raspberry-pi-4-product-brief.pdf" "docs/raspberry/pi4/raspberry-pi-4-datasheet.pdf" -u="https://www.raspberrypi.com/products/raspberry-pi-4-model-b/" -c="raspberry-pi-4-product-brief"
-#   python3 rag_llama_index.py -fs "docs/ur/ur5e/ur5e_user_manual_en_us.pdf" "docs/ur/ur5e/ur5e-fact-sheet.pdf" -u="https://www.universal-robots.com/products/ur5-robot/" -c="ur5e_user_manual_en_us"
+import argparse
+import os
+import re
+import json
+import logging
+import sys
 
-# tbd:
-#   add additional sources
-#   improve sources parser
-#       -> better parsing of the web pages and PDF
-#   DB integration
-#      integrate postgresql or another database
-#       create simple devices representation in database, e.g. device_type table, and populate it
-#       use sql requests to get data from the tables
-#       use sql requests to put data to he tables
-#        metadata filtering
-#   improve openai requsts / consider chains
-#       -> e.g. if device=robot get this and this data
-#       -> if another type, e.g. inductive sensor ask for another data
+from dotenv import load_dotenv
+from langchain.output_parsers import ResponseSchema
+from llama_index import ServiceContext, VectorStoreIndex
+from llama_index.embeddings import HuggingFaceEmbedding
+from llama_index.llms import OpenAI
+from vector_db_loader import VectorDBLoader
+from vector_db_retriever import VectorDBRetriever
+from document_preprocessor import DocumentPreprocessor
 
+import openai
+
+load_dotenv()
+openai.api_key = os.getenv("OPENAI_API_KEY")
+
+parser = argparse.ArgumentParser(
+    prog="RagLlamaindex",
+    description="Retrieve information from different soures - PDFs and Web-Links",
+)
+
+parser.add_argument("-fs", "--filenames", nargs="+", default=[], type=str)
+parser.add_argument("-u", "--url", type=str)
+parser.add_argument("-c", "--collection", type=str)
+parser.add_argument("-k", "--similarity_top_k", default=10, type=int)
+parser.add_argument("-d", "--debug", action="store_true")
+
+args = parser.parse_args()
 
 device_types = [
     "Motor",
@@ -49,36 +62,6 @@ motor_types = ["Stepper motor", "DC motor", "Brushless DC motor / BLDC", "Servom
 
 serial_connection_types = ["I2C / IIC", "1-Wire", "SPI", "UART", "RS-232"]
 
-
-import argparse
-
-parser = argparse.ArgumentParser(
-    prog="RagLlamaindex",
-    description="Retrieve information from different soures - PDFs and Web-Links",
-)
-
-from typing import List
-
-# Define command line arguments
-# -fs: filenames of PDFs to retrieve information from
-# -u: URL of a webpage to retrieve information from
-# -c: name of the collection to store retrieved information in
-# -k: number of top similar documents to retrieve
-# -d: flag to enable debug mode
-
-
-def parse_args():
-    parser.add_argument("-fs", "--filenames", nargs="+", default=[], type=str)
-    parser.add_argument("-u", "--url", type=str)
-    parser.add_argument("-c", "--collection", type=str)
-    parser.add_argument("-k", "--similarity_top_k", default=10, type=int)
-    parser.add_argument("-d", "--debug", action="store_true")
-    return parser.parse_args()
-
-
-import logging
-import sys
-
 logger = logging.getLogger("DefaultLogger")
 streamHandler = logging.StreamHandler(sys.stdout)
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
@@ -86,52 +69,17 @@ streamHandler.setFormatter(formatter)
 logger.setLevel(logging.DEBUG)
 logger.addHandler(streamHandler)
 
-
-args = parse_args()
-
 logger.setLevel(logging.DEBUG if args.debug else logging.INFO)
 
-from llama_index import QueryBundle
-from llama_index.retrievers import BaseRetriever
-from typing import Any, List
-
-from llama_index import ServiceContext
-
-import os
-import openai
-
-from llama_index import VectorStoreIndex
-
-
-from llama_index.prompts.default_prompts import (
-    DEFAULT_TEXT_QA_PROMPT_TMPL,
-    DEFAULT_REFINE_PROMPT_TMPL,
-)
-from langchain.output_parsers import ResponseSchema
-
-from llama_index.llms import OpenAI
-
-from llama_index.embeddings import HuggingFaceEmbedding
-
-from llama_index.vector_stores import VectorStoreQuery
-
-from llama_index.schema import NodeWithScore
-from typing import Optional
-
-# load open ai key
-from dotenv import load_dotenv
-
-load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
-
-# load embedding model
-# model_name = "sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2"
 embed_model_name = "sentence-transformers/all-MiniLM-L12-v2"
-# model_name = "sentence-transformers/multi-qa-MiniLM-L6-cos-v1"
+
+from llama_index.embeddings import OpenAIEmbedding
 
 logger.info(
     "--------------------- Loading embedded model {} \n".format(embed_model_name)
 )
+
+
 embed_model = HuggingFaceEmbedding(model_name=embed_model_name)
 
 # define llm and its params
@@ -142,83 +90,10 @@ llm_model = "gpt-3.5-turbo"
 logger.info("--------------------- Loading llm model {} \n".format(llm_model))
 llm = OpenAI(temperature=llm_temperature, model=llm_model)
 
-from llama_index.text_splitter import SentenceSplitter
-
-from llama_hub.file.pymu_pdf.base import PyMuPDFReader
-
-import re
-import json
-from llmsherpa.readers import LayoutPDFReader
-
-
-from llama_index import download_loader, Document
-from llama_hub.file.pymu_pdf.base import PyMuPDFReader
-from llmsherpa.readers import LayoutPDFReader
-from langchain.document_loaders import WebBaseLoader
-import re
-
-from llama_index.vector_stores import ChromaVectorStore
-
-from vector_db_loader import VectorDBLoader
-
-
-class VectorDBRetriever(BaseRetriever):
-    """Retriever over a ChromaVectorStore vector store."""
-
-    def __init__(
-        self,
-        vector_store: ChromaVectorStore,
-        vector_stores: [],
-        embed_model: Any,
-        query_mode: str = "default",
-        similarity_top_k: int = 10,
-    ) -> None:
-        """Init params."""
-        self._vector_store = vector_store
-        self._vector_stores = vector_stores
-        self._embed_model = embed_model
-        self._query_mode = query_mode
-        self._similarity_top_k = similarity_top_k
-
-    def _retrieve(self, query_bundle: QueryBundle) -> List[NodeWithScore]:
-        """Retrieve."""
-        nodes_with_scores_matrix = [[] for _ in range(len(vector_stores))]
-        for store_index, store in enumerate(self._vector_stores):
-            nodes_with_scores = []
-            self._vector_store = store
-            logger.debug("vector_store client: {}".format(self._vector_store.client))
-            query_embedding = embed_model.get_query_embedding(query_str)
-            vector_store_query = VectorStoreQuery(
-                query_embedding=query_embedding,
-                similarity_top_k=self._similarity_top_k,
-                mode=self._query_mode,
-            )
-            query_result = self._vector_store.query(vector_store_query)
-
-            for index, node in enumerate(query_result.nodes):
-                score: Optional[float] = None
-                if query_result.similarities is not None:
-                    score = query_result.similarities[index]
-                nodes_with_scores.append(NodeWithScore(node=node, score=score))
-            logger.debug("nodes_with_scores: {}".format(nodes_with_scores))
-            nodes_with_scores_matrix[store_index] = nodes_with_scores
-
-        nodes_with_scores_ = []
-        for store_v in nodes_with_scores_matrix:
-            nodes_with_scores_.extend(store_v[0:3])
-        nodes_with_scores = nodes_with_scores_
-
-        logger.debug("nodes_with_scores MERGED: {}".format(nodes_with_scores))
-        return nodes_with_scores[0:30]
-
-
-from document_preprocessor import DocumentPreprocessor
-
 service_context = ServiceContext.from_defaults(
     chunk_size=1024, llm=llm, embed_model=embed_model
 )
 
-print(logger)
 Docs = DocumentPreprocessor(
     logger=logger,
     url=args.url,
@@ -231,6 +106,8 @@ DBLoader = VectorDBLoader(
     logger=logger,
     service_context=service_context,
     collection_dict=Docs.create_collection_dict(),
+    Docs=Docs,
+    embed_model=embed_model,
 )
 
 vector_stores, storage_context, chroma_collection = DBLoader.get_vector_stores()
@@ -242,6 +119,7 @@ retriever = VectorDBRetriever(
     embed_model,
     query_mode="default",
     similarity_top_k=int(args.similarity_top_k),
+    logger=logger,
 )
 
 index = VectorStoreIndex.from_vector_store(
@@ -307,7 +185,6 @@ response_device_dict = json.loads(
     re.sub(r"json", "", re.sub(r"```", "", response_device.response))
 )
 
-################################################# ask device type ################################################
 
 # define output schema
 device_type = ResponseSchema(
