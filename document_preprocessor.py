@@ -32,8 +32,8 @@ class DocumentPreprocessor:
         self.logger.info("--------------------- Load urls \n")
         ReadabilityWebPageReader = download_loader("ReadabilityWebPageReader")
         loader_url = ReadabilityWebPageReader()
-        docs = loader_url.load_data(url=self.url)
-        if docs:
+        if self.url:
+            docs = loader_url.load_data(url=self.url)
             doc = docs[0]
             doc.metadata["file_path"] = self.url
             t = re.sub("\n\n", " ", doc.text)
