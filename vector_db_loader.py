@@ -130,10 +130,9 @@ class VectorDBLoader:
             if len(chroma_collection.get()["ids"]) == 0:
                 self.logger.info("--------------------- Load data to collection  \n")
                 self.logger.debug(
-                    "coll_name, sherpa_table, sherpa_pdf: %s, %s, %s",
-                    coll_name,
-                    sherpa_table,
-                    sherpa_pdf,
+                    "coll_name, sherpa_table, sherpa_pdf: {}, {}, {}".format(
+                        coll_name, sherpa_table, sherpa_pdf
+                    )
                 )
                 self.load_documents_to_db(
                     vector_store,
@@ -150,8 +149,9 @@ class VectorDBLoader:
 
         for v in vector_stores:
             self.logger.debug(
-                "vector_stores client --------------------------------------------------\n%s",
-                v.client,
+                "vector_stores client --------------------------------------------------\n{}".format(
+                    v.client
+                )
             )
 
         return vector_stores, storage_context, chroma_collection
