@@ -74,10 +74,19 @@ class DocumentPreprocessor:
     def process_normal_pdf(self, llm, documents):
         """Process normal PDF documents."""
 
+        qa_prompt2 = PromptTemplate(
+            """\
+            Read this PDF page and summarize semantically in form of sentences. \
+            Start each sentence with a new line. \
+            Retain all the technical specification data. \
+            Translate to english before if required. \
+            PDF page: '{pdf_page}'
+            Answer: \
+            """
+        )
         qa_prompt = PromptTemplate(
             """\
-            Read this PDF page and summarize semantically in form of list of sentences. \
-            Start each sentence with a new line. \
+            Read this PDF page and prepare a detailed summary of it. Start each sentence with new line. \
             Retain all the technical specification data. \
             Translate to english before if required. \
             PDF page: '{pdf_page}'
