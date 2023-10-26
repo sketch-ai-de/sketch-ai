@@ -30,7 +30,6 @@ class VectorDBRetriever(BaseRetriever):
 
     def _retrieve(self, query_bundle: QueryBundle) -> List[NodeWithScore]:
         """Retrieve."""
-        query_str = ""
         nodes_with_scores_matrix = [[] for _ in range(len(self._vector_stores))]
         for store_index, store in enumerate(self._vector_stores):
             nodes_with_scores = []
@@ -38,7 +37,9 @@ class VectorDBRetriever(BaseRetriever):
             self.logger.debug(
                 "vector_store client: {}".format(self._vector_store.client)
             )
-            query_embedding = self._embed_model.get_query_embedding(query_str)
+            query_embedding = self._embed_model.get_query_embedding(
+                query_bundle.query_str
+            )
             vector_store_query = VectorStoreQuery(
                 query_embedding=query_embedding,
                 similarity_top_k=self._similarity_top_k,
