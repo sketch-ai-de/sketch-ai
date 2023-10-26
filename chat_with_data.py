@@ -76,7 +76,9 @@ logger.addHandler(streamHandler)
 
 logger.setLevel(logging.DEBUG if args.debug else logging.INFO)
 
-embed_model_name = "sentence-transformers/all-MiniLM-L12-v2"
+# embed_model_name = "sentence-transformers/all-MiniLM-L12-v2"
+
+embed_model_name = "thenlper/gte-base"
 
 from llama_index.embeddings import OpenAIEmbedding
 
