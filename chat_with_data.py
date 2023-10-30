@@ -193,8 +193,23 @@ response_device_dict = json.loads(
 )
 
 
-while True:
-    query_str = input("Enter a question about document:\n")
+# while True:
+#   query_str = input("Enter a question about document:\n")
+#   answer = ResponseSchema(
+#       name="answer",
+#       description="Give the answer to question: \n Question: " + query_str + "\n Answer:",
+#   )
+#   response_schemas = [answer]
+#   query_engine = DBLoader.get_query_engine(response_schemas, retriever)
+#   response_query, response_query_dict = make_llm_request(query_engine, query_str)
+
+
+import gradio as gr
+
+
+def predict(query_str, history):
+    history_openai_format = []
+    # query_str = input("Enter a question about document:\n")
     answer = ResponseSchema(
         name="answer",
         description="Give the answer to question: \n Question: "
@@ -203,7 +218,22 @@ while True:
     )
     response_schemas = [answer]
     query_engine = DBLoader.get_query_engine(response_schemas, retriever)
-    response_query, response_query_dict = make_llm_request(query_engine, query_str)
+    response = make_llm_request(query_engine, query_str)
+    print(response)
+    response_query_dict = json.loads(
+        re.sub(r"json", "", re.sub(r"```", "", response[0].response))
+    )
+
+    return response_query_dict["answer"]
+    # partial_message = ""
+    # print(response_query_dict["answer"])
+    # for chunk in response_query_dict["answer"]:
+    #    if len(chunk["choices"][0]["delta"]) != 0:
+    #        partial_message = partial_message + chunk["choices"][0]["delta"]["content"]
+    #        yield partial_message
+
+
+gr.ChatInterface(predict).queue().launch()
 
 #   ################################################# ask device type ################################################
 #
