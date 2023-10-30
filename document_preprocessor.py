@@ -235,33 +235,26 @@ class DocumentPreprocessor:
                 )
                 self.logger.debug("text: {}".format(text))
 
-
-def create_collection_dict(self) -> dict:
-    """
-    This function creates a dictionary of collections from the loaded documents.
-    The function takes no arguments, but it relies on the load_documents method to load the documents from the specified URLs and PDF files.
-    The loaded documents are then used to create the collection dictionary.
-    The function first creates an empty dictionary called collection_dict.
-    It then checks if there are any URL documents loaded, and if so, it adds the first URL document to the dictionary under the key self.collection_name + "_url1".
-    Next, the function iterates over the PDF filenames and the corresponding loaded PDF documents.
-    For each PDF file, it adds each document to the dictionary under a unique key that includes the collection name, the PDF index, and the document index.
-    The function then adds the Sherpa table PDF documents to the dictionary under the key self.collection_name + "_pdf_sherpa_" + str(idx).
-    It also iterates over each table in each Sherpa table PDF document and adds each table to the dictionary under a unique key that includes the collection name, the PDF index, and the table index.
-
-    Finally, the function returns the collection_dict dictionary.
-    The function returns a dictionary of collections, where each collection is a list of documents.
-    The keys of the dictionary are unique identifiers for each document, which include the collection name, the PDF index (if applicable), and the document or table index. ▌
-
-    Returns:
-    - collection_dict (dict): a dictionary of collections.
-    """
-
     def create_collection_dict(self) -> dict:
         """
-        Creates a dictionary of collections.
+        This function creates a dictionary of collections from the loaded documents.
+        The function takes no arguments, but it relies on the load_documents method to load the documents from the specified URLs and PDF files.
+        The loaded documents are then used to create the collection dictionary.
+        The function first creates an empty dictionary called collection_dict.
+        It then checks if there are any URL documents loaded, and if so, it adds the first URL document to the dictionary under the key self.collection_name + "_url1".
+        Next, the function iterates over the PDF filenames and the corresponding loaded PDF documents.
+        For each PDF file, it adds each document to the dictionary under a unique key that includes the collection name, the PDF index, and the document index.
+        The function then adds the Sherpa table PDF documents to the dictionary under the key self.collection_name + "_pdf_sherpa_" + str(idx).
+        It also iterates over each table in each Sherpa table PDF document and adds each table to the dictionary under a unique key that includes the collection name, the PDF index, and the table index.
+
+        Finally, the function returns the collection_dict dictionary.
+        The function returns a dictionary of collections, where each collection is a list of documents.
+        The keys of the dictionary are unique identifiers for each document, which include the collection name, the PDF index (if applicable), and the document or table index. ▌
+
         Returns:
         - collection_dict (dict): a dictionary of collections.
         """
+
         url_docs, pdf_docs, pdf_docs_sherpa = self.load_documents()
         collection_dict = {}
         if url_docs:
