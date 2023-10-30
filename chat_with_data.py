@@ -86,7 +86,6 @@ logger.info(
     "--------------------- Loading embedded model {} \n".format(embed_model_name)
 )
 
-
 embed_model = HuggingFaceEmbedding(model_name=embed_model_name)
 
 # define llm and its params
@@ -101,6 +100,7 @@ service_context = ServiceContext.from_defaults(
     chunk_size=1024, llm=llm, embed_model=embed_model
 )
 
+# Creating a DocumentPreprocessor object to preprocess the documents
 Docs = DocumentPreprocessor(
     logger=logger,
     url=args.url,
@@ -108,6 +108,7 @@ Docs = DocumentPreprocessor(
     collection_name=args.collection,
 )
 
+# Creating a VectorDBLoader object to load the vectors into the database
 DBLoader = VectorDBLoader(
     llm=llm,
     logger=logger,
@@ -117,9 +118,13 @@ DBLoader = VectorDBLoader(
     embed_model=embed_model,
 )
 
+# Getting the vector stores, storage context and chroma collection from the VectorDBLoader object
 vector_stores, storage_context, chroma_collection = DBLoader.get_vector_stores()
+
+# Getting the first vector store from the vector stores
 vector_store = vector_stores[0]
 
+# Creating a VectorDBRetriever object to retrieve the vectors from the database
 retriever = VectorDBRetriever(
     vector_store,  # default vector store
     vector_stores,
@@ -129,13 +134,14 @@ retriever = VectorDBRetriever(
     logger=logger,
 )
 
+# Creating a VectorStoreIndex object from the vector store
 index = VectorStoreIndex.from_vector_store(
     vector_store,
     service_context=service_context,
     storage_context=storage_context,
 )
 
-
+# Creating a query engine from the VectorStoreIndex object
 query_engine = index.as_query_engine(
     chroma_collection=chroma_collection, retriever=retriever
 )
