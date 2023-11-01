@@ -67,11 +67,10 @@ motor_types = ["Stepper motor", "DC motor", "Brushless DC motor / BLDC", "Servom
 
 serial_connection_types = ["I2C / IIC", "1-Wire", "SPI", "UART", "RS-232"]
 
-logger = logging.getLogger("DefaultLogger")
+logger = logging.getLogger(__name__)
 streamHandler = logging.StreamHandler(sys.stdout)
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 streamHandler.setFormatter(formatter)
-logger.setLevel(logging.DEBUG)
 logger.addHandler(streamHandler)
 
 logger.setLevel(logging.DEBUG if args.debug else logging.INFO)
