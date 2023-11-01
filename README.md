@@ -42,6 +42,9 @@ Open a terminal and execute the given commands to set up a virtual environment u
 # Installs the 'venv' module
 sudo apt install python3.10-venv
 
+# Install sqlite
+apt-get install sqlite
+
 # Navigate to your project's root directory
 cd sketch-ai
 
