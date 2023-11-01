@@ -1,16 +1,15 @@
-import chromadb
 from typing import List, Tuple
+
+import chromadb
+from langchain.output_parsers import StructuredOutputParser
+from llama_index.output_parsers import LangchainOutputParser
+from llama_index.prompts.default_prompts import (DEFAULT_REFINE_PROMPT_TMPL,
+                                                 DEFAULT_TEXT_QA_PROMPT_TMPL)
+from llama_index.prompts.prompts import QuestionAnswerPrompt, RefinePrompt
+from llama_index.query_engine import RetrieverQueryEngine
 from llama_index.schema import TextNode
 from llama_index.storage.storage_context import StorageContext
-from llama_index.query_engine import RetrieverQueryEngine
-from langchain.output_parsers import StructuredOutputParser
-from llama_index.prompts.prompts import QuestionAnswerPrompt, RefinePrompt
 from llama_index.vector_stores import ChromaVectorStore
-from llama_index.output_parsers import LangchainOutputParser
-from llama_index.prompts.default_prompts import (
-    DEFAULT_TEXT_QA_PROMPT_TMPL,
-    DEFAULT_REFINE_PROMPT_TMPL,
-)
 
 
 class VectorDBLoader:
@@ -134,15 +133,15 @@ class VectorDBLoader:
 
     def get_collection_from_db(self, collection) -> Tuple:
         """
-        This function takes in a collection parameter which is the name of the collection to retrieve. 
+        This function takes in a collection parameter which is the name of the collection to retrieve.
         The function returns a tuple containing a ChromaVectorStore object, a StorageContext object, and a chromadb Collection object.
 
         The function first creates a PersistentClient object from the chromadb module, \
-            which is used to connect to a persistent database located at the path specified by chroma_db_path. 
+            which is used to connect to a persistent database located at the path specified by chroma_db_path.
         The get_or_create_collection method is then called on the db object to retrieve or \
               create a collection with the name specified by the collection parameter.
 
-        A ChromaVectorStore object is then created using the chroma_collection object retrieved from the previous step. 
+        A ChromaVectorStore object is then created using the chroma_collection object retrieved from the previous step.
         A StorageContext object is also created using the vector_store object. The StorageContext object is used to manage the storage of the vector data.
 
         Finally, the function returns a tuple containing the vector_store, storage_context, and chroma_collection objects. ▌
@@ -165,22 +164,22 @@ class VectorDBLoader:
         self,
     ) -> Tuple[List[ChromaVectorStore], StorageContext, chromadb.Collection]:
         """
-        The purpose of this function is to retrieve a list of `ChromaVectorStore` objects, a `StorageContext` object, and a `chromadb.Collection` object. 
+        The purpose of this function is to retrieve a list of `ChromaVectorStore` objects, a `StorageContext` object, and a `chromadb.Collection` object.
 
-        The function first initializes an empty list called `vector_stores`. 
-        It then iterates over the keys of the `collection_dict` dictionary attribute of the `VectorDBLoader` instance. 
+        The function first initializes an empty list called `vector_stores`.
+        It then iterates over the keys of the `collection_dict` dictionary attribute of the `VectorDBLoader` instance.
         For each key, the function calls the `get_collection_from_db` method of the `VectorDBLoader` instance to retrieve a \
-            `ChromaVectorStore` object, a `StorageContext` object, and a `chromadb.Collection` object. 
+            `ChromaVectorStore` object, a `StorageContext` object, and a `chromadb.Collection` object.
 
-        The function then checks if the length of the `ids` attribute of the `chroma_collection` object is zero. 
-        If it is, the function logs a message indicating that data is being loaded into the collection. 
+        The function then checks if the length of the `ids` attribute of the `chroma_collection` object is zero.
+        If it is, the function logs a message indicating that data is being loaded into the collection.
         It then calls the `load_documents_to_db` method of the `VectorDBLoader` instance to load the documents associated with \
-              the collection into the `vector_store` object. 
+              the collection into the `vector_store` object.
         If the length of the `ids` attribute of the `chroma_collection` object is not zero, the function logs a message \
               indicating that data already exists in the collection.
 
-        The `vector_store` object is appended to the `vector_stores` list. 
-        Once all the collections have been processed, the function logs the `client` attribute of each `ChromaVectorStore` object in the `vector_stores` list. 
+        The `vector_store` object is appended to the `vector_stores` list.
+        Once all the collections have been processed, the function logs the `client` attribute of each `ChromaVectorStore` object in the `vector_stores` list.
         Finally, the function returns a tuple containing the `vector_stores` list, the `storage_context` object, and the `chroma_collection` object.
 
         Returns:

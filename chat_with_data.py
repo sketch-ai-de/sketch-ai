@@ -4,22 +4,22 @@
 #   python3 chat_with_data.py -fs "docs/agile/diana7/diana7.pdf" -u="" -c="diana7"
 
 import argparse
-import os
-import re
 import json
 import logging
+import os
+import re
 import sys
 
+import openai
 from dotenv import load_dotenv
 from langchain.output_parsers import ResponseSchema
 from llama_index import ServiceContext, VectorStoreIndex
 from llama_index.embeddings import HuggingFaceEmbedding
 from llama_index.llms import OpenAI
+
+from document_preprocessor import DocumentPreprocessor
 from vector_db_loader import VectorDBLoader
 from vector_db_retriever import VectorDBRetriever
-from document_preprocessor import DocumentPreprocessor
-
-import openai
 
 load_dotenv()
 openai.api_key = os.getenv("OPENAI_API_KEY")
@@ -136,9 +136,7 @@ retriever = VectorDBRetriever(
 
 # Creating a VectorStoreIndex object from the vector store
 index = VectorStoreIndex.from_vector_store(
-    vector_store,
-    service_context=service_context,
-    storage_context=storage_context,
+    vector_store, service_context=service_context, storage_context=storage_context
 )
 
 # Creating a query engine from the VectorStoreIndex object

@@ -1,9 +1,10 @@
 import re
-from llmsherpa.readers import LayoutPDFReader
-from llama_index import download_loader, Document
+
 from llama_hub.file.pymu_pdf.base import PyMuPDFReader
+from llama_index import Document, download_loader
 from llama_index.prompts import PromptTemplate
 from llama_index.schema import TextNode
+from llmsherpa.readers import LayoutPDFReader
 
 
 class DocumentPreprocessor:
@@ -185,9 +186,7 @@ class DocumentPreprocessor:
                 response = llm.complete(fmt_qa_prompt)
                 for line in response.text.splitlines():
                     src_doc = documents[doc_idx]
-                    node = TextNode(
-                        text=line,
-                    )
+                    node = TextNode(text=line)
                     node.metadata = src_doc.metadata
                     self.nodes.append(node)
                     self.logger.debug("text: {}".format(line))
@@ -227,12 +226,7 @@ class DocumentPreprocessor:
         for i in range(len(lines)):
             if lines[i]:
                 text = lines[i]
-                self.nodes.append(
-                    Document(
-                        text=text,
-                        extra_info={},
-                    )
-                )
+                self.nodes.append(Document(text=text, extra_info={}))
                 self.logger.debug("text: {}".format(text))
 
     def create_collection_dict(self) -> dict:
