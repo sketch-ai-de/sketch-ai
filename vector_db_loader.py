@@ -34,6 +34,7 @@ class VectorDBLoader:
         collection_dict: List[str],
         Docs,
         embed_model,
+        verbose=False,
     ):
         self.llm = llm
         self.logger = logger
@@ -41,9 +42,19 @@ class VectorDBLoader:
         self.collection_dict = collection_dict
         self.Docs = Docs
         self.embed_model = embed_model
+        self.all_nodes = []
+        self.verbose = verbose
+
+    def get_all_nodes(self):
+        return self.all_nodes
 
     def load_documents_to_db(
-        self, vector_store, documents, sherpa_pdf=False, sherpa_table=False
+        self,
+        vector_store,
+        documents,
+        sherpa_pdf=False,
+        sherpa_table=False,
+        coll_name="",
     ) -> List[TextNode]:
         """
         Load data to vector database collection.
@@ -62,15 +73,15 @@ class VectorDBLoader:
 
         if not sherpa_pdf and not sherpa_table:
             self.logger.info("--------------------- Process normal PDF \n")
-            self.Docs.process_normal_pdf(self.llm, documents)
+            self.Docs.process_normal_pdf(self.llm, documents, coll_name=coll_name)
 
         if sherpa_pdf and not sherpa_table:
             print(documents)
             self.logger.info("--------------------- Process sherpa PDF \n")
-            self.Docs.process_sherpa_pdf(documents)
+            self.Docs.process_sherpa_pdf(documents, coll_name=coll_name)
 
         if sherpa_table and not sherpa_pdf:
-            self.Docs.process_sherpa_table(self.llm, documents)
+            self.Docs.process_sherpa_table(self.llm, documents, coll_name=coll_name)
 
         nodes = self.Docs.get_nodes()
 
@@ -79,6 +90,7 @@ class VectorDBLoader:
                 node.get_content(metadata_mode="all")
             )
             node.embedding = node_embedding
+            self.all_nodes.append(node)
 
         self.logger.debug(
             "adding node to vector_store client: {}".format(vector_store.client)
@@ -113,6 +125,7 @@ class VectorDBLoader:
             retriever,
             service_context=self.service_context,
             text_qa_template=qa_prompt,
+            verbose=self.verbose
             # refine_template=refine_prompt,
         )
 
@@ -138,7 +151,7 @@ class VectorDBLoader:
         return vector_store, storage_context, chroma_collection
 
     def get_vector_stores(
-        self,
+        self, load_always=False
     ) -> Tuple[List[ChromaVectorStore], StorageContext, chromadb.Collection]:
         """
         The purpose of this function is to retrieve a list of `ChromaVectorStore`
@@ -148,6 +161,8 @@ class VectorDBLoader:
         - A tuple containing a list of ChromaVectorStore objects, a StorageContext object, and a chromadb Collection object.
         """
         vector_stores = []
+        storage_context = None
+        chroma_collection = None
 
         for coll_name in self.collection_dict.keys():
             (
@@ -170,7 +185,7 @@ class VectorDBLoader:
                 chroma_collection.get()["ids"],
             )
 
-            if len(chroma_collection.get()["ids"]) == 0:
+            if len(chroma_collection.get()["ids"]) == 0 or load_always:
                 self.logger.info("--------------------- Load data to collection  \n")
                 self.logger.debug(
                     "coll_name, sherpa_table, sherpa_pdf: {}, {}, {}".format(
@@ -182,6 +197,7 @@ class VectorDBLoader:
                     self.collection_dict[coll_name],
                     sherpa_pdf=sherpa_pdf,
                     sherpa_table=sherpa_table,
+                    coll_name=coll_name,
                 )
             else:
                 self.logger.info(

@@ -9,3 +9,11 @@ torch
 pymupdf
 frontend
 llmsherpa
+sqlalchemy
+mypy_extensions
+pgvector
+psycopg2
+psycopg2-binary
+asyncpg
+sqlalchemy[asyncio]
+greenlet

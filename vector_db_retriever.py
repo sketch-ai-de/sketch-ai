@@ -77,8 +77,10 @@ class VectorDBRetriever(BaseRetriever):
 
         nodes_with_scores_ = []
         for store_v in nodes_with_scores_matrix:
-            nodes_with_scores_.extend(store_v[0:3])
+            nodes_with_scores_.extend(
+                store_v[0:3]
+            )  # take 4 results fom each store and add to nodes_with_scores_
         nodes_with_scores = nodes_with_scores_
 
         self.logger.debug("nodes_with_scores MERGED: {}".format(nodes_with_scores))
-        return nodes_with_scores[0:30]
+        return nodes_with_scores[0:25]  # 4 results with one store, 8 with 2 stores
