@@ -1,8 +1,3 @@
-# examples:
-#   python3 chat_with_data.py -fs "docs/franka/research3/franka-research3.pdf" -u="https://store.clearpathrobotics.com/products/franka-research-3" -c="franka-research3"
-#   python3 chat_with_data.py -fs "docs/ur/ur5e/ur5e-fact-sheet.pdf" -u="https://www.universal-robots.com/products/ur5-robot/" -c="ur5e_user_manual_en_us"
-#   python3 chat_with_data.py -fs "docs/agile/diana7/diana7.pdf" -u="" -c="diana7"
-
 import argparse
 import json
 import logging
