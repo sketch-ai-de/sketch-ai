@@ -8,3 +8,4 @@ transformers
 torch
 pymupdf
 frontend
+llmsherpa
