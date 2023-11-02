@@ -14,9 +14,8 @@ from llama_index.vector_stores import ChromaVectorStore
 
 class VectorDBLoader:
     """
-    A class for loading data into a vector database collection and retrieving data from it.
-    There are methods in the class that are used to retrieve data from a ChromaVectorStore object, a StorageContext object, and a chromadb Collection object.
-    The data is then processed and added to the vector store.
+    A class for loading data into a vector database collection and
+    retrieving data from it.
 
     Args:
     - llm: An instance of the Langchain LLM class.
@@ -48,18 +47,6 @@ class VectorDBLoader:
     ) -> List[TextNode]:
         """
         Load data to vector database collection.
-
-        It takes in an instance of the `ChromaVectorStore` class, a list of documents to be loaded into the collection, and two boolean values indicating whether the documents are sherpa PDFs or tables.
-
-        The function first initializes an empty list called `nodes` and clears the `TextNode` objects in the `Docs` instance.
-        Then, depending on the boolean values of `sherpa_pdf` and `sherpa_table`, the function processes the documents using different methods of the `Docs` instance. If neither boolean is `True`, the function processes normal PDFs using the `process_normal_pdf` method. If `sherpa_pdf` is `True`, the function processes sherpa PDFs using the `process_sherpa_pdf` method.
-        If `sherpa_table` is `True`, the function processes sherpa tables using the `process_sherpa_table` method.
-
-        After processing the documents, the function retrieves the `TextNode` objects using the `get_nodes` method of the `Docs` instance.
-        For each `TextNode` object, the function retrieves the text content and generates an embedding using the `get_text_embedding` method of the `embed_model` instance.
-        The embedding is then assigned to the `embedding` attribute of the `TextNode` object.
-
-        Finally, the function adds the `TextNode` objects to the `ChromaVectorStore` instance using the `add` method and returns the list of `TextNode` objects.
 
         Args:
         - vector_store: An instance of the ChromaVectorStore class.
@@ -133,18 +120,8 @@ class VectorDBLoader:
 
     def get_collection_from_db(self, collection) -> Tuple:
         """
-        This function takes in a collection parameter which is the name of the collection to retrieve.
-        The function returns a tuple containing a ChromaVectorStore object, a StorageContext object, and a chromadb Collection object.
-
-        The function first creates a PersistentClient object from the chromadb module, \
-            which is used to connect to a persistent database located at the path specified by chroma_db_path.
-        The get_or_create_collection method is then called on the db object to retrieve or \
-              create a collection with the name specified by the collection parameter.
-
-        A ChromaVectorStore object is then created using the chroma_collection object retrieved from the previous step.
-        A StorageContext object is also created using the vector_store object. The StorageContext object is used to manage the storage of the vector data.
-
-        Finally, the function returns a tuple containing the vector_store, storage_context, and chroma_collection objects. ▌
+        This function takes in a collection parameter which is the name of the
+        collection to retrieve.
 
         Args:
         - collection: The name of the collection.
@@ -164,23 +141,8 @@ class VectorDBLoader:
         self,
     ) -> Tuple[List[ChromaVectorStore], StorageContext, chromadb.Collection]:
         """
-        The purpose of this function is to retrieve a list of `ChromaVectorStore` objects, a `StorageContext` object, and a `chromadb.Collection` object.
-
-        The function first initializes an empty list called `vector_stores`.
-        It then iterates over the keys of the `collection_dict` dictionary attribute of the `VectorDBLoader` instance.
-        For each key, the function calls the `get_collection_from_db` method of the `VectorDBLoader` instance to retrieve a \
-            `ChromaVectorStore` object, a `StorageContext` object, and a `chromadb.Collection` object.
-
-        The function then checks if the length of the `ids` attribute of the `chroma_collection` object is zero.
-        If it is, the function logs a message indicating that data is being loaded into the collection.
-        It then calls the `load_documents_to_db` method of the `VectorDBLoader` instance to load the documents associated with \
-              the collection into the `vector_store` object.
-        If the length of the `ids` attribute of the `chroma_collection` object is not zero, the function logs a message \
-              indicating that data already exists in the collection.
-
-        The `vector_store` object is appended to the `vector_stores` list.
-        Once all the collections have been processed, the function logs the `client` attribute of each `ChromaVectorStore` object in the `vector_stores` list.
-        Finally, the function returns a tuple containing the `vector_stores` list, the `storage_context` object, and the `chroma_collection` object.
+        The purpose of this function is to retrieve a list of `ChromaVectorStore`
+        objects, a `StorageContext` object, and a `chromadb.Collection` object.
 
         Returns:
         - A tuple containing a list of ChromaVectorStore objects, a StorageContext object, and a chromadb Collection object.
@@ -230,7 +192,8 @@ class VectorDBLoader:
 
         for v in vector_stores:
             self.logger.debug(
-                "vector_stores client --------------------------------------------------\n{}".format(
+                "vector_stores client"
+                " --------------------------------------------------\n{}".format(
                     v.client
                 )
             )
@@ -241,9 +204,7 @@ class VectorDBLoader:
         self,
     ) -> Tuple[List[ChromaVectorStore], StorageContext, chromadb.Collection]:
         """
-        Get a list of ChromaVectorStore objects, a StorageContext object, and a chromadb Collection object.
-
-        Returns:
-        - A tuple containing a list of ChromaVectorStore objects, a StorageContext object, and a chromadb Collection object.
+        Get a list of ChromaVectorStore objects, a StorageContext object,
+        and a chromadb Collection object.
         """
         return self.get_vector_stores()

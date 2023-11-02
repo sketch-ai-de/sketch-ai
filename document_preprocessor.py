@@ -10,11 +10,8 @@ from llmsherpa.readers import LayoutPDFReader
 class DocumentPreprocessor:
 
     """
-    The DocumentPreprocessor class is responsible for processing different types of documents, including normal PDFs and Sherpa table PDFs.
-    It uses an OpenAI object to summarize the documents and create a dictionary of collections.
-    The class contains methods for clearing the nodes list, processing normal PDFs, processing Sherpa table PDFs, and creating a collection dictionary.
-    The methods take in arguments such as an OpenAI object and a list of Document objects.
-    The class also contains docstrings for each method that describe their functionality and input parameters.
+    The DocumentPreprocessor class is responsible for processing different
+    types of documents, including normal PDFs and Sherpa table PDFs.
     """
 
     def __init__(self, logger, url, pdf_filenames, collection_name):
@@ -61,24 +58,8 @@ class DocumentPreprocessor:
 
     def load_pdf_documents(self):
         """
-        This function is responsible for loading PDF documents and returning two lists of `Document` objects: `pdf_docs` and `pdf_docs_sherpa`.
-        The function first initializes two objects: `loader_pdf` and `pdf_reader`.
-        `loader_pdf` is an instance of the `PyMuPDFReader` class, which is used to load PDF files from the local file system.
-        `pdf_reader` is an instance of the `LayoutPDFReader` class, which is used to read PDF files and extract their layout information using the LLMSherpa API.
-
-        The function then initializes two empty lists: `pdf_docs` and `pdf_docs_sherpa`.
-        These lists will be used to store the `Document` objects that are created from the PDF files.
-
-        The function then iterates over the list of PDF file names that was passed to the `DocumentPreprocessor` object during initialization.
-        For each file name, the function first loads the PDF file using `loader_pdf.load(file_path=file)`.
-        This returns a `Document` object that represents the PDF file.
-        The function then uses `pdf_reader.read_pdf(file)` to extract the layout information from the PDF file using the LLMSherpa API.
-        This returns a `Document` object that represents the PDF file with layout information.
-
-        The function then appends the two `Document` objects to the `pdf_docs` and `pdf_docs_sherpa` lists, respectively.
-
-        Finally, the function returns the two lists of `Document` objects: `pdf_docs` and `pdf_docs_sherpa`.
-
+        This function is responsible for loading PDF documents and returning
+        two lists of `Document` objects: `pdf_docs` and `pdf_docs_sherpa`.
         Returns:
         - pdf_docs (list): a list of Document objects.
         - pdf_docs_sherpa (list): a list of Document objects.
@@ -140,16 +121,9 @@ class DocumentPreprocessor:
 
     def process_normal_pdf(self, llm, documents):
         """
-        The function uses the OpenAI object to generate a detailed summary of each PDF page and adds the summary to the `nodes` list as a `TextNode` object.
-
-
-        The function prompts the user to read each PDF page and prepare a detailed summary of it using a `PromptTemplate` object.
-        The prompt instructs the user to start each sentence with a new line, retain all the technical specification data, and translate to English before if required.
-
-        The function then uses the OpenAI object to generate a response to the prompt.
-        The response is split into lines and each line is added to the `nodes` list as a `TextNode` object.
-        The `TextNode` object contains the text of the line and the metadata of the source document.
-        The `nodes` list is an attribute of the `DocumentPreprocessor` class that stores a list of `TextNode` objects.
+        The function uses the OpenAI object to generate a detailed summary of
+        each PDF page and adds the summary to the `nodes` list as a `TextNode`
+        object.
 
         Args:
         - llm (OpenAI): an OpenAI object.
@@ -178,15 +152,16 @@ class DocumentPreprocessor:
         for doc_idx, doc in enumerate(documents):
             if len(doc.text) > 200:
                 self.logger.info(
-                    "--------------------- Ask LLM to summarize page {page} from PDF {pdf} \n".format(
-                        page=doc_idx, pdf=doc.metadata["file_path"]
-                    )
+                    "--------------------- Ask LLM to summarize page {page} from PDF"
+                    " {pdf} \n".format(page=doc_idx, pdf=doc.metadata["file_path"])
                 )
                 fmt_qa_prompt = qa_prompt.format(pdf_page=doc.text)
                 response = llm.complete(fmt_qa_prompt)
                 for line in response.text.splitlines():
                     src_doc = documents[doc_idx]
-                    node = TextNode(text=line)
+                    node = TextNode(
+                        text=line,
+                    )
                     node.metadata = src_doc.metadata
                     self.nodes.append(node)
                     self.logger.debug("text: {}".format(line))
@@ -194,10 +169,6 @@ class DocumentPreprocessor:
     def process_sherpa_table(self, llm, documents):
         """
         Processes sherpa table PDF documents.
-        This function processes a Sherpa table PDF document by using the llm object to generate a detailed summary of the table.
-        The summary is generated by prompting the user to read the table and prepare a detailed summary of it.
-        The table is then added to the nodes list as a Document object with the generated summary as its text.
-        The nodes list is an attribute of the DocumentPreprocessor class that stores a list of Document objects.
 
         Args:
         - llm (OpenAI): an OpenAI object.
@@ -226,24 +197,17 @@ class DocumentPreprocessor:
         for i in range(len(lines)):
             if lines[i]:
                 text = lines[i]
-                self.nodes.append(Document(text=text, extra_info={}))
+                self.nodes.append(
+                    Document(
+                        text=text,
+                        extra_info={},
+                    )
+                )
                 self.logger.debug("text: {}".format(text))
 
     def create_collection_dict(self) -> dict:
         """
         This function creates a dictionary of collections from the loaded documents.
-        The function takes no arguments, but it relies on the load_documents method to load the documents from the specified URLs and PDF files.
-        The loaded documents are then used to create the collection dictionary.
-        The function first creates an empty dictionary called collection_dict.
-        It then checks if there are any URL documents loaded, and if so, it adds the first URL document to the dictionary under the key self.collection_name + "_url1".
-        Next, the function iterates over the PDF filenames and the corresponding loaded PDF documents.
-        For each PDF file, it adds each document to the dictionary under a unique key that includes the collection name, the PDF index, and the document index.
-        The function then adds the Sherpa table PDF documents to the dictionary under the key self.collection_name + "_pdf_sherpa_" + str(idx).
-        It also iterates over each table in each Sherpa table PDF document and adds each table to the dictionary under a unique key that includes the collection name, the PDF index, and the table index.
-
-        Finally, the function returns the collection_dict dictionary.
-        The function returns a dictionary of collections, where each collection is a list of documents.
-        The keys of the dictionary are unique identifiers for each document, which include the collection name, the PDF index (if applicable), and the document or table index. ▌
 
         Returns:
         - collection_dict (dict): a dictionary of collections.

@@ -7,9 +7,9 @@ from llama_index.vector_stores import ChromaVectorStore, VectorStoreQuery
 
 
 class VectorDBRetriever(BaseRetriever):
-    """It is a subclass of BaseRetriever and is used to retrieve data from a ChromaVectorStore vector store.
-    The class takes in several arguments including the vector store, a list of vector stores, an embedding model, query mode, similarity top k, and a logger.
-    The class has a method named _retrieve which retrieves data from the vector store and returns a list of NodeWithScore objects.
+
+    """
+    It is a subclass of BaseRetriever and is used to retrieve data
 
     Args:
         vector_store (ChromaVectorStore): The vector store to retrieve from.
@@ -36,16 +36,17 @@ class VectorDBRetriever(BaseRetriever):
         self._similarity_top_k = similarity_top_k
         self.logger = logger
 
-    """Initialize the VectorDBRetriever.
+    """
+    Initialize the VectorDBRetriever.
 
-        Args:
-            vector_store (ChromaVectorStore): The vector store to retrieve from.
-            vector_stores (list): A list of vector stores to retrieve from.
-            embed_model (Any): The embedding model to use for queries.
-            query_mode (str, optional): The query mode to use. Defaults to "default".
-            similarity_top_k (int, optional): The number of results to return. Defaults to 10.
-            logger (Any, optional): The logger to use. Defaults to None.
-        """
+    Args:
+        vector_store (ChromaVectorStore): The vector store to retrieve from.
+        vector_stores (list): A list of vector stores to retrieve from.
+        embed_model (Any): The embedding model to use for queries.
+        query_mode (str, optional): The query mode to use. Defaults to "default".
+        similarity_top_k (int, optional): The number of results to return. Defaults to 10.
+        logger (Any, optional): The logger to use. Defaults to None.
+    """
 
     def _retrieve(self, query_bundle: QueryBundle) -> List[NodeWithScore]:
         """Retrieve."""
