@@ -153,10 +153,8 @@ if not args.gradio_on:
         if logger.getEffectiveLevel() == logging.DEBUG:
             for idx, node in enumerate(response.source_nodes):
                 print(
-                    "######################################### \
-                      Node {} with text \n: {}".format(
-                        idx, node.text
-                    )
+                    "#########################################                      "
+                    " Node {} with text \n: {}".format(idx, node.text)
                 )
                 print("######################################### \n")
 
@@ -177,8 +175,11 @@ if not args.gradio_on:
     )
     product_description = ResponseSchema(
         name="product_description",
-        description="Summarize a description of the product without too much technical characteristics. \
-            Put detailed company name and product name in the description",
+        description=(
+            "Summarize a description of the product without too much technical"
+            " characteristics. Put detailed company name and product name"
+            " in the description"
+        ),
     )
 
     response_schemas = [
@@ -189,7 +190,10 @@ if not args.gradio_on:
     ]
 
     query_engine = DBLoader.get_query_engine(response_schemas, retriever)
-    query_str = "What is this technical document/manual/specification about? What is company name? What is the product name? Answer always in json format."
+    query_str = (
+        "What is this technical document/manual/specification about? What is company"
+        " name? What is the product name? Answer always in json format."
+    )
     response_device, response_device_dict = make_llm_request(query_engine, query_str)
     response_device_dict = json.loads(
         re.sub(r"json", "", re.sub(r"```", "", response_device.response))
@@ -249,8 +253,11 @@ if not args.gradio_on:
         )
         weight = ResponseSchema(
             name="weight",
-            description="What is weight of the robot arm {} in [kg]? Consider only arm weight and not the weight of the other components.".format(
-                response_device_dict["product_name"]
+            description=(
+                "What is weight of the robot arm {} in [kg]? Consider only arm weight"
+                " and not the weight of the other components.".format(
+                    response_device_dict["product_name"]
+                )
             ),
             type="float",
         )
@@ -258,8 +265,11 @@ if not args.gradio_on:
         response_schemas = [payload, reach, weight]
 
         query_engine = DBLoader.get_query_engine(response_schemas, retriever)
-        query_str = "What is payload in [kg], reachability in [mm] and weight of the robot arm {} in [kg]? Answer always in json format.".format(
-            response_device_dict["product_name"]
+        query_str = (
+            "What is payload in [kg], reachability in [mm] and weight of the robot arm"
+            " {} in [kg]? Answer always in json format.".format(
+                response_device_dict["product_name"]
+            )
         )
 
         response_device_details, response_device_details_dict = make_llm_request(
@@ -279,25 +289,31 @@ if not args.gradio_on:
     ):
         power = ResponseSchema(
             name="power",
-            description="What is power in [W] of the {} {}? Answer 0.0 if not provided.".format(
-                response_device_dict["device_type_name"],
-                response_device_dict["product_name"],
+            description=(
+                "What is power in [W] of the {} {}? Answer 0.0 if not provided.".format(
+                    response_device_dict["device_type_name"],
+                    response_device_dict["product_name"],
+                )
             ),
             type="float",
         )
         weight = ResponseSchema(
             name="weight",
-            description="What is weight of the {} {} in [kg]? Answer 0.0 if not provided.".format(
-                response_device_dict["device_type_name"],
-                response_device_dict["product_name"],
+            description=(
+                "What is weight of the {} {} in [kg]? Answer 0.0 if not provided.".format(
+                    response_device_dict["device_type_name"],
+                    response_device_dict["product_name"],
+                )
             ),
             type="float",
         )
         gear_ratio = ResponseSchema(
             name="gear_ratio",
-            description="What is gear_ratio of the {} {}? Answer 0.0 if not provided.".format(
-                response_device_dict["device_type_name"],
-                response_device_dict["product_name"],
+            description=(
+                "What is gear_ratio of the {} {}? Answer 0.0 if not provided.".format(
+                    response_device_dict["device_type_name"],
+                    response_device_dict["product_name"],
+                )
             ),
             type="float",
         )
@@ -305,9 +321,12 @@ if not args.gradio_on:
         response_schemas = [power, weight, gear_ratio]
 
         query_engine = DBLoader.get_query_engine(response_schemas, retriever)
-        query_str = "What are the weight in [kg], power in [W] and gear ratio of the {} {}? Answer 0.0 if not provided. Answer always in json format.".format(
-            response_device_dict["device_type_name"],
-            response_device_dict["product_name"],
+        query_str = (
+            "What are the weight in [kg], power in [W] and gear ratio of the {} {}?"
+            " Answer 0.0 if not provided. Answer always in json format.".format(
+                response_device_dict["device_type_name"],
+                response_device_dict["product_name"],
+            )
         )
         response_device_details, response_device_details_dict = make_llm_request(
             query_engine, query_str
@@ -324,7 +343,7 @@ if not args.gradio_on:
 
 
 def insert_into_sql(engine, RobotSQLTable, RobotEmbedSQLTable, device_info, nodes):
-    from sqlalchemy import insert, select, Table, MetaData
+    from sqlalchemy import MetaData, Table, insert, select
 
     row_dict_robot_arm = {
         "device_type_name": device_info["device_type_name"],
@@ -381,7 +400,7 @@ def insert_into_sql(engine, RobotSQLTable, RobotEmbedSQLTable, device_info, node
 def insert_into_sql_robot_servo_drive_joint(
     engine, RobotServoJointSQLTable, RobotServoJointEmbedSQLTable, device_info, nodes
 ):
-    from sqlalchemy import insert, select, Table, MetaData
+    from sqlalchemy import MetaData, Table, insert, select
 
     row_dict_robot_arm = {
         "device_type_name": device_info["device_type_name"],
@@ -440,13 +459,13 @@ def insert_into_sql_robot_servo_drive_joint(
 def create_sql_engine():
     from pgvector.sqlalchemy import Vector
     from sqlalchemy import (
-        insert,
-        create_engine,
-        String,
-        text,
-        Integer,
         Float,
         ForeignKey,
+        Integer,
+        String,
+        create_engine,
+        insert,
+        text,
     )
     from sqlalchemy.orm import declarative_base, mapped_column
 
@@ -554,8 +573,8 @@ if args.gradio_on:
 
     def get_vector_store_from_collection(collection_name):
         import chromadb
-        from llama_index.vector_stores import ChromaVectorStore
         from llama_index.storage.storage_context import StorageContext
+        from llama_index.vector_stores import ChromaVectorStore
 
         chroma_db_path = "./chroma_db"
         db = chromadb.PersistentClient(path=chroma_db_path)
@@ -567,12 +586,11 @@ if args.gradio_on:
     def create_query_engine_tools(
         sql_engine, table_name, table_embed_name, query_engine_tools
     ):
-        from llama_index.tools import QueryEngineTool, ToolMetadata
         from llama_index.query_engine import RetrieverQueryEngine
+        from llama_index.tools import QueryEngineTool, ToolMetadata
 
         # sql_engine, RobotSQLTable = create_sql_engine()
-
-        from sqlalchemy import select, MetaData, Table
+        from sqlalchemy import MetaData, Table, select
 
         metadata = MetaData()
         robot_arm_table = Table(table_name, metadata, autoload_with=sql_engine)
@@ -654,8 +672,8 @@ if args.gradio_on:
 
     def get_database_query_engine_tools(sql_engine):
         from llama_index import SQLDatabase
-        from llama_index.query_engine import PGVectorSQLQueryEngine
         from llama_index.prompts import PromptTemplate
+        from llama_index.query_engine import PGVectorSQLQueryEngine
         from llama_index.tools import QueryEngineTool, ToolMetadata
 
         sql_database = SQLDatabase(
@@ -736,8 +754,7 @@ if args.gradio_on:
             query_engine=query_engine,
             metadata=ToolMetadata(
                 name="database",
-                description=(
-                    """This query engine provides access to the database. Use it to query the database directly.
+                description="""This query engine provides access to the database. Use it to query the database directly.
 
                     The table "robot_arm" represents different robots. It contains the following columns: \
 
@@ -764,8 +781,7 @@ if args.gradio_on:
 
                     Try not to use direct search for columns company_name and product_name and product_description. Use SQL ILIKE operator instead. \
                     Seach case insensitive by using SQL ILIKE operator. \
-                        """
-                ),
+                        """,
             ),
         )
         return query_engine_tool

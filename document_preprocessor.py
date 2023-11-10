@@ -4,7 +4,6 @@ from llama_hub.file.pymu_pdf.base import PyMuPDFReader
 from llama_index import Document, download_loader
 from llama_index.prompts import PromptTemplate
 from llama_index.schema import TextNode
-from llmsherpa.readers import LayoutPDFReader
 
 from llmsherpa.readers import LayoutPDFReader
 
