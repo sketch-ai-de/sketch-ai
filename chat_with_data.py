@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # ToDo(dimi)
 # 1. improve prompting templates for document preprocessing
 
