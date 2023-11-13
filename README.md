@@ -21,9 +21,23 @@ docker build -t sketch-ai .
 ### Step 3: Run the sketch-ai with docker
 
 ```sh
-docker run --network host -ti sketch-ai -fs "docs/agile/diana7/diana7.pdf" -u="" -c="diana7" -i
-```
+# Prepare the local data folder of postgresql
+docker run  -ti sketch-ai -g
+docker cp $(docker ps -qf ancestor=sketch-ai):/var/lib/postgresql/16/main postgresql_data
+docker kill $(docker ps -qf ancestor=sketch-ai)
 
+# Stop the local service if applicable
+sudo service postgresql stop
+
+# Prepare the local database folder for chroma
+mkdir chroma_db -p
+
+# Populate data into the database
+docker run --network host -v "$(pwd)"/postgresql_data:/var/lib/postgresql/16/main -v "$(pwd)"/chroma_db:/sketch-ai/chroma_db -ti sketch-ai  -fs "docs/agile/diana7/diana7.pdf" -u="" -c="diana7" -i
+
+# Start the web-based chat
+docker run --network host -v "$(pwd)"/postgresql_data:/var/lib/postgresql/16/main -v "$(pwd)"/chroma_db:/sketch-ai/chroma_db -ti sketch-ai -g
+```
 
 ## Manual Installation Guide
 

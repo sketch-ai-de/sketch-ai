@@ -7,6 +7,7 @@ RUN wget --quiet -O - https://www.postgresql.org/media/keys/ACCC4CF8.asc | apt-k
 
 RUN apt-get update -y && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     libpq-dev \
+    locales \
     python3 \
     python3-pip \
     postgresql \
@@ -14,9 +15,15 @@ RUN apt-get update -y && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     postgresql-contrib \
     && rm -rf /var/lib/apt/lists/*
 
+RUN localedef -f UTF-8 -i en_US en_US.UTF-8
+
 WORKDIR /sketch-ai
 ADD ./requirements.txt /sketch-ai/requirements.txt
 RUN pip install -r requirements.txt
 
-ADD . /sketch-ai
+COPY ./.env /sketch-ai/
+COPY ./*.py /sketch-ai/
+COPY ./docs /sketch-ai/docs
+COPY ./entrypoint.sh /sketch-ai/
+
 ENTRYPOINT ["/sketch-ai/entrypoint.sh"]

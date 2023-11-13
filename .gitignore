@@ -1,3 +1,4 @@
 .env
 openai-env/*
 chroma_db
+postgresql_data
