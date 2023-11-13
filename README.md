@@ -2,7 +2,30 @@
 
 This document provides instructions for the installation and usage of Sketch-AI, an OpenAI based Project.
 
-## Installation Guide
+## Docker Guide
+
+### Step 1: Export your OpenAI API Key
+
+To retrieve sketch drawings based on your description, export your OpenAI API key by following these steps:
+
+1. Go to the base directory of your project repository.
+2. Create a new file `.env`.
+3. Enter your OpenAI API key in the new `.env` file as shown: `OPENAI_API_KEY=sk-your-key`
+
+### Step 2: Build the docker image
+
+```sh
+docker build -t sketch-ai .
+```
+
+### Step 3: Run the sketch-ai with docker
+
+```sh
+docker run --network host -ti sketch-ai -fs "docs/agile/diana7/diana7.pdf" -u="" -c="diana7" -i
+```
+
+
+## Manual Installation Guide
 
 ### Step 1: Export your OpenAI API Key
 
