@@ -87,7 +87,7 @@ llm_temperature = 0.3
 llm_model = "gpt-4-1106-preview"
 # llm_model = "gpt-3.5-turbo"
 # llm_model = "gpt-3.5-turbo-instruct" # not good - responces are too unprecise
-llm_model = "gpt-4"  # good responces but way too expencive
+# llm_model = "gpt-4"  # good responces but way too expencive
 logger.info("--------------------- Loading llm model {} \n".format(llm_model))
 llm = OpenAI(temperature=llm_temperature, model=llm_model)
 
