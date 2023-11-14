@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 set -e
 
 # Required by postgresql
@@ -12,13 +12,15 @@ trap cleanup EXIT INT TERM
 
 # Starts the postgresql service
 service postgresql start
+
 su postgres -c "psql --command \"ALTER USER postgres with encrypted password 'postgres';\""
 
-# Calls the main script to chat with data
-./chat_with_data.py "$@"
-
 su postgres -c "
-sudo -u postgres psql <<-EOSQL
+psql <<-EOSQL
     CREATE DATABASE postgres;
 EOSQL
 "
+
+# Calls the main script to chat with data
+echo "Starting chat with data"
+python3 chat_with_data.py -g
