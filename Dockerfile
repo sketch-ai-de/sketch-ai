@@ -26,4 +26,6 @@ COPY ./*.py /sketch-ai/
 COPY ./docs /sketch-ai/docs
 COPY ./entrypoint.sh /sketch-ai/
 
+COPY ./chroma_db /sketch-ai/chroma_db
+
 ENTRYPOINT ["/sketch-ai/entrypoint.sh"]
