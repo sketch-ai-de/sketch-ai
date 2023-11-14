@@ -1,4 +1,8 @@
-#!/bin/bash
+#!/usr/bin/env bash
+
+# entrypoint.sh currently only starts the web-based chat interface and is not
+# used to add new data into the database.
+
 set -e
 
 # Required by postgresql
@@ -6,7 +10,7 @@ chown -R postgres:postgres /var/lib/postgresql/16/main
 
 # Ensures that the owner of this folder is not weird after the docker container finishes
 cleanup() {
-  chown -R 1000:1000 /var/lib/postgresql/16/main
+    chown -R 1000:1000 /var/lib/postgresql/16/main
 }
 trap cleanup EXIT INT TERM
 
@@ -14,12 +18,7 @@ trap cleanup EXIT INT TERM
 service postgresql start
 
 su postgres -c "psql --command \"ALTER USER postgres with encrypted password 'postgres';\""
-
-su postgres -c "
-psql <<-EOSQL
-    CREATE DATABASE postgres;
-EOSQL
-"
+su postgres -c "psql --command \"CREATE DATABASE postgres;\""
 
 # Calls the main script to chat with data
 echo "Starting chat with data"

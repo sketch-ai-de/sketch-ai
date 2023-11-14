@@ -305,8 +305,7 @@ if not args.gradio_on:
         weight = ResponseSchema(
             name="weight",
             description=(
-                "What is weight of the {} {} in [kg]? Answer 0.0 if not provided."
-                .format(
+                "What is weight of the {} {} in [kg]? Answer 0.0 if not provided.".format(
                     response_device_dict["device_type_name"],
                     response_device_dict["product_name"],
                 )
@@ -758,10 +757,10 @@ if args.gradio_on:
             query_engine=query_engine,
             metadata=ToolMetadata(
                 name="database",
-                description="""This query engine provides access to the database. Use it to query the database directly. 
+                description="""This query engine provides access to the database. Use it to query the database directly.
 
                     The table "robot_arm" represents different robots. It contains the following columns: \
-         
+
                                 id: identifier \
                                 device_type_name: name of the device type \
                                 device_type_id: identifier of the device type \
@@ -781,7 +780,7 @@ if args.gradio_on:
                             "power": "Power of the device",
                             "weight": "Weight of the device",
                             "gear_ratio": "Gear ratio of the device"
-                                                                
+
                     IMPORTANT NOTE: For the search in the columns company_name and product_name and product_description, use SQL ILIKE operator instead. \
                     Seach case insensitive by using SQL ILIKE operator. \
                     Always use wildcards % before and after the search string. \

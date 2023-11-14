@@ -21,28 +21,28 @@ docker build -t sketch-ai .
 ### Step 3: Run the sketch-ai with docker
 
 ```sh
+# Start the local service
+sudo service postgresql start
 
-# Stop the local service if applicable -> otherwise port issues
+# Create a dump of local SQL database
+pg_dump -h 127.0.0.1 -U postgres -W -F postgres > postgresql_backup.sql
+
+# Stop the local service
 sudo service postgresql stop
 
 # Prepare the local data folder of postgresql
 docker run --network host --name sketch-ai-container -ti sketch-ai
 
-# Create a dump of SQL database
-pg_dump -h 127.0.0.1 -U postgres -W -F postgres > postgresql_backup.sql
-
 # Load local SQL dump-database to container
 cat postgresql_backup.sql | docker exec -i sketch-ai-container psql postgresql://postgres:postgres@127.0.0.1/postgres
 
-# Restart docker to apply new SQL changes 
-docker run --network host --name sketch-ai-container -ti sketch-ai
-
+# Restart docker to apply new SQL changes
+docker restart sketch-ai-container
 ```
 
-## AWS guide
+### Step 4 [Optional]: Upload to AWS
 
 ```sh
-
 # Check current container id, e.g. 29cff4a364d4
 docker ps -a
 
@@ -53,7 +53,6 @@ docker commit 29cff4a364d4 sketch-ai-filled
 aws lightsail push-container-image --region eu-central-1 --service-name sketch-ai-aws-container --label sketch-ai-gradio --image sketch-ai-filled:latest
 
 # Update deployment on AWS to use new image
-
 ```
 
 
