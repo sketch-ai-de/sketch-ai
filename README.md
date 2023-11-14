@@ -25,22 +25,37 @@ docker build -t sketch-ai .
 # Stop the local service if applicable -> otherwise port issues
 sudo service postgresql stop
 
-# Prepare the local database folder for chroma
-mkdir chroma_db -p
-
 # Prepare the local data folder of postgresql
-docker run --network host --name sketch-ai-container -ti sketch-ai -g 
+docker run --network host --name sketch-ai-container -ti sketch-ai
 
-# Start the web-based chat
-docker run --name sketch-ai-container --network host -v "$(pwd)"/chroma_db:/sketch-ai/chroma_db -ti sketch-ai -g
-
+# Create a dump of SQL database
 pg_dump -h 127.0.0.1 -U postgres -W -F postgres > postgresql_backup.sql
+
+# Load local SQL dump-database to container
 cat postgresql_backup.sql | docker exec -i sketch-ai-container psql postgresql://postgres:postgres@127.0.0.1/postgres
 
-# Populate data into the database
-docker run --name sketch-ai-container --network host -v "$(pwd)"/postgresql_data:/var/lib/postgresql/16/main -v "$(pwd)"/chroma_db:/sketch-ai/chroma_db -ti sketch-ai  -fs "docs/agile/diana7/diana7.pdf" -u="" -c="diana7" -i
+# Restart docker to apply new SQL changes 
+docker run --network host --name sketch-ai-container -ti sketch-ai
 
 ```
+
+## AWS guide
+
+```sh
+
+# Check current container id, e.g. 29cff4a364d4
+docker ps -a
+
+# Commit the changes to new image
+docker commit 29cff4a364d4 sketch-ai-filled
+
+# Push new changes to AWS container
+aws lightsail push-container-image --region eu-central-1 --service-name sketch-ai-aws-container --label sketch-ai-gradio --image sketch-ai-filled:latest
+
+# Update deployment on AWS to use new image
+
+```
+
 
 ## Manual Installation Guide
 
