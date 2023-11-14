@@ -93,13 +93,8 @@ If you prefer using venv, follow these steps:
 Open a terminal and execute the given commands to set up a virtual environment using Python3 venv:
 
 ```bash
-# Installs the 'venv' module
-sudo apt install python3.10-venv
-!pip install psycopg2-binary pgvector asyncpg "sqlalchemy[asyncio]" greenlet
-
-
-# Install sqlite
-apt-get install sqlite
+# Installs the 'venv' module and sqlite
+sudo apt install python3.10-venv sqlite
 
 # Navigate to your project's root directory
 cd sketch-ai
