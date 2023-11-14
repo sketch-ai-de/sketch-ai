@@ -144,6 +144,33 @@ class DocumentPreprocessor:
         qa_prompt2 = PromptTemplate(
             """\
             Examine the contents of this PDF page and summarize it semantically. Commence each sentence on a new line. \
+            IMPORTANT NOTE: Preserve all technical specification data. 
+            If necessary, provide a translation into English. \
+            
+            PDF page: '{pdf_page}'
+            Answer: \
+            """
+        )
+
+        qa_prompt = PromptTemplate(
+            """\
+            Extract relevant technical information from the provided PDF page. \
+            If necessary, provide a translation into English. \
+
+            Identify and summarize the specific data that can be condensed. \
+            Put condensed data with all the context information into paragraphs. \
+            Put an empty line after each paragraph. \
+            IMPORTANT NOTE: avoid using bullet points of any form, instead put all the related data in the paragraphs in sentences. \
+                            
+            IMPORTANT NOTE: Preserve all technical information data, including any accompanying units of measurement and context. \
+                        
+            PDF page: '{pdf_page}'
+            Answer: \
+            """
+        )
+        qa_prompt2 = PromptTemplate(
+            """\
+            Examine the contents of this PDF page and summarize it semantically. Commence each sentence on a new line. \
             IMPORTANT NOTE: Preserve all technical specification data.
             If necessary, provide a translation into English. \
 
@@ -187,7 +214,9 @@ class DocumentPreprocessor:
                     self.logger.debug("paragraph: {}".format(line))
             else:
                 src_doc = documents[doc_idx]
-                node = TextNode(text=doc.text)
+                node = TextNode(
+                    text=doc.text,
+                )
                 node.metadata = src_doc.metadata
                 node.metadata["collection_name"] = coll_name
                 self.nodes.append(node)
@@ -208,7 +237,7 @@ class DocumentPreprocessor:
             """\
             read this table and prepare a detailed summary of it. \
             If necessary, provide a translation into English. \
-
+            
             Table: '{table}'
             Answer: \
             """
@@ -220,7 +249,7 @@ class DocumentPreprocessor:
             IMPORTANT NOTE: Preserve all technical specification data. \
             As the last sentence write a summary for the table with all the important technical information in a one sentence. \
             If necessary, provide a translation into English. \
-
+            
             PDF page: '{table}'
             Answer: \
             """
@@ -235,7 +264,7 @@ class DocumentPreprocessor:
             Put condensed data with all the context information into paragraphs. \
             Put an empty line after each paragraph. \
             IMPORTANT NOTE: avoid using bullet points of any form, instead put all the related data in the paragraphs in sentences. \
-
+                            
             IMPORTANT NOTE: Preserve all technical information data, including any accompanying units of measurement and context. \
 
             PDF page: '{table}'
@@ -260,7 +289,10 @@ class DocumentPreprocessor:
         for i in range(len(lines)):
             if lines[i]:
                 text = lines[i]
-                doc = Document(text=text, extra_info={})
+                doc = Document(
+                    text=text,
+                    extra_info={},
+                )
                 doc.metadata["collection_name"] = coll_name
                 self.nodes.append(doc)
                 self.logger.debug("text: {}".format(text))

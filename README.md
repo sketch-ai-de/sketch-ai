@@ -21,22 +21,25 @@ docker build -t sketch-ai .
 ### Step 3: Run the sketch-ai with docker
 
 ```sh
-# Prepare the local data folder of postgresql
-docker run  -ti sketch-ai -g
-docker cp $(docker ps -qf ancestor=sketch-ai):/var/lib/postgresql/16/main postgresql_data
-docker kill $(docker ps -qf ancestor=sketch-ai)
 
-# Stop the local service if applicable
+# Stop the local service if applicable -> otherwise port issues
 sudo service postgresql stop
 
 # Prepare the local database folder for chroma
 mkdir chroma_db -p
 
-# Populate data into the database
-docker run --network host -v "$(pwd)"/postgresql_data:/var/lib/postgresql/16/main -v "$(pwd)"/chroma_db:/sketch-ai/chroma_db -ti sketch-ai  -fs "docs/agile/diana7/diana7.pdf" -u="" -c="diana7" -i
+# Prepare the local data folder of postgresql
+docker run --network host --name sketch-ai-container -ti sketch-ai -g 
 
 # Start the web-based chat
-docker run --network host -v "$(pwd)"/postgresql_data:/var/lib/postgresql/16/main -v "$(pwd)"/chroma_db:/sketch-ai/chroma_db -ti sketch-ai -g
+docker run --name sketch-ai-container --network host -v "$(pwd)"/chroma_db:/sketch-ai/chroma_db -ti sketch-ai -g
+
+pg_dump -h 127.0.0.1 -U postgres -W -F postgres > postgresql_backup.sql
+cat postgresql_backup.sql | docker exec -i sketch-ai-container psql postgresql://postgres:postgres@127.0.0.1/postgres
+
+# Populate data into the database
+docker run --name sketch-ai-container --network host -v "$(pwd)"/postgresql_data:/var/lib/postgresql/16/main -v "$(pwd)"/chroma_db:/sketch-ai/chroma_db -ti sketch-ai  -fs "docs/agile/diana7/diana7.pdf" -u="" -c="diana7" -i
+
 ```
 
 ## Manual Installation Guide
@@ -76,8 +79,13 @@ If you prefer using venv, follow these steps:
 Open a terminal and execute the given commands to set up a virtual environment using Python3 venv:
 
 ```bash
-# Installs the 'venv' module and `sqlite`
-sudo apt install python3.10-venv sqlite
+# Installs the 'venv' module
+sudo apt install python3.10-venv
+!pip install psycopg2-binary pgvector asyncpg "sqlalchemy[asyncio]" greenlet
+
+
+# Install sqlite
+apt-get install sqlite
 
 # Navigate to your project's root directory
 cd sketch-ai

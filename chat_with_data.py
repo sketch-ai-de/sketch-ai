@@ -3,6 +3,9 @@
 # ToDo(dimi)
 # 1. improve prompting templates for document preprocessing
 
+# ToDo(dimi)
+# 1. improve prompting templates for document preprocessing
+
 import argparse
 import json
 import logging
@@ -81,7 +84,7 @@ service_context = ServiceContext.from_defaults(embed_model=embed_model)
 
 # define llm and its params
 llm_temperature = 0.3
-# llm_model = "gpt-4-1106-preview"
+llm_model = "gpt-4-1106-preview"
 # llm_model = "gpt-3.5-turbo"
 # llm_model = "gpt-3.5-turbo-instruct" # not good - responces are too unprecise
 llm_model = "gpt-4"  # good responces but way too expencive
@@ -302,7 +305,8 @@ if not args.gradio_on:
         weight = ResponseSchema(
             name="weight",
             description=(
-                "What is weight of the {} {} in [kg]? Answer 0.0 if not provided.".format(
+                "What is weight of the {} {} in [kg]? Answer 0.0 if not provided."
+                .format(
                     response_device_dict["device_type_name"],
                     response_device_dict["product_name"],
                 )
@@ -684,7 +688,6 @@ if args.gradio_on:
 
         table_desc = """\
             This table represents text chunks about different robots. Each row contains the following columns: \
-
             Table: robot_arm
 
             id: identifier \
@@ -696,7 +699,6 @@ if args.gradio_on:
             payload: payload in kg \
             reach: reachability in mm \
             weight: weight in kg \
-
             Table: robot_servo_drive_joint
 
             "id": "Primary key of the table",
@@ -756,10 +758,10 @@ if args.gradio_on:
             query_engine=query_engine,
             metadata=ToolMetadata(
                 name="database",
-                description="""This query engine provides access to the database. Use it to query the database directly.
+                description="""This query engine provides access to the database. Use it to query the database directly. 
 
                     The table "robot_arm" represents different robots. It contains the following columns: \
-
+         
                                 id: identifier \
                                 device_type_name: name of the device type \
                                 device_type_id: identifier of the device type \
@@ -769,7 +771,6 @@ if args.gradio_on:
                                 payload: payload in kg \
                                 reach: reachability in mm \
                                 weight: weight in kg \
-
                     The table "robot_servo_drive_joint" represents different joint actuators for robto arms. It contains the following columns: \
                             "id": "Primary key of the table",
                             "device_type_name": "Name of the device type",
@@ -780,9 +781,10 @@ if args.gradio_on:
                             "power": "Power of the device",
                             "weight": "Weight of the device",
                             "gear_ratio": "Gear ratio of the device"
-
-                    Try not to use direct search for columns company_name and product_name and product_description. Use SQL ILIKE operator instead. \
+                                                                
+                    IMPORTANT NOTE: For the search in the columns company_name and product_name and product_description, use SQL ILIKE operator instead. \
                     Seach case insensitive by using SQL ILIKE operator. \
+                    Always use wildcards % before and after the search string. \
                         """,
             ),
         )
@@ -820,14 +822,64 @@ if args.gradio_on:
             system_prompt=agent_sys_promt,
             service_context=service_context,
         )
-        response = agent.chat(query_str)
-        print(str(response))  # print the response
-        return str(response.response)
+        from llama_index.llms.base import ChatMessage
+
+        # history_message = ChatMessage(content=str(history), role="user")
+        print("history: ", history)
+        # print("history_message: ", history_message)
+        response = agent.chat(message=query_str)
+        print(response)  # print the response
+        info_sources = set()
+        for node in response.source_nodes:
+            if "file_path" in node.metadata.keys():
+                info_sources.add(node.metadata["file_path"])
+
+        final_responce = str(response.response + "\n\n" + "Info sources: ")
+        if info_sources:
+            for info_source in info_sources:
+                final_responce += info_source + "\n"
+        else:
+            final_responce += "Local Database."
+        return final_responce
         # from langchain.schema import AIMessage, HumanMessage
 
     import gradio as gr
 
-    gr.ChatInterface(predict).queue().launch()
+    chatbot = gr.Chatbot(height=300, label="Sketch-AI Hardware Selection Advisor")
+
+    gr.ChatInterface(
+        chatbot=chatbot,
+        fn=predict,
+        textbox=gr.Textbox(
+            placeholder=(
+                "Ask me aquestion about robot arms, drives, sensors and other"
+                " components."
+            ),
+            container=False,
+            scale=7,
+        ),
+        title="Sketch-AI",
+        examples=[
+            "How many axes does the robot Franka Emika production have?",
+            "What is the payload of the Kuka LBR iiwa 7 R800?",
+            "How many Kuka robots are present in the system? List all of them.",
+            (
+                "Compare the technical specifications of two robot arms: KR6-R700-CR"
+                " and KR6-R700-HM-SC."
+            ),
+            (
+                "List robot arms with a maximum payload of 3 kg that comply with EN ISO"
+                " 13849-1 (PLd Category 3) and EN ISO 10218-1."
+            ),
+            (
+                "Compare the technical specifications, noting similarities and"
+                " differences, of two robot arms: UR3e and Franka Emika Production."
+            ),
+        ],
+        retry_btn=None,
+        undo_btn=None,
+        clear_btn=None,
+    ).queue().launch()
 
     # while True:
     #    query_str = input("Enter a question about document:\n")
