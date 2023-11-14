@@ -575,7 +575,6 @@ if args.insert_in_sql and not args.gradio_on:
         )
 
 
-logger.info("args.gradio_on: {}".format(args.gradio_on))
 if args.gradio_on:
 
     def get_vector_store_from_collection(collection_name):
