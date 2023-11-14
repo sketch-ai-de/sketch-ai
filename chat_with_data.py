@@ -575,6 +575,7 @@ if args.insert_in_sql and not args.gradio_on:
         )
 
 
+logger.info("args.gradio_on: {}".format(args.gradio_on))
 if args.gradio_on:
 
     def get_vector_store_from_collection(collection_name):
@@ -856,15 +857,15 @@ if args.gradio_on:
                 " components."
             ),
             container=False,
-            scale=7,
+            scale=5,
         ),
-        title="Sketch-AI",
         examples=[
             "How many axes does the robot Franka Emika production have?",
             "What is the payload of the Kuka LBR iiwa 7 R800?",
             "How many Kuka robots are present in the system? List all of them.",
             (
-                "Compare the technical specifications of two robot arms: KR6-R700-CR"
+                "Compare the technical specifications, noting similarities and"
+                " differences,  of two robot arms: KR6-R700-CR"
                 " and KR6-R700-HM-SC."
             ),
             (
@@ -879,7 +880,8 @@ if args.gradio_on:
         retry_btn=None,
         undo_btn=None,
         clear_btn=None,
-    ).queue().launch()
+        css="footer{display:none !important}",
+    ).queue().launch(server_name="0.0.0.0", show_api=False, auth=("admin", "admin"))
 
     # while True:
     #    query_str = input("Enter a question about document:\n")
