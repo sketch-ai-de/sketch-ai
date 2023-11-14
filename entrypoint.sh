@@ -16,3 +16,9 @@ su postgres -c "psql --command \"ALTER USER postgres with encrypted password 'po
 
 # Calls the main script to chat with data
 ./chat_with_data.py "$@"
+
+su postgres -c "
+sudo -u postgres psql <<-EOSQL
+    CREATE DATABASE postgres;
+EOSQL
+"
