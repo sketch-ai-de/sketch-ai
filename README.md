@@ -125,10 +125,16 @@ After executing these commands, your project setup is complete.
 
 Once the setup is complete, you can start using the project.
 
-Try out `chat_with_data.py` with:
+Try out `chat_with_data.py` with parallel ReAct:
 
 ```bash
 python3 chat_with_data.py
+```
+
+or with sequential ReAct:
+
+```bash
+python3 chat_with_data.py -s
 ```
 
 
