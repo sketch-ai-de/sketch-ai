@@ -71,7 +71,9 @@ tool_retriever = ToolRetriever(
 )
 tool_retriever.create_vector_index_from_tools()
 
-from llama_index.agent import ReActAgent
+# from llama_index.agent import ReActAgent
+# from llama_index.agent.react.base import ReActAgent
+from libs.react.base import ReActAgent
 
 agent_sys_promt = f"""\
                             You are a specialized agent designed to provide specific technical information about robot arms or compare robot arms. \
