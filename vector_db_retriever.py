@@ -5,6 +5,12 @@ from llama_index.retrievers import BaseRetriever
 from llama_index.schema import NodeWithScore
 from llama_index.vector_stores import ChromaVectorStore, VectorStoreQuery
 
+from llama_index.postprocessor import SentenceTransformerRerank
+
+reranker = SentenceTransformerRerank(top_n=10, model="BAAI/bge-reranker-base")
+
+from llama_index.postprocessor import LLMRerank
+
 
 class VectorDBRetriever(BaseRetriever):
 
@@ -28,6 +34,7 @@ class VectorDBRetriever(BaseRetriever):
         query_mode: str = "default",
         similarity_top_k: int = 10,
         logger: Any = None,
+        service_context=None,
     ) -> None:
         self._vector_store = vector_store
         self._vector_stores = vector_stores
@@ -35,6 +42,7 @@ class VectorDBRetriever(BaseRetriever):
         self._query_mode = query_mode
         self._similarity_top_k = similarity_top_k
         self.logger = logger
+        self.service_context = service_context
 
     """
     Initialize the VectorDBRetriever.
@@ -82,5 +90,25 @@ class VectorDBRetriever(BaseRetriever):
             )  # take 4 results fom each store and add to nodes_with_scores_
         nodes_with_scores = nodes_with_scores_
 
+        # reranked_nodes = reranker.postprocess_nodes(
+        #    nodes_with_scores, query_bundle=query_bundle
+        # )
+
+        # reranker = LLMRerank(
+        #    choice_batch_size=5,
+        #    top_n=10,
+        #    service_context=self.service_context,
+        # )
+        # reranked_nodes = reranker.postprocess_nodes(nodes_with_scores, query_bundle)
+
         self.logger.debug("nodes_with_scores MERGED: {}".format(nodes_with_scores))
-        return nodes_with_scores[0:25]  # 4 results with one store, 8 with 2 stores
+
+        # self.logger.debug("reranked_nodes MERGED: {}".format(reranked_nodes))
+
+        self.logger.debug(
+            "nodes_with_scores MERGED: {}".format(nodes_with_scores[0:10])
+        )
+
+        # self.logger.debug("reranked_nodes MERGED: {}".format(reranked_nodes))
+        # return reranked_nodes[0:5]  # 4 results with one store, 8 with 2 stores
+        return nodes_with_scores[0:5]  # 4 results with one store, 8 with 2 stores
