@@ -5,14 +5,10 @@ import argparse
 
 import openai
 from dotenv import load_dotenv
-from langchain.output_parsers import ResponseSchema
-from llama_index import ServiceContext, VectorStoreIndex
-from llama_index.embeddings import HuggingFaceEmbedding, OpenAIEmbedding
-from llama_index.llms import OpenAI
 
-from document_preprocessor import DocumentPreprocessor
-from vector_db_loader import VectorDBLoader
-from vector_db_retriever import VectorDBRetriever
+from llama_index.embeddings import OpenAIEmbedding
+from llama_index.llms import OpenAI
+from llama_index.service_context import ServiceContext
 
 parser = argparse.ArgumentParser(
     prog="RagLlamaindex",
@@ -58,257 +54,22 @@ service_context = ServiceContext.from_defaults(
     chunk_size=1024, llm=llm, embed_model=embed_model
 )
 
+from create_tools import CreateTools
 
-def get_vector_store_from_collection(collection_name):
-    import chromadb
-    from llama_index.storage.storage_context import StorageContext
-    from llama_index.vector_stores import ChromaVectorStore
-
-    chroma_db_path = "./chroma_db"
-    db = chromadb.PersistentClient(path=chroma_db_path)
-    chroma_collection = db.get_or_create_collection(collection_name)
-    vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
-    storage_context = StorageContext.from_defaults(vector_store=vector_store)
-    return vector_store, storage_context
-
-
-def create_query_engine_tools(
-    sql_engine, table_name, table_embed_name, query_engine_tools
-):
-    from llama_index.query_engine import RetrieverQueryEngine
-    from llama_index.tools import QueryEngineTool, ToolMetadata
-
-    # sql_engine, RobotSQLTable = create_sql_engine()
-    from sqlalchemy import MetaData, Table, select
-
-    metadata = MetaData()
-    robot_arm_table = Table(table_name, metadata, autoload_with=sql_engine)
-    robot_arm_embed_table = Table(table_embed_name, metadata, autoload_with=sql_engine)
-    stmt = select(robot_arm_table.c.product_name).group_by(
-        robot_arm_table.c.product_name
-    )
-    with sql_engine.connect() as conn:
-        robot_arms_values = conn.execute(stmt).fetchall()
-    robot_arms_collections = {}
-    robot_arms_descriptions = {}
-    # SELECT robot_arm_embed.collection_name  FROM robot_arm_embed, robot_arm WHERE robot_arm_embed.robot_id=robot_arm.id AND robot_arm.product_name LIKE 'Diana 7' GROUP BY robot_arm_embed.collection_name;
-    for value in robot_arms_values:
-        if table_name == "robot_arm":
-            stmt = (
-                select(robot_arm_embed_table.c.collection_name)
-                .where(robot_arm_table.c.product_name == value[0])
-                .where(robot_arm_embed_table.c.robot_id == robot_arm_table.c.id)
-                .group_by(robot_arm_embed_table.c.collection_name)
-            )
-        if table_name == "robot_servo_drive_joint":
-            stmt = (
-                select(robot_arm_embed_table.c.collection_name)
-                .where(robot_arm_table.c.product_name == value[0])
-                .where(
-                    robot_arm_embed_table.c.robot_servo_drive_joint_id
-                    == robot_arm_table.c.id
-                )
-                .group_by(robot_arm_embed_table.c.collection_name)
-            )
-        logger.debug(stmt)
-        with sql_engine.connect() as conn:
-            robot_arms_collections[value[0]] = conn.execute(stmt).fetchall()
-        stmt = (
-            select(robot_arm_table.c.product_description)
-            .where(robot_arm_table.c.product_name == value[0])
-            .group_by(robot_arm_table.c.product_description)
-        )
-        with sql_engine.connect() as conn:
-            robot_arms_descriptions[value[0]] = conn.execute(stmt).fetchall()
-    for key, value in robot_arms_collections.items():
-        vector_stores = []
-        for collection in value:
-            vector_store, storage_context = get_vector_store_from_collection(
-                collection[0]
-            )
-            vector_stores.append(vector_store)
-        retriever = VectorDBRetriever(
-            vector_stores[0],  # default vector store
-            vector_stores,
-            embed_model,
-            query_mode="default",
-            similarity_top_k=int(10),
-            logger=logger,
-            service_context=service_context,
-        )
-        query_engine = RetrieverQueryEngine.from_args(
-            retriever, service_context=service_context, use_async=True
-        )
-        query_engine_tool = QueryEngineTool(
-            query_engine=query_engine,
-            metadata=ToolMetadata(
-                name=key.replace(" ", "-").replace(",", "-"),
-                description=(
-                    str(robot_arms_descriptions[key][0][0])
-                    # +"\n Use a detailed plain text question as input to the tool."
-                ),
-            ),
-        )
-        query_engine_tools.append(query_engine_tool)
-    return query_engine_tools
-
-
-# ToDo (Dimi) - create a tol retriever and pass it as parameter to ReAct agent
-# tool_retriever: Optional[ObjectRetriever[BaseTool]] = None
-def create_vector_index_from_tools(tools):
-    get_tools = lambda _: tools
-
-    from llama_index.tools import adapt_to_async_tool
-
-    tools = [adapt_to_async_tool(t) for t in get_tools("")]
-    # print("tools: ", tools)
-    docs = [
-        str(
-            "idx: "
-            + str(idx)
-            + ", name: "
-            + str(t.metadata.name)
-            + ", description: "
-            + str(t.metadata.description)
-        )
-        for idx, t in enumerate(tools)
-    ]
-    # print("docs: ", docs)
-    from llama_index import Document, VectorStoreIndex
-
-    documents = [Document(text=t, metadata={"idx": idx}) for idx, t in enumerate(docs)]
-
-    from llama_index.embeddings import OpenAIEmbedding
-
-    embed_model = OpenAIEmbedding()
-
-    index = VectorStoreIndex.from_documents(documents, embed_model=embed_model)
-
-    from llama_index.retrievers import VectorIndexRetriever
-
-    retriever = VectorIndexRetriever(
-        index=index,
-        similarity_top_k=5,
-    )
-
-    return retriever
-
-
-def get_database_query_engine_tools(sql_engine):
-    from llama_index import SQLDatabase
-    from llama_index.prompts import PromptTemplate
-    from llama_index.query_engine import PGVectorSQLQueryEngine
-    from llama_index.tools import QueryEngineTool, ToolMetadata
-
-    sql_database = SQLDatabase(
-        sql_engine, include_tables=["robot_arm", "robot_servo_drive_joint"]
-    )
-    table_desc = """\
-        This table represents text chunks about different robots. Each row contains the following columns: \
-        Table: robot_arm
-        id: identifier \
-        device_type_name: name of the device type \
-        device_type_id: identifier of the device type \
-        company_name: name of the company \
-        product_name: name of the product \
-        product_description: description of the product \
-        payload: payload in kg \
-        reach: reachability in mm \
-        weight: weight in kg \
-        Table: robot_servo_drive_joint
-        "id": "Primary key of the table",
-        "device_type_name": "Name of the device type",
-        "device_type_id": "ID of the device type",
-        "company_name": "Name of the company",
-        "product_name": "Name of the product",
-        "product_description": "Description of the product",
-        "power": "Power of the device",
-        "weight": "Weight of the device",
-        "gear_ratio": "Gear ratio of the device"
-        For most queries you should perform semantic search against the `text` column values. \
-        """
-    text_to_sql_tmpl = """\
-    Given an input question, first create a syntactically correct {dialect} \
-    query to run, then look at the results of the query and return the answer. \
-    You can order the results by a relevant column to return the most \
-    interesting examples in the database.
-    Pay attention to use only the column names that you can see in the schema \
-    description. Be careful to not query for columns that do not exist. \
-    Pay attention to which column is in which table. Also, qualify column names \
-    with the table name when needed.
-    You are required to use the following format, \
-    each taking one line:
-    Question: Question here
-    SQLQuery: SQL Query to run
-    SQLResult: Result of the SQLQuery
-    Answer: Final answer here
-    Only use tables listed below.
-    {schema}
-    Question: {query_str}
-    SQLQuery: \
-    """
-    text_to_sql_prompt = PromptTemplate(text_to_sql_tmpl)
-    context_query_kwargs = {"robot_arm": table_desc}
-    text_to_sql_prompt = PromptTemplate(text_to_sql_tmpl)
-    query_engine = PGVectorSQLQueryEngine(
-        sql_database=sql_database,
-        text_to_sql_prompt=text_to_sql_prompt,
-        service_context=service_context,
-        context_query_kwargs=context_query_kwargs,
-    )
-    query_engine_tool = QueryEngineTool(
-        query_engine=query_engine,
-        metadata=ToolMetadata(
-            name="database",
-            description="""This query engine provides access to the database. Use it to query the database directly.
-                The table "robot_arm" represents different robots. It contains the following columns: \
-                            id: identifier \
-                            device_type_name: name of the device type \
-                            device_type_id: identifier of the device type \
-                            company_name: name of the company \
-                            product_name: name of the product \
-                            product_description: description of the product \
-                            payload: payload in kg \
-                            reach: reachability in mm \
-                            weight: weight in kg \
-                The table "robot_servo_drive_joint" represents different joint actuators for robto arms. It contains the following columns: \
-                        "id": "Primary key of the table",
-                        "device_type_name": "Name of the device type",
-                        "device_type_id": "ID of the device type",
-                        "company_name": "Name of the company",
-                        "product_name": "Name of the product",
-                        "product_description": "Description of the product",
-                        "power": "Power of the device",
-                        "weight": "Weight of the device",
-                        "gear_ratio": "Gear ratio of the device"
-                IMPORTANT NOTE: For the search in the columns company_name and product_name and product_description, use SQL ILIKE operator instead. \
-                Do not select all the columns, only relevant ones, e.g. company_name and product_name. \
-                Seach case insensitive by using SQL ILIKE operator. \
-                Always use wildcards % before and after the search string. \
-                If you count number of tables in the database, use SQL COUNT function with AS keyword. \
-                Never use column names in the query that do not exist in the table description. \
-                Be sparing when creating SQL queries. Minimize the number of selected columns. \
-                    """,
-        ),
-    )
-    return query_engine_tool
-
-
-from create_sql_engine import create_sql_engine
-
-sql_engine = create_sql_engine()
-
-query_engine_tools = []
-query_engine_tools = create_query_engine_tools(
-    sql_engine, "robot_arm", "robot_arm_embed", query_engine_tools
+create_tools = CreateTools(
+    service_context=service_context,
+    logger=logger,
+    embed_model=embed_model,
+    chroma_db_path="./chroma_db",
 )
-query_engine_tools = create_query_engine_tools(
-    sql_engine,
-    "robot_servo_drive_joint",
-    "robot_servo_drive_joint_embed",
-    query_engine_tools,
+query_engine_tools, sql_query_engine_tool = create_tools.get_tools()
+
+from tool_retriever import ToolRetriever
+
+tool_retriever = ToolRetriever(
+    tools=query_engine_tools, sql_tools=sql_query_engine_tool, embed_model=embed_model
 )
-# query_engine_tools.append(get_database_query_engine_tools(sql_engine))
+tool_retriever.create_vector_index_from_tools()
 
 from llama_index.agent import ReActAgent
 
@@ -318,25 +79,25 @@ agent_sys_promt = f"""\
                             Rewrite Action Input to get the best results.
                                 """
 agent = ReActAgent.from_tools(
-    create_vector_index_from_tools(query_engine_tools),
-    query_engine_tools,
+    # create_vector_index_from_tools(query_engine_tools),
+    # query_engine_tools,
     llm=llm,
     verbose=True,
     system_prompt=agent_sys_promt,
     service_context=service_context,
     max_iterations=6,
+    tool_retriever=tool_retriever,
 )
 
 
 async def predict(query_str, history, agent=agent):
     history_openai_format = []
-    # query_engine_tools = create_query_engine_tools()
 
     from llama_index.llms.base import ChatMessage
 
     # history_message = ChatMessage(content=str(history), role="user")
     print("history: ", history)
-    # print("history_message: ", history_message)
+
     response = await agent.achat(message=query_str)
     print(response)  # print the response
     info_sources = set()
@@ -350,7 +111,6 @@ async def predict(query_str, history, agent=agent):
     else:
         final_responce += "Local Database."
     return final_responce
-    # from langchain.schema import AIMessage, HumanMessage
 
 
 import gradio as gr
