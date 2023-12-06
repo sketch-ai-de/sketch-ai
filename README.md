@@ -121,20 +121,30 @@ After executing these commands, your project setup is complete.
 
 ## Usage Guide
 
+### Chat with data
+
 Once the setup is complete, you can start using the project.
 
 Try out `chat_with_data.py` with:
 
 ```bash
-python3 chat_with_data.py -fs "docs/franka/research3/franka-research3.pdf" -u="https://store.clearpathrobotics.com/products/franka-research-3" -c="franka-research3"
+python3 chat_with_data.py
+```
+
+
+### Load data 
+To load new data to SQL and vector database use ```load_data.py```:
+
+```bash
+python3 load_data.py -fs "docs/franka/research3/franka-research3.pdf" -u="https://store.clearpathrobotics.com/products/franka-research-3" -p="franka emika research 3" -c="franka-research3-technical-data" -i
 ```
 
 ```bash
-python3 chat_with_data.py -fs "docs/ur/ur5e/ur5e-fact-sheet.pdf" -u="https://www.universal-robots.com/products/ur5-robot/" -c="ur5e_user_manual_en_us"
+python3 load_data.py -fs "docs/ur/ur5e/ur5e-fact-sheet.pdf" -u="https://www.universal-robots.com/products/ur5-robot/" -p="universal robot UR5e" -c="ur5e-user-manual" -i
 ```
 
 ```bash
-python3 chat_with_data.py -fs "docs/agile/diana7/diana7.pdf" -u="" -c="diana7"
+python3 load_data.py -fs "docs/agile/diana7/diana7.pdf" -u="" -p="agile robots diana 7" -c="diana7" -i
 ```
 
 ## Useful Links
