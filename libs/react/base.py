@@ -16,9 +16,9 @@ from typing import (
 
 from aiostream import stream as async_stream
 
-from llama_index.agent.react.formatter import ReActChatFormatter
-from llama_index.agent.react.output_parser import ReActOutputParser
-from llama_index.agent.react.types import (
+from libs.react.formatter import ReActChatFormatter
+from libs.react.output_parser import ReActOutputParser
+from libs.react.types import (
     ActionReasoningStep,
     ActionReasoningStepArr,
     BaseReasoningStep,
@@ -56,7 +56,6 @@ class ReActAgent(BaseAgent):
 
     def __init__(
         self,
-        retrieve_tool,
         tools: Sequence[BaseTool],
         llm: LLM,
         memory: BaseMemory,
@@ -75,7 +74,6 @@ class ReActAgent(BaseAgent):
         self._output_parser = output_parser or ReActOutputParser()
         self._verbose = verbose
         self.sources: List[ToolOutput] = []
-        self._retrieve_tool = retrieve_tool
 
         if len(tools) > 0 and tool_retriever is not None:
             raise ValueError("Cannot specify both tools and tool_retriever")
@@ -90,7 +88,6 @@ class ReActAgent(BaseAgent):
     @classmethod
     def from_tools(
         cls,
-        retrieve_tool,
         tools: Optional[List[BaseTool]] = None,
         tool_retriever: Optional[ObjectRetriever[BaseTool]] = None,
         llm: Optional[LLM] = None,
@@ -121,7 +118,6 @@ class ReActAgent(BaseAgent):
             chat_history=chat_history or [], llm=llm
         )
         return cls(
-            retrieve_tool = retrieve_tool,
             tools=tools or [],
             tool_retriever=tool_retriever,
             llm=llm,
@@ -209,7 +205,7 @@ class ReActAgent(BaseAgent):
         if self._verbose:
             print_text(f"{observation_step.get_content()}\n", color="blue")
         return current_reasoning, False
-    
+
     async def _atool_request(self, tools_dict, reasoning_step, i):
         tool = tools_dict[reasoning_step.actions[i]]
         with self.callback_manager.event(
@@ -222,8 +218,6 @@ class ReActAgent(BaseAgent):
             tool_output = await tool.acall(**reasoning_step.action_inputs[i])
             event.on_end(payload={EventPayload.FUNCTION_OUTPUT: str(tool_output)})
         self.sources.append(tool_output)
-        #observation_step = ObservationReasoningStep(observation=str(tool_output))
-        #print("observation_responce: ", str(tool_output), type(tool_output))
         return str(tool_output)
 
     async def _aprocess_actions(
@@ -242,32 +236,23 @@ class ReActAgent(BaseAgent):
 
         # call tool with input
         reasoning_step = cast(ActionReasoningStepArr, current_reasoning[-1])
-        #print("reasoning_step: ", reasoning_step)
-
-        #for i in range(len(reasoning_step.actions)):
-        #    print("iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii: ", i)
-            #observation_responce = await self._atool_request(tools_dict, reasoning_step, i)
         steps = []
         for i in range(len(reasoning_step.actions)):
             steps.append(self._atool_request(tools_dict, reasoning_step, i))
 
-        group = asyncio.gather(*steps
-                #current_reasoning.append(observation_responce)
-        )
+        group = asyncio.gather(*steps)
 
-        #print("group-----------------------------------------------------------: ", group)
         group_ = await group
         observation_ = ""
         for idx, i in enumerate(group_):
-            observation_ = observation_ + "\n" + "Observation " + str(idx) + "\n" + str(i)
-        #print("observation_: ",observation_)
+            observation_ = (
+                observation_ + "\n" + "Observation " + str(idx) + "\n" + str(i)
+            )
         observation_step = ObservationReasoningStep(observation=str(observation_))
         current_reasoning.append(observation_step)
-        
-        #print("observation_responce: ", observation_responce)
-        #current_reasoning.append(observation_responce)
-        #if self._verbose:
-        #    print_text(f"{observation_responce.get_content()}\n", color="blue")
+
+        if self._verbose:
+            print_text(f"{observation_step.get_content()}\n", color="blue")
         return current_reasoning, False
 
     def _get_response(
@@ -280,7 +265,6 @@ class ReActAgent(BaseAgent):
         elif len(current_reasoning) == self._max_iterations:
             raise ValueError("Reached max iterations.")
 
-        print(current_reasoning[-1])
         response_step = cast(ResponseReasoningStep, current_reasoning[-1])
 
         # TODO: add sources from reasoning steps
@@ -423,23 +407,15 @@ class ReActAgent(BaseAgent):
                 chat_history=self._memory.get(),
                 current_reasoning=current_reasoning,
             )
-            #print("input_chat: ", input_chat)
-            # send prompt
+
             chat_response = await self._llm.achat(input_chat)
-            #print("chat_response: ", chat_response)
-            # given react prompt outputs, call tools or return response
+
             reasoning_steps, is_done = await self._aprocess_actions(
                 tools, output=chat_response
             )
-            #loop = asyncio.get_event_loop()
-            #try:
-            #    loop.run_until_complete(self._aprocess_actions(tools, output=chat_response))
-            #    loop.run_until_complete(loop.shutdown_asyncgens())
-            #finally:
-            #    loop.close()
-            #print("reasoning_steps:", reasoning_steps, type(reasoning_steps))
+
             current_reasoning.extend(reasoning_steps)
-            #print("current_reasoning:", current_reasoning, len(current_reasoning))
+
             if is_done:
                 break
         response = self._get_response(current_reasoning)
@@ -569,46 +545,10 @@ class ReActAgent(BaseAgent):
         # thread.start()
         return chat_stream_response
 
-    #def get_tools(self, message: str) -> List[AsyncBaseTool]:
+    # def get_tools(self, message: str) -> List[AsyncBaseTool]:
     #    """Get tools."""
     #    return [adapt_to_async_tool(t) for t in self._get_tools(message)]
 
     def get_tools(self, message: str) -> List[AsyncBaseTool]:
         """Get tools."""
-        tools = [adapt_to_async_tool(t) for t in self._get_tools(message)]
-        ##print("tools: ", tools)
-        #docs = [str("idx: " + str(idx) + ", name: " + str(t.metadata.name) + ", description: " + str(t.metadata.description)) for idx, t in enumerate(tools)]
-        ##print("docs: ", docs)
-        #from llama_index import Document, VectorStoreIndex
-        #documents = [Document(text=t, metadata = {"idx": idx}) for idx, t in enumerate(docs)]
-#
-        #from llama_index.embeddings import OpenAIEmbedding
-#
-        #embed_model = OpenAIEmbedding()
-#
-        #index = VectorStoreIndex.from_documents(documents, embed_model=embed_model)
-#
-        #from llama_index.retrievers import VectorIndexRetriever
-#
-        #retriever = VectorIndexRetriever(
-        #    index=index,
-        #    similarity_top_k=5,
-        #)
-
-        response = self._retrieve_tool.retrieve(message)
-
-        #print("response: ", response)
-
-        tools_ = []
-        #for val in response.metadata.values():
-        #    tools_.append(tools[val["idx"]])
-
-        for n in response:
-            tools_.append(tools[n.metadata["idx"]])
-
-        tools_.append(tools[-1]) # add SQL tool
-        #print("tools_: ", tools_)
-
-        #return tools_
-        return [adapt_to_async_tool(t) for t in tools_]
-
+        return [adapt_to_async_tool(t) for t in self._get_tools(message)]

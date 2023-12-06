@@ -37,7 +37,8 @@ class ActionReasoningStep(BaseReasoningStep):
     def is_done(self) -> bool:
         """Is the reasoning step the last one."""
         return False
-    
+
+
 class ActionReasoningStepArr(BaseReasoningStep):
     """Action Reasoning step."""
 
@@ -84,11 +85,10 @@ class ResponseReasoningStep(BaseReasoningStep):
         """Get content."""
         if self.is_streaming:
             return (
-                f"Thought: {self.thought}\n"
-                f"Response (Starts With): {self.response} ..."
+                f"Thought: {self.thought}\nResponse (Starts With): {self.response} ..."
             )
         else:
-            return f"Thought: {self.thought}\n" f"Response: {self.response}"
+            return f"Thought: {self.thought}\nResponse: {self.response}"
 
     @property
     def is_done(self) -> bool:

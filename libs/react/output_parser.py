@@ -6,7 +6,7 @@ import json
 import re
 from typing import Tuple
 
-from llama_index.agent.react.types import (
+from libs.react.types import (
     ActionReasoningStep,
     ActionReasoningStepArr,
     BaseReasoningStep,
@@ -89,7 +89,7 @@ class ReActOutputParser(BaseOutputParser):
             ```
         """
 
-        #print("output_xxxxxxxxxxxxxxxxx: ", output)
+        # print("output_xxxxxxxxxxxxxxxxx: ", output)
         if "Thought 1:" not in output and not "Answer:" in output:
             # NOTE: handle the case where the agent directly outputs the answer
             # instead of following the thought-answer format
@@ -109,7 +109,7 @@ class ReActOutputParser(BaseOutputParser):
         actions = []
         action_inputs = []
         if "Action 1:" in output:
-            #thought, action, action_input = extract_tool_use(output)
+            # thought, action, action_input = extract_tool_use(output)
             thought1, action1, action_input1 = extract_tool_use_1(output)
             json_str1 = extract_json_str(action_input1)
 
@@ -124,7 +124,7 @@ class ReActOutputParser(BaseOutputParser):
             action_inputs.append(action_input_dict1)
 
         if "Action 2:" in output:
-            #thought, action, action_input = extract_tool_use(output)
+            # thought, action, action_input = extract_tool_use(output)
             thought2, action2, action_input2 = extract_tool_use_2(output)
             json_str2 = extract_json_str(action_input2)
 
@@ -139,7 +139,7 @@ class ReActOutputParser(BaseOutputParser):
             action_inputs.append(action_input_dict2)
 
         if "Action 3:" in output:
-            #thought, action, action_input = extract_tool_use(output)
+            # thought, action, action_input = extract_tool_use(output)
             thought3, action3, action_input3 = extract_tool_use_3(output)
             json_str3 = extract_json_str(action_input3)
 
@@ -154,12 +154,10 @@ class ReActOutputParser(BaseOutputParser):
             action_inputs.append(action_input_dict3)
 
         return ActionReasoningStepArr(
-                thoughts=thoughts, actions=actions, action_inputs=action_inputs
-            )
-    
+            thoughts=thoughts, actions=actions, action_inputs=action_inputs
+        )
+
         raise ValueError(f"Could not parse output: {output}")
-
-
 
     def format(self, output: str) -> str:
         """Format a query with structured output formatting instructions."""
