@@ -158,11 +158,47 @@ service_context = ServiceContext.from_defaults(
 
         return query_engine_tools
 
-    def get_database_query_engine_tools(sql_engine):
-        from llama_index import SQLDatabase
-        from llama_index.prompts import PromptTemplate
-        from llama_index.query_engine import PGVectorSQLQueryEngine
-        from llama_index.tools import QueryEngineTool, ToolMetadata
+
+# ToDo (Dimi) - create a tol retriever and pass it as parameter to ReAct agent
+# tool_retriever: Optional[ObjectRetriever[BaseTool]] = None
+def create_vector_index_from_tools(tools):
+    get_tools = lambda _: tools
+
+    from llama_index.tools import adapt_to_async_tool
+
+    tools = [adapt_to_async_tool(t) for t in get_tools("")]
+    # print("tools: ", tools)
+    docs = [
+        str(
+            "idx: "
+            + str(idx)
+            + ", name: "
+            + str(t.metadata.name)
+            + ", description: "
+            + str(t.metadata.description)
+        )
+        for idx, t in enumerate(tools)
+    ]
+    # print("docs: ", docs)
+    from llama_index import Document, VectorStoreIndex
+
+    documents = [Document(text=t, metadata={"idx": idx}) for idx, t in enumerate(docs)]
+
+    from llama_index.embeddings import OpenAIEmbedding
+
+    embed_model = OpenAIEmbedding()
+
+    index = VectorStoreIndex.from_documents(documents, embed_model=embed_model)
+
+    from llama_index.retrievers import VectorIndexRetriever
+
+    retriever = VectorIndexRetriever(
+        index=index,
+        similarity_top_k=5,
+    )
+
+    return retriever
+
 
         sql_database = SQLDatabase(
             sql_engine, include_tables=["robot_arm", "robot_servo_drive_joint"]
