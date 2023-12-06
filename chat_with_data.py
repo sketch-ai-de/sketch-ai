@@ -15,6 +15,7 @@ parser = argparse.ArgumentParser(
     description="Retrieve information from different soures - PDFs and Web-Links",
 )
 parser.add_argument("-d", "--debug", action="store_true")
+parser.add_argument("-s", "--seq_react", action="store_true")
 args = parser.parse_args()
 
 load_dotenv()
@@ -71,9 +72,12 @@ tool_retriever = ToolRetriever(
 )
 tool_retriever.create_vector_index_from_tools()
 
-# from llama_index.agent import ReActAgent
-# from llama_index.agent.react.base import ReActAgent
-from libs.react.base import ReActAgent
+
+if args.seq_react:
+    from llama_index.agent import ReActAgent
+else:
+    from libs.react.base import ReActAgent
+
 
 agent_sys_promt = f"""\
                             You are a specialized agent designed to provide specific technical information about robot arms or compare robot arms. \
