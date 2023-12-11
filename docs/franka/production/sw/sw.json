@@ -1,0 +1,12 @@
+{
+    "company_name": "Franka Emika",
+    "product_name": "libfranka",
+    "document_type": "SOFTWARE",
+    "pdf_urls": [
+        ""
+    ],
+    "web_urls": [
+        "hhttps://frankaemika.github.io/docs/"
+    ],
+    "loaded_web_path": "docs/franka/production/frankaemika.github.io"
+}
