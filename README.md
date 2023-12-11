@@ -125,13 +125,13 @@ After executing these commands, your project setup is complete.
 
 Once the setup is complete, you can start using the project.
 
-Try out `chat_with_data.py` with parallel ReAct:
+Try out `chat_with_data.py` with parallel ReAct (custom implementation):
 
 ```bash
 python3 chat_with_data.py
 ```
 
-or with sequential ReAct:
+or with sequential ReAct (default implementation of llamaindex):
 
 ```bash
 python3 chat_with_data.py -s
@@ -142,16 +142,52 @@ python3 chat_with_data.py -s
 To load new data to SQL and vector database use ```load_data.py```:
 
 ```bash
-python3 load_data.py -fs "docs/franka/research3/franka-research3.pdf" -u="https://store.clearpathrobotics.com/products/franka-research-3" -p="franka emika research 3" -c="franka-research3-technical-data" -i
+python3 load_data.py -j docs/franka/production/hw/hw.json -i
 ```
 
-```bash
-python3 load_data.py -fs "docs/ur/ur5e/ur5e-fact-sheet.pdf" -u="https://www.universal-robots.com/products/ur5-robot/" -p="universal robot UR5e" -c="ur5e-user-manual" -i
+#### Use json to load data
+
+To load the data from different sources for a component, create a ```json``` file with minimal information about component:
+
+```json
+{
+    "company_name": "Franka Emika",
+    "product_name": "Franka Production 3",
+    "document_type": "HARDWARE",
+    "pdf_urls": [
+        "https://docs.google.com/uc?export=download&id=12-9k2hkZ8scDtjSXbLt8sEjvVP4fYbLE"
+    ],
+    "web_urls": [
+        "https://www.franka.de/production/"
+    ],
+    "loaded_web_path": ""
+}
 ```
 
+To use function ```loaded_web_path``` consider to load the website before with ```wget```.
+
 ```bash
-python3 load_data.py -fs "docs/agile/diana7/diana7.pdf" -u="" -p="agile robots diana 7" -c="diana7" -i
+wget -r --no-parent https://franka.de/production
 ```
+
+The file then could look like this:
+```json
+{
+    "company_name": "Franka Emika",
+    "product_name": "Franka Production 3",
+    "document_type": "HARDWARE",
+    "pdf_urls": [
+        "https://docs.google.com/uc?export=download&id=12-9k2hkZ8scDtjSXbLt8sEjvVP4fYbLE"
+    ],
+    "web_urls": [
+        "https://www.franka.de/production/"
+    ],
+    "loaded_web_path": "franka.de"
+}
+```
+
+where ```franka.de``` is the path to the folder of the loaded site with ```wget```.
+
 
 ## Useful Links
 
