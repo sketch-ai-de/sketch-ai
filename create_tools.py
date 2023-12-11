@@ -111,9 +111,7 @@ class CreateTools:
         from llama_index.query_engine import PGVectorSQLQueryEngine
         from llama_index.tools import QueryEngineTool, ToolMetadata
 
-        sql_database = SQLDatabase(
-            sql_engine, include_tables=["robot_arm", "robot_servo_drive_joint"]
-        )
+        sql_database = SQLDatabase(sql_engine, include_tables=["robot_arm"])
         table_desc = """\
             This table represents text chunks about different robots. Each row contains the following columns: \
             Table: robot_arm
@@ -161,16 +159,6 @@ class CreateTools:
                                 payload: payload in kg \
                                 reach: reachability in mm \
                                 weight: weight in kg \
-                    The table "robot_servo_drive_joint" represents different joint actuators for robto arms. It contains the following columns: \
-                            "id": "Primary key of the table",
-                            "device_type_name": "Name of the device type",
-                            "device_type_id": "ID of the device type",
-                            "company_name": "Name of the company",
-                            "product_name": "Name of the product",
-                            "product_description": "Description of the product",
-                            "power": "Power of the device",
-                            "weight": "Weight of the device",
-                            "gear_ratio": "Gear ratio of the device"
                     IMPORTANT NOTE: For the search in the columns company_name and product_name and product_description, use SQL ILIKE operator instead. \
                     Do not select all the columns, only relevant ones, e.g. company_name and product_name. \
                     Seach case insensitive by using SQL ILIKE operator. \
@@ -192,11 +180,11 @@ class CreateTools:
         query_engine_tools = self.create_query_engine_tools(
             sql_engine, "robot_arm", "robot_arm_embed", query_engine_tools
         )
-        query_engine_tools = self.create_query_engine_tools(
-            sql_engine,
-            "robot_servo_drive_joint",
-            "robot_servo_drive_joint_embed",
-            query_engine_tools,
-        )
+        # query_engine_tools = self.create_query_engine_tools(
+        #    sql_engine,
+        #    "robot_servo_drive_joint",
+        #    "robot_servo_drive_joint_embed",
+        #    query_engine_tools,
+        # )
         sql_query_engine_tool = self.get_database_query_engine_tools(sql_engine)
         return query_engine_tools, sql_query_engine_tool
