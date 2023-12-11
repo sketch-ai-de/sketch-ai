@@ -8,5 +8,6 @@
     "web_urls": [
         "https://www.kuka.com/en-de/products/robot-systems/industrial-robots/lbr-iiwa"
     ],
-    "loaded_web_path": ""
+    "load_pdfs": true,
+    "load_urls": true
 }

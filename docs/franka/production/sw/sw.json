@@ -1,12 +1,13 @@
 {
     "company_name": "Franka Emika",
-    "product_name": "libfranka",
+    "product_name": "Franka Production 3",
     "document_type": "SOFTWARE",
     "pdf_urls": [
         ""
     ],
     "web_urls": [
-        "hhttps://frankaemika.github.io/docs/"
+        "https://frankaemika.github.io/docs/"
     ],
-    "loaded_web_path": "docs/franka/production/sw/frankaemika.github.io"
+    "load_pdfs": false,
+    "load_urls": true
 }

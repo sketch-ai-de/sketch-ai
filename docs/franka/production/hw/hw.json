@@ -8,5 +8,6 @@
     "web_urls": [
         "https://www.franka.de/production/"
     ],
-    "loaded_web_path": ""
+    "load_pdfs": true,
+    "load_urls": true
 }
