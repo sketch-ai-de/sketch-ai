@@ -2,3 +2,6 @@
 openai-env/*
 chroma_db
 postgresql_data
+*__pycache__*
+*.db
+settings.json
