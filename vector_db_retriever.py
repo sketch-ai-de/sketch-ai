@@ -62,7 +62,7 @@ class VectorDBRetriever(BaseRetriever):
         for store_index, store in enumerate(self._vector_stores):
             nodes_with_scores = []
             self._vector_store = store
-            self.logger.debug(
+            self.logger.info(
                 "vector_store client: {}".format(self._vector_store.client)
             )
             query_embedding = self._embed_model.get_query_embedding(
@@ -94,12 +94,15 @@ class VectorDBRetriever(BaseRetriever):
         #    nodes_with_scores, query_bundle=query_bundle
         # )
 
-        # reranker = LLMRerank(
-        #    choice_batch_size=5,
-        #    top_n=10,
-        #    service_context=self.service_context,
-        # )
-        # reranked_nodes = reranker.postprocess_nodes(nodes_with_scores, query_bundle)
+        reranker = LLMRerank(
+            choice_batch_size=5,
+            top_n=15,
+            service_context=self.service_context,
+        )
+        self.logger.info("start reranking!")
+        reranked_nodes = reranker.postprocess_nodes(
+            nodes_with_scores, query_str=query_bundle.query_str
+        )
 
         self.logger.debug("nodes_with_scores MERGED: {}".format(nodes_with_scores))
 
@@ -110,5 +113,6 @@ class VectorDBRetriever(BaseRetriever):
         )
 
         # self.logger.debug("reranked_nodes MERGED: {}".format(reranked_nodes))
-        # return reranked_nodes[0:5]  # 4 results with one store, 8 with 2 stores
-        return nodes_with_scores[0:5]  # 4 results with one store, 8 with 2 stores
+        # self.logger.info("reranked_nodes MERGED: {}".format(reranked_nodes))
+        return reranked_nodes  # 4 results with one store, 8 with 2 stores
+        # return nodes_with_scores[0:15]  # 4 results with one store, 8 with 2 stores
