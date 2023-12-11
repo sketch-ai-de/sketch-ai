@@ -44,9 +44,16 @@ service_context = ServiceContext.from_defaults(embed_model=embed_model)
 # embed_model = HuggingFaceEmbedding(model_name=embed_model_name)
 
 # define llm and its params
-llm_temperature = 0.3
+llm_temperature = 0.1
 llm_model = "gpt-4-1106-preview"
 # llm_model = "gpt-3.5-turbo"
+
+from llama_index.llms import HuggingFaceInferenceAPI, HuggingFaceLLM
+
+# HF_TOKEN = os.getenv("HF")
+# llm = HuggingFaceInferenceAPI(
+#    model_name="HuggingFaceH4/zephyr-7b-alpha", token=HF_TOKEN
+# )
 
 logger.info("--------------------- Loading llm model {} \n".format(llm_model))
 llm = OpenAI(temperature=llm_temperature, model=llm_model)
@@ -68,7 +75,10 @@ query_engine_tools, sql_query_engine_tool = create_tools.get_tools()
 from tool_retriever import ToolRetriever
 
 tool_retriever = ToolRetriever(
-    tools=query_engine_tools, sql_tools=sql_query_engine_tool, embed_model=embed_model
+    tools=query_engine_tools,
+    sql_tools=sql_query_engine_tool,
+    embed_model=embed_model,
+    append_sql=False,
 )
 tool_retriever.create_vector_index_from_tools()
 
@@ -108,8 +118,10 @@ async def predict(query_str, history, agent=agent):
     print(response)  # print the response
     info_sources = set()
     for node in response.source_nodes:
-        if "file_path" in node.metadata.keys():
-            info_sources.add(node.metadata["file_path"])
+        if "pdf_url" in node.metadata.keys():
+            info_sources.add(node.metadata["pdf_url"])
+        if "web_url" in node.metadata.keys():
+            info_sources.add(node.metadata["web_url"])
     final_responce = str(response.response + "\n\n" + "Info sources: ")
     if info_sources:
         for info_source in info_sources:
