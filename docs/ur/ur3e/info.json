@@ -1,0 +1,12 @@
+{
+    "company_name": "Universal Robots AG",
+    "product_name": "UR3e",
+    "document_type": "HARDWARE",
+    "pdf_urls": [
+        "https://docs.google.com/uc?export=download&id=1778kpn9yfuEPlIZkUfTw7aAyA2HLdmEd"
+    ],
+    "web_urls": [
+        "https://www.universal-robots.com/products/ur3-robot/"
+    ],
+    "loaded_web_path": "docs/ur/ur3e/www.universal-robots.com"
+}

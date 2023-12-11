@@ -1,0 +1,12 @@
+{
+    "company_name": "Kuka",
+    "product_name": "LBR iiwa 7 R800",
+    "document_type": "HARDWARE",
+    "pdf_urls": [
+        "https://docs.google.com/uc?export=download&id=13KhMuwmfBY4Ch-RZbillrOnx821ag0Db"
+    ],
+    "web_urls": [
+        "https://www.kuka.com/en-de/products/robot-systems/industrial-robots/lbr-iiwa"
+    ],
+    "loaded_web_path": ""
+}
