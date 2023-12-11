@@ -38,8 +38,8 @@ Observation: tool response
 ```
 
 You should keep repeating the above format until you have enough information
-to answer the question without using any more tools. At that point, you MUST respond
-in the one of the following two formats:
+to answer the question without using any more tools. 
+At that point, you MUST respond in the one of the following two formats:
 
 ```
 Thought: I can answer without using any more tools.
@@ -57,7 +57,6 @@ Below is the current conversation consisting of interleaving human and assistant
 """
 
 
-
 PRE_REACT_CHAT_SYSTEM_HEADER = """\
 
 You are designed to help with a variety of tasks, from answering questions \
@@ -73,11 +72,12 @@ You have access to the following tools:
 {tool_desc}
 
 ## Output Format
-To answer the question, please generate multiple, maxumum 3, of Thoughts. Select appropriate Action and Action Input for each thought.
-Important: each thought should be a different tool and action input.
-If you plan to use SQL, always generate a only one thought for SQL. Use results from SQL as input to create other thoughts in the next step.
-If there are different parameters for an SQL request (e.g. different columns), generate only for one parameter.
-Always generate using the following format. 
+If you can not find answer from the tools description, always generate thoughts and always use tools first to find the answer.
+To answer the question, please generate multiple, maxumum 3, of Thoughts. Select appropriate "Action" and "Action Input" for each "Thought".
+Important: for each "Thought" should be a different tool in "Action" and "Action Input". 
+For the tool name use only a tool name from the list of provided tools.
+
+If there are thoughts always generate using the following format. 
 
 ```
 Thought x: I need to use a tool to help me answer the question.
