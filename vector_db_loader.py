@@ -128,7 +128,7 @@ class VectorDBLoader:
         return vector_store, storage_context, chroma_collection
 
     def get_vector_stores(
-        self, load_always=False
+        self,
     ) -> Tuple[List[ChromaVectorStore], StorageContext, chromadb.Collection]:
         """
         The purpose of this function is to retrieve a list of `ChromaVectorStore`
