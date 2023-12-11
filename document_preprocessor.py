@@ -80,23 +80,7 @@ class DocumentPreprocessor:
         url_list = []
         for root, dirs, files in os.walk(target_directory):
             for file in files:
-                if not any(
-                    ext in file
-                    for ext in [
-                        ".css",
-                        ".jpg",
-                        ".js",
-                        ".gif",
-                        ".jpeg",
-                        ".png",
-                        ".txt",
-                        ".webp",
-                        ".career",
-                        ".woff",
-                        ".ico",
-                        "webfont",
-                    ]
-                ):
+                if any(ext in file for ext in [".html", ".htm"]):
                     url_list.append(f"{root}/{file}")
         return url_list  # returns a list of path for each file in the directory
 
