@@ -147,7 +147,9 @@ python3 load_data.py -j docs/franka/production/hw/hw.json -i
 
 #### Use json to load data
 
-To load the data from different sources for a component, create a ```json``` file with minimal information about component:
+To load the data from different sources for a component, create a ```json``` file with minimal information about component.
+
+##### For Hardware
 
 ```json
 {
@@ -160,33 +162,29 @@ To load the data from different sources for a component, create a ```json``` fil
     "web_urls": [
         "https://www.franka.de/production/"
     ],
-    "loaded_web_path": ""
+    "load_pdfs": true,
+    "load_urls": true
 }
 ```
 
-To use function ```loaded_web_path``` consider to load the website before with ```wget```.
+##### For Software
 
-```bash
-wget -r --no-parent https://franka.de/production
-```
 
-The file then could look like this:
 ```json
 {
     "company_name": "Franka Emika",
     "product_name": "Franka Production 3",
-    "document_type": "HARDWARE",
+    "document_type": "SOFTWARE",
     "pdf_urls": [
-        "https://docs.google.com/uc?export=download&id=12-9k2hkZ8scDtjSXbLt8sEjvVP4fYbLE"
+        ""
     ],
     "web_urls": [
-        "https://www.franka.de/production/"
+        "https://frankaemika.github.io/docs/"
     ],
-    "loaded_web_path": "franka.de"
+    "load_pdfs": false,
+    "load_urls": true
 }
 ```
-
-where ```franka.de``` is the path to the folder of the loaded site with ```wget```.
 
 
 ## Useful Links
