@@ -32,6 +32,7 @@ parser = argparse.ArgumentParser(
 
 parser.add_argument("-j", "--json_file", default="", type=str)
 parser.add_argument("-k", "--similarity_top_k", default=10, type=int)
+parser.add_argument("-kr", "--similarity_top_k_rerank", default=15, type=int)
 parser.add_argument("-d", "--debug", action="store_true")
 parser.add_argument("-i", "--insert_in_sql", action="store_true")
 
@@ -89,24 +90,17 @@ Docs = DocumentPreprocessor(
     llm=llm,
 )
 
-Docs.load_pdfs()
-if data["web_urls"]:
-    Docs.load_urls()
-if data["loaded_web_path"]:
-    Docs.load_urls_from_path(path=data["loaded_web_path"], url=data["web_urls"][0])
 
-Docs.process_sherpa_pdf()
-Docs.process_normal_pdf()
-Docs.process_sherpa_table()
-Docs.process_urls()
+if data["load_urls"]:
+    Docs.load_urls_from_path(data["web_urls"])
+    Docs.process_urls()
 
-## Creating a DocumentPreprocessor object to preprocess the documents
-# Docs = DocumentPreprocessor(
-#    logger=logger,
-#    url=args.url,
-#    pdf_filenames=args.filenames,
-#    collection_name=args.collection,
-# )
+if data["load_pdfs"]:
+    Docs.load_pdfs()
+    Docs.process_sherpa_pdf()
+    Docs.process_normal_pdf()
+    Docs.process_sherpa_table()
+
 
 # Creating a VectorDBLoader object to load the vectors into the database
 DBLoader = VectorDBLoader(
@@ -118,9 +112,7 @@ DBLoader = VectorDBLoader(
     verbose=True,
 )
 # Getting the vector stores, storage context and chroma collection from the VectorDBLoader object
-vector_stores, storage_context = DBLoader.get_vector_stores(
-    load_always=args.insert_in_sql
-)
+vector_stores, storage_context = DBLoader.get_vector_stores()
 if len(vector_stores) == 0:
     logger.error("No vector store exists.")
     exit(1)
@@ -133,7 +125,9 @@ retriever = VectorDBRetriever(
     embed_model,
     query_mode="default",
     similarity_top_k=int(args.similarity_top_k),
+    similarity_top_k_rerank=int(args.similarity_top_k_rerank),
     logger=logger,
+    service_context=service_context,
 )
 # Creating a VectorStoreIndex object from the vector store
 index = VectorStoreIndex.from_vector_store(
