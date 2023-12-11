@@ -89,24 +89,30 @@ class DocumentPreprocessor:
         documents = loader.load_data(file=Path(file_path))
         return documents  # returns text and source url (metadata) from an HTML file
 
-    def load_urls_from_path(self, path, url):
+    def load_urls_from_path(self, urls):
         """
         Loads documents from URLs.
         """
-        docs = []
-        for file_path in self.path_generator(path):
-            docs.append(self.get_text_from_html(file_path))
+        path = "tmp" + self.generate_random_string(3)
         collection_name = "web_url_" + self.generate_random_string()
         self._url_docs[collection_name] = {}
         self._url_docs[collection_name]["docs"] = []
-        for idx, docs in enumerate(docs):
-            self._url_docs[collection_name]["docs"].append(docs)
-            self._url_docs[collection_name]["metadata"] = self._metadata.get_dict()
-            self._url_docs[collection_name]["metadata"]["web_url"] = url
-            for doc in docs:
-                doc.metadata.update(self._url_docs[collection_name]["metadata"])
-            self._url_docs[collection_name]["text"] = re.sub("\n\n", " ", docs[0].text)
-        self.remove_none_fields(self._url_docs)
+        docs = []
+        for url in urls:
+            subprocess.run(["wget", "-r", "-l1", "-nd", "-P", path, url])
+            for file_path in self.path_generator(path):
+                docs.append(self.get_text_from_html(file_path))
+            for idx, docs in enumerate(docs):
+                self._url_docs[collection_name]["docs"].append(docs)
+                self._url_docs[collection_name]["metadata"] = self._metadata.get_dict()
+                self._url_docs[collection_name]["metadata"]["web_url"] = url
+                for doc in docs:
+                    doc.metadata.update(self._url_docs[collection_name]["metadata"])
+                self._url_docs[collection_name]["text"] = re.sub(
+                    "\n\n", " ", docs[0].text
+                )
+            self.remove_none_fields(self._url_docs)
+            subprocess.run(["rm", "-r", path])
 
     def load_pdfs(self):
         """
