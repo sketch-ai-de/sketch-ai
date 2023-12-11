@@ -1,5 +1,5 @@
 from vector_db_retriever import VectorDBRetriever
-from typing import List, Sequence, Any
+from typing import Any
 
 
 class CreateTools:
@@ -123,32 +123,11 @@ class CreateTools:
             company_name: name of the company \
             product_name: name of the product \
             product_description: description of the product \
-            payload: payload in kg \
-            reach: reachability in mm \
-            weight: weight in kg \
-            Table: robot_servo_drive_joint
-            "id": "Primary key of the table",
-            "device_type_name": "Name of the device type",
-            "device_type_id": "ID of the device type",
-            "company_name": "Name of the company",
-            "product_name": "Name of the product",
-            "product_description": "Description of the product",
-            "power": "Power of the device",
-            "weight": "Weight of the device",
-            "gear_ratio": "Gear ratio of the device"
             For most queries you should perform semantic search against the `text` column values. \
             """
         text_to_sql_tmpl = """\
         Given an input question, first create a syntactically correct {dialect} \
         query to run, then look at the results of the query and return the answer. \
-        You can order the results by a relevant column to return the most \
-        interesting examples in the database.
-        Pay attention to use only the column names that you can see in the schema \
-        description. Be careful to not query for columns that do not exist. \
-        Pay attention to which column is in which table. Also, qualify column names \
-        with the table name when needed.
-        You are required to use the following format, \
-        each taking one line:
         Question: Question here
         SQLQuery: SQL Query to run
         SQLResult: Result of the SQLQuery
@@ -219,6 +198,5 @@ class CreateTools:
             "robot_servo_drive_joint_embed",
             query_engine_tools,
         )
-        # query_engine_tools.append(get_database_query_engine_tools(sql_engine))
         sql_query_engine_tool = self.get_database_query_engine_tools(sql_engine)
         return query_engine_tools, sql_query_engine_tool
