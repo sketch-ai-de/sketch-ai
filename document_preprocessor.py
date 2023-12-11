@@ -188,7 +188,6 @@ class DocumentPreprocessor:
         Args:
         - docs (list): a list of Document objects.
         """
-        print("docs_dict: ", docs_dict)
         for collection_name in docs_dict.keys():
             for doc in docs_dict[collection_name]["docs"]:
                 for meta_key in doc[0].metadata:
@@ -269,7 +268,6 @@ class DocumentPreprocessor:
             self._pdf_docs[colection_name]["nodes"] = []
             self._collections[colection_name] = []
             for doc_idx, doc in enumerate(self._pdf_docs[colection_name]["pdf"]):
-                print(doc)
                 self._pdf_docs[colection_name]["metadata"] = self._metadata.get_dict()
                 if len(doc.text) > 200:
                     self._logger.info(
