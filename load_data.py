@@ -25,7 +25,7 @@ parser.add_argument("-d", "--debug", action="store_true")
 parser.add_argument("-i", "--insert_in_sql", action="store_true")
 parser.add_argument("-m", "--llm-model", default="gpt3", type=str, help="gpt3 or gpt4")
 parser.add_argument(
-    "-s", "--llm-service", default="azure", type=str, help="azure or openai"
+    "-l", "--llm-service", default="azure", type=str, help="azure or openai"
 )
 
 args = parser.parse_args()
