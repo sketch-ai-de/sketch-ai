@@ -12,6 +12,7 @@ class DeviceType(Enum):
     INDUCTIVE_SENSOR = 8
     COMPUTER = 9
     ROBOT_SERVO_DRIVE_JOINT = 10
+    SOFTWARE = 11
 
 
 device_type_list = [el.name for el in DeviceType]
