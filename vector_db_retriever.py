@@ -107,7 +107,7 @@ class VectorDBRetriever(BaseRetriever):
         #    service_context=self.service_context,
         # )
 
-        if self._rerank:
+        if self._rerank and len(nodes_with_scores) > self._similarity_top_k_rerank:
             from llama_index.postprocessor import FlagEmbeddingReranker
 
             self.logger.info(
