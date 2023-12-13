@@ -1,29 +1,16 @@
 #!/usr/bin/env python3
-
-# ToDo (Dimi): extend metadata with filename, and doc_id with filename
-
 import argparse
 import json
 import logging
-import os
-import re
 import sys
 
-import openai
-from dotenv import load_dotenv
-from langchain.output_parsers import ResponseSchema
 from llama_index import ServiceContext, VectorStoreIndex
-from llama_index.embeddings import OpenAIEmbedding
-from llama_index.llms import OpenAI
-
 from document_preprocessor import DocumentPreprocessor
 from vector_db_loader import VectorDBLoader
 from vector_db_retriever import VectorDBRetriever
-
 import json
 
-load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
+from load_models import load_models
 
 parser = argparse.ArgumentParser(
     prog="RagLlamaindex",
@@ -33,8 +20,13 @@ parser = argparse.ArgumentParser(
 parser.add_argument("-j", "--json_file", default="", type=str)
 parser.add_argument("-k", "--similarity_top_k", default=10, type=int)
 parser.add_argument("-kr", "--similarity_top_k_rerank", default=15, type=int)
+parser.add_argument("-r", "--rerank", action="store_true")
 parser.add_argument("-d", "--debug", action="store_true")
 parser.add_argument("-i", "--insert_in_sql", action="store_true")
+parser.add_argument("-m", "--llm-model", default="gpt3", type=str, help="gpt3 or gpt4")
+parser.add_argument(
+    "-s", "--llm-service", default="azure", type=str, help="azure or openai"
+)
 
 args = parser.parse_args()
 
@@ -43,28 +35,13 @@ streamHandler = logging.StreamHandler(sys.stdout)
 formatter = logging.Formatter("%(asctime)s - %(name)s - %(levelname)s - %(message)s")
 streamHandler.setFormatter(formatter)
 logger.addHandler(streamHandler)
-
 logger.setLevel(logging.DEBUG if args.debug else logging.INFO)
 
-# embed_model_name = "sentence-transformers/all-MiniLM-L12-v2"
 
-# embed_model_name = "thenlper/gte-base"
+llm, embed_model = load_models(
+    llm_service=args.llm_service, llm_model=args.llm_model, logger=logger
+)
 
-# logger.info(#    "--------------------- Loading embedded model {} \n".format(embed_model_name)#)
-
-embed_model = OpenAIEmbedding()
-service_context = ServiceContext.from_defaults(embed_model=embed_model)
-
-# embed_model = HuggingFaceEmbedding(model_name=embed_model_name)
-
-# define llm and its params
-llm_temperature = 0.3
-# llm_model = "gpt-4-1106-preview"
-llm_model = "gpt-3.5-turbo"
-# llm_model = "gpt-3.5-turbo-instruct" # not good - responces are too unprecise
-# llm_model = "gpt-4"  # good responces but way too expencive
-logger.info("--------------------- Loading llm model {} \n".format(llm_model))
-llm = OpenAI(temperature=llm_temperature, model=llm_model)
 
 service_context = ServiceContext.from_defaults(
     chunk_size=1024, llm=llm, embed_model=embed_model
@@ -128,6 +105,7 @@ retriever = VectorDBRetriever(
     similarity_top_k_rerank=int(args.similarity_top_k_rerank),
     logger=logger,
     service_context=service_context,
+    rerank=True,
 )
 # Creating a VectorStoreIndex object from the vector store
 index = VectorStoreIndex.from_vector_store(
@@ -139,32 +117,159 @@ index = VectorStoreIndex.from_vector_store(
 # )
 query_engine = index.as_query_engine(retriever=retriever)
 
-from get_robot_arm_data import get_robot_arm_data
+from get_sql_data_to_insert import (
+    get_robot_arm_data,
+    get_robot_arm_embed_data,
+    get_company_data,
+    get_software_data,
+    get_software_embed_data,
+)
 from sql_handler_robot_arm import SQLHandlerRobotArm
+from sql_handler_company import SQLHandlerCompany
+from sql_handler_robot_arm_embed import SQLHandlerRobotArmEmbed
+from sql_handler_software import SQLHandlerSoftware
+from sql_handler_software_embed import SQLHandlerSoftwareEmbed
+from sketch_ai_sql_types import (
+    sql_fields_company,
+    sql_fields_robot_arm,
+    sql_fields_robot_arm_embed,
+    sql_fields_software,
+    sql_fields_software_embed,
+)
 
+sql_handler_company = SQLHandlerCompany(
+    table_name="company", sql_fields=sql_fields_company
+)
+sql_handler_company.create_base()
+sql_handler_company.create_table()
 
-sql_handler_robot_arm = SQLHandlerRobotArm()
+sql_handler_robot_arm = SQLHandlerRobotArm(
+    table_name="robot_arm", sql_fields=sql_fields_robot_arm
+)
 sql_handler_robot_arm.create_base()
-sql_handler_robot_arm.create_robot_table()
+sql_handler_robot_arm.create_table()
 
-logger.info("Getting arm id")
-robot_arm_id = sql_handler_robot_arm.get_robot_arm_id(data["product_name"])
+sql_handler_robot_arm_embed = SQLHandlerRobotArmEmbed(
+    table_name="robot_arm_embed", sql_fields=sql_fields_robot_arm_embed
+)
+sql_handler_robot_arm_embed.create_base()
+sql_handler_robot_arm_embed.create_table()
 
-if robot_arm_id is None or robot_arm_id == []:
-    logger.info("Getting robot arm data")
-    response_device_dict = get_robot_arm_data(
-        query_engine, retriever, DBLoader, logger, data["product_name"]
+sql_handler_software = SQLHandlerSoftware(
+    table_name="software", sql_fields=sql_fields_software
+)
+sql_handler_software.create_base()
+sql_handler_software.create_table()
+
+sql_handler_software_embed = SQLHandlerSoftwareEmbed(
+    table_name="software_embed", sql_fields=sql_fields_software_embed
+)
+sql_handler_software_embed.create_base()
+sql_handler_software_embed.create_table()
+
+logger.info("Getting company id")
+company_id = sql_handler_company.get_id(data["company_name"])
+if company_id is None or company_id == []:
+    response_company_dict = get_company_data(data, fields_dict=sql_fields_company)
+
+if data["document_type"] == "HARDWARE":
+    logger.info("Getting arm id")
+    robot_arm_id = sql_handler_robot_arm.get_id(data["product_name"])
+    if robot_arm_id is None or robot_arm_id == []:
+        logger.info("Getting robot arm data")
+        response_robot_arm_dict = get_robot_arm_data(
+            query_engine,
+            retriever,
+            DBLoader,
+            logger,
+            data["product_name"],
+            fields_dict=sql_fields_robot_arm,
+        )
+
+    nodes = DBLoader.get_all_nodes()
+    response_robot_arm_embed_list = get_robot_arm_embed_data(
+        robot_arm_id, nodes, fields_dict=sql_fields_robot_arm_embed
     )
 
-nodes = DBLoader.get_all_nodes()
+if data["document_type"] == "SOFTWARE":
+    logger.info("Getting software id")
+    software_id = sql_handler_software.get_id(data["product_name"])
+    if software_id is None or software_id == []:
+        logger.info("Getting software data")
+        response_software_dict = get_software_data(
+            query_engine,
+            retriever,
+            DBLoader,
+            logger,
+            data["product_name"],
+            fields_dict=sql_fields_software,
+        )
+
+    nodes = DBLoader.get_all_nodes()
+    response_software_embed_list = get_software_embed_data(
+        software_id, nodes, fields_dict=sql_fields_software_embed
+    )
 
 from sketch_ai_types import DeviceType
 
 if args.insert_in_sql:
     logger.info("Inserting into SQL")
-    if robot_arm_id is None or robot_arm_id == []:
-        if response_device_dict["device_type_name"] == DeviceType.ROBOT_ARM.name:
-            sql_handler_robot_arm.insert_device_into_sql(response_device_dict)
-            sql_handler_robot_arm.insert_nodes_into_sql(nodes, data["product_name"])
-    else:
-        sql_handler_robot_arm.insert_nodes_into_sql(nodes, data["product_name"])
+    if company_id is None or company_id == []:
+        logger.info(
+            "Inserting into tables {}".format(
+                sql_handler_company._table_name,
+            )
+        )
+        sql_handler_company.insert_into_sql(response_company_dict)
+    logger.info("Getting company id")
+    company_id = sql_handler_company.get_id(data["company_name"])
+    if data["document_type"] == "SOFTWARE":
+        response_software_dict["company_id"] = company_id
+        if software_id is None or software_id == []:
+            if response_software_dict["device_type_name"] == DeviceType.SOFTWARE.name:
+                logger.info(
+                    "Inserting into tables {} and {}".format(
+                        sql_handler_software._table_name,
+                        sql_handler_software_embed._table_name,
+                    )
+                )
+                sql_handler_software.insert_into_sql(response_software_dict)
+                software_id = sql_handler_software.get_id(data["product_name"])
+                response_software_embed_list = get_software_embed_data(
+                    software_id, nodes, fields_dict=sql_fields_software_embed
+                )
+                sql_handler_software_embed.insert_into_sql(response_software_embed_list)
+        else:
+            logger.info(
+                "Inserting into table {}".format(
+                    sql_handler_software_embed._table_name,
+                )
+            )
+            sql_handler_software_embed.insert_into_sql(response_software_embed_list)
+
+    if data["document_type"] == "HARDWARE":
+        response_robot_arm_dict["company_id"] = company_id
+        if robot_arm_id is None or robot_arm_id == []:
+            if response_robot_arm_dict["device_type_name"] == DeviceType.ROBOT_ARM.name:
+                logger.info(
+                    "Inserting into tables {} and {}".format(
+                        sql_handler_robot_arm._table_name,
+                        sql_handler_robot_arm_embed._table_name,
+                    )
+                )
+                sql_handler_robot_arm.insert_into_sql(response_robot_arm_dict)
+                logger.info("Getting arm id")
+                robot_arm_id = sql_handler_robot_arm.get_id(data["product_name"])
+                response_robot_arm_embed_list = get_robot_arm_embed_data(
+                    robot_arm_id, nodes, fields_dict=sql_fields_robot_arm_embed
+                )
+                sql_handler_robot_arm_embed.insert_into_sql(
+                    response_robot_arm_embed_list
+                )
+        else:
+            logger.info(
+                "Inserting into table {}".format(
+                    sql_handler_robot_arm_embed._table_name,
+                )
+            )
+            sql_handler_robot_arm_embed.insert_into_sql(response_robot_arm_embed_list)
