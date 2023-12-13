@@ -127,19 +127,21 @@ def get_software_data(
     for key in fields_dict.keys():
         field = ResponseSchema(
             name=key,
-            description=fields_dict[key]["description"]
-            + ". "
-            + "Always answer informationen related to robot arm {} with the specified datatype {}".format(
-                response_device_dict["product_name"], fields_dict[key]["datatype"]
-            ),
+            description=fields_dict[key]["description"],
             type=fields_dict[key]["datatype"],
         )
         response_schemas = [field]
         query_engine = DBLoader.get_query_engine(response_schemas, retriever)
         query_str = (
-            fields_dict[key]["description"]
-            + ". "
-            + "Answer always in json format. Don't put any additional information or comments. Don't add any additional fields, only requested fields."
+            "Given a description of the field, extract the relevant information.\n"
+            "Always answer information related to product {} with the provided data type: {}".format(
+                response_device_dict["product_name"],
+                fields_dict[key]["datatype"]
+                + ". \n"
+                + "If no information is provided for the field, leave it empty or 0."
+                + "Answer always in json format. Don't put any additional information or comments. \
+                Use only provided fields.",
+            )
         )
         response_device_details, response_device_details_dict = make_llm_request(
             query_engine, query_str, logger
