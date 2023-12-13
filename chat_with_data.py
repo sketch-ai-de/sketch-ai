@@ -1,14 +1,10 @@
 import logging
-import os
 import sys
 import argparse
-
-import openai
-from dotenv import load_dotenv
-
-from llama_index.embeddings import OpenAIEmbedding
-from llama_index.llms import OpenAI
 from llama_index.service_context import ServiceContext
+from create_tools import CreateTools
+from tool_retriever import ToolRetriever
+from load_models import load_models
 
 parser = argparse.ArgumentParser(
     prog="RagLlamaindex",
@@ -16,11 +12,13 @@ parser = argparse.ArgumentParser(
 )
 parser.add_argument("-d", "--debug", action="store_true")
 parser.add_argument("-s", "--seq_react", action="store_true")
+parser.add_argument("-r", "--rerank", action="store_true")
+parser.add_argument("-kr", "--similarity_top_k_rerank", default=15, type=int)
+parser.add_argument("-m", "--llm-model", default="gpt3", type=str, help="gpt3 or gpt4")
+parser.add_argument(
+    "-s", "--llm-service", default="azure", type=str, help="azure or openai"
+)
 args = parser.parse_args()
-
-load_dotenv()
-openai.api_key = os.getenv("OPENAI_API_KEY")
-
 
 logger = logging.getLogger(__name__)
 streamHandler = logging.StreamHandler(sys.stdout)
@@ -30,39 +28,13 @@ logger.addHandler(streamHandler)
 
 logger.setLevel(logging.DEBUG if args.debug else logging.INFO)
 
-# embed_model_name = "sentence-transformers/all-MiniLM-L12-v2"
-
-embed_model_name = "thenlper/gte-base"
-
-logger.info(
-    "--------------------- Loading embedded model {} \n".format(embed_model_name)
+llm, embed_model = load_models(
+    llm_service=args.llm_service, llm_model=args.llm_model, logger=logger
 )
-
-embed_model = OpenAIEmbedding()
-service_context = ServiceContext.from_defaults(embed_model=embed_model)
-
-# embed_model = HuggingFaceEmbedding(model_name=embed_model_name)
-
-# define llm and its params
-llm_temperature = 0.1
-llm_model = "gpt-4-1106-preview"
-# llm_model = "gpt-3.5-turbo"
-
-from llama_index.llms import HuggingFaceInferenceAPI, HuggingFaceLLM
-
-# HF_TOKEN = os.getenv("HF")
-# llm = HuggingFaceInferenceAPI(
-#    model_name="HuggingFaceH4/zephyr-7b-alpha", token=HF_TOKEN
-# )
-
-logger.info("--------------------- Loading llm model {} \n".format(llm_model))
-llm = OpenAI(temperature=llm_temperature, model=llm_model)
 
 service_context = ServiceContext.from_defaults(
     chunk_size=1024, llm=llm, embed_model=embed_model
 )
-
-from create_tools import CreateTools
 
 create_tools = CreateTools(
     service_context=service_context,
@@ -72,7 +44,6 @@ create_tools = CreateTools(
 )
 query_engine_tools, sql_query_engine_tool = create_tools.get_tools()
 
-from tool_retriever import ToolRetriever
 
 tool_retriever = ToolRetriever(
     tools=query_engine_tools,
@@ -95,8 +66,6 @@ agent_sys_promt = f"""\
                             Rewrite Action Input to get the best results.
                                 """
 agent = ReActAgent.from_tools(
-    # create_vector_index_from_tools(query_engine_tools),
-    # query_engine_tools,
     llm=llm,
     verbose=True,
     system_prompt=agent_sys_promt,
