@@ -36,6 +36,7 @@ class VectorDBRetriever(BaseRetriever):
         similarity_top_k_rerank: int = 15,
         logger: Any = None,
         service_context=None,
+        rerank: bool = False,
     ) -> None:
         self._vector_store = vector_store
         self._vector_stores = vector_stores
@@ -45,6 +46,7 @@ class VectorDBRetriever(BaseRetriever):
         self._similarity_top_k_rerank = similarity_top_k_rerank
         self.logger = logger
         self.service_context = service_context
+        self._rerank = rerank
 
     """
     Initialize the VectorDBRetriever.
@@ -87,9 +89,12 @@ class VectorDBRetriever(BaseRetriever):
 
         nodes_with_scores_ = []
         for store_v in nodes_with_scores_matrix:
-            nodes_with_scores_.extend(
-                store_v  # [0:3]
-            )  # take 4 results fom each store and add to nodes_with_scores_
+            if self._rerank:
+                nodes_with_scores_.extend(store_v)  # [0:3]
+            else:
+                nodes_with_scores_.extend(
+                    store_v[0:3]
+                )  # take 4 results fom each store and add to nodes_with_scores_
         nodes_with_scores = nodes_with_scores_
 
         # reranked_nodes = reranker.postprocess_nodes(
@@ -101,32 +106,37 @@ class VectorDBRetriever(BaseRetriever):
         #    top_n=self._similarity_top_k_rerank,
         #    service_context=self.service_context,
         # )
-        self.logger.info(
-            "start reranking {} nodes to {} nodes. ".format(
-                len(nodes_with_scores), self._similarity_top_k_rerank
+
+        if self._rerank:
+            from llama_index.postprocessor import FlagEmbeddingReranker
+
+            self.logger.info(
+                "start reranking {} nodes to {} nodes. ".format(
+                    len(nodes_with_scores), self._similarity_top_k_rerank
+                )
             )
-        )
-        from llama_index.postprocessor import FlagEmbeddingReranker
+            rerank = FlagEmbeddingReranker(
+                model="BAAI/bge-reranker-base", top_n=self._similarity_top_k_rerank
+            )
 
-        rerank = FlagEmbeddingReranker(
-            model="BAAI/bge-reranker-base", top_n=self._similarity_top_k_rerank
-        )
+            reranked_nodes = rerank.postprocess_nodes(
+                nodes_with_scores, query_bundle=query_bundle
+            )
 
-        reranked_nodes = rerank.postprocess_nodes(
-            nodes_with_scores, query_bundle=query_bundle
-        )
+            # reranked_nodes = reranker.postprocess_nodes(
+            #    nodes_with_scores, query_str=query_bundle.query_str
+            # )
 
-        # reranked_nodes = reranker.postprocess_nodes(
-        #    nodes_with_scores, query_str=query_bundle.query_str
-        # )
+            self.logger.debug("nodes_with_scores MERGED: {}".format(nodes_with_scores))
 
-        self.logger.debug("nodes_with_scores MERGED: {}".format(nodes_with_scores))
+            # self.logger.debug("reranked_nodes MERGED: {}".format(reranked_nodes))
 
-        # self.logger.debug("reranked_nodes MERGED: {}".format(reranked_nodes))
-
-        self.logger.debug(
-            "nodes_with_scores MERGED: {}".format(nodes_with_scores[0:10])
-        )
+            self.logger.debug(
+                "nodes_with_scores MERGED: {}".format(nodes_with_scores[0:10])
+            )
+            return reranked_nodes
+        else:
+            return nodes_with_scores[0 : self._similarity_top_k]
 
         # self.logger.debug("reranked_nodes MERGED: {}".format(reranked_nodes))
         # self.logger.info("reranked_nodes MERGED: {}".format(reranked_nodes))
