@@ -1,0 +1,97 @@
+from sqlalchemy import (
+    Float,
+    ForeignKey,
+    Integer,
+    String,
+    Boolean,
+    create_engine,
+    text,
+)
+
+from pgvector.sqlalchemy import Vector
+
+from sqlalchemy.orm import declarative_base, mapped_column
+
+from sqlalchemy import create_engine, PrimaryKeyConstraint
+
+from sqlalchemy import String, Float, Boolean
+
+
+class SQLHandlerBase:
+    def __init__(
+        self,
+        engine_config="postgresql+psycopg2://postgres:postgres@localhost:5432/postgres",
+        engine=None,
+        table_name=None,
+        sql_fields=None,
+    ):
+        self._engine = engine or create_engine(engine_config)
+        self._sql_fields = self.get_sql_fields(sql_fields)
+        self._base = None
+        self._table_name = table_name
+        self._sql_table = None
+
+    def get_sql_fields(self, sql_fields):
+        for field in sql_fields:
+            datatype = sql_fields[field]["datatype"]
+            if datatype == "str":
+                sql_fields[field]["sql_datatype"] = String
+            elif datatype == "float":
+                sql_fields[field]["sql_datatype"] = Float
+            elif datatype == "int":
+                sql_fields[field]["sql_datatype"] = Integer
+            elif datatype == "bool":
+                sql_fields[field]["sql_datatype"] = Boolean
+            elif datatype == "vector":
+                sql_fields[field]["sql_datatype"] = Vector(
+                    int(sql_fields[field]["datatype_extra"]["dim"])
+                )
+
+        return sql_fields
+
+    def create_base(self):
+        self._base = declarative_base()
+        self._base.metadata.bind = self._engine
+        self._base.metadata.reflect(self._base.metadata.bind)
+
+        class SQLTable(self._base):
+            sql_fields = self._sql_fields
+            __tablename__ = self._table_name
+            __table_args__ = (PrimaryKeyConstraint("id"),)
+            __table_args__ = {"extend_existing": True}
+            id = mapped_column(
+                Integer,
+                primary_key=True,
+                autoincrement=True,
+                comment="Unique identifier for the {}".format(self._table_name),
+            )
+            # print("sql_fields: ", sql_fields)
+            for field in sql_fields.keys():
+                if field != "id":
+                    if "ForeignKey" in sql_fields[field]["sql_extra"].keys():
+                        print(sql_fields[field])
+                        locals()[field] = mapped_column(
+                            Integer,
+                            ForeignKey(
+                                str(sql_fields[field]["sql_extra"]["ForeignKey"])
+                            ),
+                            nullable=False,
+                            comment=sql_fields[field]["description"],
+                        )
+
+                    else:
+                        locals()[field] = mapped_column(
+                            sql_fields[field]["sql_datatype"],
+                            comment=sql_fields[field]["description"],
+                        )
+
+        self._sql_table = SQLTable
+
+    def create_table(self):
+        with self._engine.connect() as conn:
+            conn.execute(text("CREATE EXTENSION IF NOT EXISTS vector"))
+            conn.commit()
+
+        self.create_base()
+        print("Create all tables")
+        self._base.metadata.create_all(self._engine)

@@ -3,7 +3,7 @@ from sqlalchemy import MetaData, Table, insert, select
 from sql_handler_base import SQLHandlerBase
 
 
-class SQLHandlerRobotArm(SQLHandlerBase):
+class SQLHandlerSoftware(SQLHandlerBase):
     def get_id(self, name):
         id = None
         with self._engine.connect() as connection:
@@ -16,17 +16,8 @@ class SQLHandlerRobotArm(SQLHandlerBase):
 
         return id[0][0] if id else None
 
-    def insert_into_sql(self, device_info):
-        for dev_key in device_info.keys():
-            device_info["product_description"] = (
-                device_info["product_description"]
-                + "\n"
-                + str(dev_key)
-                + ": "
-                + str(device_info[dev_key])
-            )
-
-        stmt = insert(self._sql_table).values(**device_info)
+    def insert_into_sql(self, insert_dict):
+        stmt = insert(self._sql_table).values(**insert_dict)
         with self._engine.connect() as connection:
             cursor = connection.execute(stmt)
             connection.commit()
