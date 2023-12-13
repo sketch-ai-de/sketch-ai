@@ -16,6 +16,9 @@ def load_models(llm_model, llm_service, logger):
     if llm_model == "gpt4":
         _llm_model = "gpt-4-1106-preview"
 
+    _llm = None
+    _embed_model = None
+
     if llm_service == "openai":
         logger.info("Using OPENAI services")
         _embed_model = OpenAIEmbedding()
