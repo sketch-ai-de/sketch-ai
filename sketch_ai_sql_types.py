@@ -55,7 +55,7 @@ sql_fields_robot_arm = {
     },
     "operating_voltage": {
         "datatype": "str",
-        "description": "Operating/rated voltage min-max in [V]",
+        "description": "Operating, rated voltage min-max in [V]",
         "sql_extra": {},
     },
     "power_consumption": {
@@ -65,33 +65,33 @@ sql_fields_robot_arm = {
     },
     "ip_classification": {
         "datatype": "str",
-        "description": "IP / protection classification",
+        "description": "IP protection classification",
         "sql_extra": {},
     },
     "tcp_speed": {
         "datatype": "float",
-        "description": "TCP / Cartesian speed in [m/s]",
+        "description": "TCP, Cartesian speed in [m/s]",
         "sql_extra": {},
     },
     "pose_repeatability": {
         "datatype": "str",
-        "description": "Pose repeatability / ISO 9283 in ±[mm]",
+        "description": "Pose repeatability,  ISO 9283 in ±[mm]",
         "sql_extra": {},
     },
     "joints_position_range": {
         "datatype": "str",
-        "description": "Joints / Axis position working range in [°]",
+        "description": "Joints or Axis position working range in [°]",
         "sql_extra": {},
     },
     "joints_speed_range": {
         "datatype": "str",
-        "description": "Joints / Axis speed in [°/s]",
+        "description": "Joints or Axis speed in [°/s]",
         "sql_extra": {},
     },
     "iso_safety_standard": {
         "datatype": "str",
         "description": (
-            "ISO safety / EN ISO 13849-1 / PLd Category 3 / EN ISO 10218-1 standard"
+            "ISO safety, EN ISO 13849-1, PLd Category 3, EN ISO 10218-1 standards"
         ),
         "sql_extra": {},
     },
@@ -119,8 +119,7 @@ sql_fields_robot_arm = {
     "gripper": {
         "datatype": "str",
         "description": (
-            "Description of the default gripper shipped with the robot arm. None if"
-            " no gripper is shipped."
+            "Description of the default gripper shipped with the robot arm., if any"
         ),
         "sql_extra": {},
     },
@@ -131,7 +130,7 @@ sql_fields_robot_arm = {
     },
     "force_sensing": {
         "datatype": "str",
-        "description": "Force sensing on tool or robot / Guiding force [Nm]",
+        "description": "Force sensing, tool or robot or guiding force [Nm]",
         "sql_extra": {},
     },
 }
