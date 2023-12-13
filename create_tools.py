@@ -50,17 +50,14 @@ class CreateTools:
                 stmt = (
                     select(robot_arm_embed_table.c.collection_name)
                     .where(robot_arm_table.c.product_name == value[0])
-                    .where(robot_arm_embed_table.c.robot_id == robot_arm_table.c.id)
+                    .where(robot_arm_embed_table.c.robot_arm_id == robot_arm_table.c.id)
                     .group_by(robot_arm_embed_table.c.collection_name)
                 )
-            if table_name == "robot_servo_drive_joint":
+            if table_name == "software":
                 stmt = (
                     select(robot_arm_embed_table.c.collection_name)
                     .where(robot_arm_table.c.product_name == value[0])
-                    .where(
-                        robot_arm_embed_table.c.robot_servo_drive_joint_id
-                        == robot_arm_table.c.id
-                    )
+                    .where(robot_arm_embed_table.c.software_id == robot_arm_table.c.id)
                     .group_by(robot_arm_embed_table.c.collection_name)
                 )
             self.logger.debug(stmt)
@@ -88,6 +85,7 @@ class CreateTools:
                 similarity_top_k=int(10),
                 logger=self.logger,
                 service_context=self.service_context,
+                rerank=True,
             )
             _query_engine = RetrieverQueryEngine.from_args(
                 _retriever, service_context=self.service_context, use_async=True
@@ -177,9 +175,14 @@ class CreateTools:
         sql_engine = create_sql_engine()
 
         query_engine_tools = []
-        query_engine_tools = self.create_query_engine_tools(
+        query_engine_tools1 = self.create_query_engine_tools(
             sql_engine, "robot_arm", "robot_arm_embed", query_engine_tools
         )
+        query_engine_tools2 = self.create_query_engine_tools(
+            sql_engine, "software", "software_embed", query_engine_tools
+        )
+        query_engine_tools.append(query_engine_tools1[0])
+        query_engine_tools.append(query_engine_tools2[0])
         # query_engine_tools = self.create_query_engine_tools(
         #    sql_engine,
         #    "robot_servo_drive_joint",
