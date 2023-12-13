@@ -123,7 +123,7 @@ class DocumentPreprocessor:
             if pdf_url:
                 self._logger.info("Load PDF document {} \n".format(pdf_url))
                 subprocess.run(["wget", "-O", self._pdf_name, pdf_url])
-                collection_name = "pdf_url_" + str(idx)
+                collection_name = "pdf_url_" + str(idx) + self.generate_random_string()
                 self._pdf_docs[collection_name] = {}
                 self._pdf_docs[collection_name]["metadata"] = self._metadata.get_dict()
                 self._pdf_docs[collection_name]["metadata"]["pdf_url"] = pdf_url
