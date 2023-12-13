@@ -99,7 +99,7 @@ class DocumentPreprocessor:
         self._url_docs[collection_name]["docs"] = []
         docs = []
         for url in urls:
-            subprocess.run(["wget", "-r", "-l1", "-nd", "-P", path, url])
+            subprocess.run(["wget", "-q", "-r", "-l1", "-nd", "-P", path, url])
             for file_path in self.path_generator(path):
                 docs.append(self.get_text_from_html(file_path))
             for idx, docs in enumerate(docs):
