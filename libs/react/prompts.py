@@ -24,7 +24,7 @@ To answer the question, please use the following format.
 ```
 Thought: I need to use a tool to help me answer the question.
 Action: tool name (one of {tool_names}) if using a tool.
-Action Input: the input to the tool, in a JSON format representing the kwargs (e.g. {{"text": "hello world", "num_beams": 5}})
+Action Input: the input query to the tool, in a JSON format representing the kwargs (e.g. {{"text": "hello world", "num_beams": 5}})
 ```
 
 Please ALWAYS start with a Thought.
@@ -72,17 +72,13 @@ You have access to the following tools:
 {tool_desc}
 
 ## Output Format
-If you can not find answer from the tools description, always generate thoughts and always use tools first to find the answer.
-To answer the question, please generate multiple, maxumum 3, of Thoughts. Select appropriate "Action" and "Action Input" for each "Thought".
-Important: for each "Thought" should be a different tool in "Action" and "Action Input". 
-For the tool name use only a tool name from the list of provided tools.
-
-If there are thoughts always generate using the following format. 
+To answer the question, please generate multiple Thoughts, maxumum 3. Select appropriate "Action" and "Action Input" for each "Thought".
+Always use the following format. 
 
 ```
 Thought x: I need to use a tool to help me answer the question.
 Action x: tool name (one of {tool_names}) if using a tool.
-Action Input x: the input to the tool, in a JSON format representing the kwargs (e.g. {{"text": "hello world", "num_beams": 5}})
+Action Input x: the input query string to the tool, in a JSON format representing the kwargs (e.g. {{"input": "hello world"}})
 ```
 
 Please use a valid JSON format for the Action Input. Do NOT do this {{'text': 'hello world', 'num_beams': 5}}.
@@ -94,8 +90,9 @@ Observation: tool response
 ```
 
 You should keep repeating the above format until you have enough information
-to answer the question without using any more tools. At that point, you MUST respond
-in the one of the following two formats:
+to answer the question without using any more tools. If you can not find relevant information from the tools, use your internal knowledge.
+Additionaly expand the answer with your internal knowledge for providing coding examples.
+At that point, you MUST respond in the one of the following two formats:
 
 ```
 Thought: I can answer without using any more tools.
