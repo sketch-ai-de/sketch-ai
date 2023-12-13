@@ -1,9 +1,13 @@
 import logging
 import sys
 import argparse
+
 from llama_index.service_context import ServiceContext
+
 from create_tools import CreateTools
+
 from tool_retriever import ToolRetriever
+
 from load_models import load_models
 
 parser = argparse.ArgumentParser(
@@ -16,7 +20,7 @@ parser.add_argument("-r", "--rerank", action="store_true")
 parser.add_argument("-kr", "--similarity_top_k_rerank", default=15, type=int)
 parser.add_argument("-m", "--llm-model", default="gpt3", type=str, help="gpt3 or gpt4")
 parser.add_argument(
-    "-s", "--llm-service", default="azure", type=str, help="azure or openai"
+    "-l", "--llm-service", default="azure", type=str, help="azure or openai"
 )
 args = parser.parse_args()
 
@@ -31,6 +35,7 @@ logger.setLevel(logging.DEBUG if args.debug else logging.INFO)
 llm, embed_model = load_models(
     llm_service=args.llm_service, llm_model=args.llm_model, logger=logger
 )
+
 
 service_context = ServiceContext.from_defaults(
     chunk_size=1024, llm=llm, embed_model=embed_model
