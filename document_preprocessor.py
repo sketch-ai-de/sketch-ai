@@ -104,6 +104,22 @@ class DocumentPreprocessor:
             for file_path in self.path_generator(path):
                 _docs.append(self.get_text_from_html(file_path))
             for idx, docs in enumerate(_docs):
+                self._url_docs[collection_name]["text"] = re.sub(
+                    "\n\n", " ", docs[0].text
+                )
+                self._url_docs[collection_name]["text"] = re.sub(
+                    "{{", " ", self._url_docs[collection_name]["text"]
+                )
+                self._url_docs[collection_name]["text"] = re.sub(
+                    "}}", " ", self._url_docs[collection_name]["text"]
+                )
+                self._url_docs[collection_name]["text"] = re.sub(
+                    "}", " ", self._url_docs[collection_name]["text"]
+                )
+                self._url_docs[collection_name]["text"] = re.sub(
+                    "{", " ", self._url_docs[collection_name]["text"]
+                )
+                docs[0].text = self._url_docs[collection_name]["text"]
                 self._url_docs[collection_name]["docs"].append(docs)
                 self._url_docs[collection_name]["metadata"] = self._metadata.get_dict()
                 self._url_docs[collection_name]["metadata"]["web_url"] = url
