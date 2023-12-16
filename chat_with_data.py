@@ -18,7 +18,7 @@ parser.add_argument("-d", "--debug", action="store_true")
 parser.add_argument("-s", "--seq_react", action="store_true")
 parser.add_argument("-r", "--rerank", action="store_true")
 parser.add_argument("-kr", "--similarity_top_k_rerank", default=15, type=int)
-parser.add_argument("-m", "--llm-model", default="gpt3", type=str, help="gpt3 or gpt4")
+parser.add_argument("-m", "--llm-model", default="gpt4", type=str, help="gpt3 or gpt4")
 parser.add_argument(
     "-l", "--llm-service", default="azure", type=str, help="azure or openai"
 )
@@ -37,8 +37,11 @@ llm, embed_model = load_models(
 )
 
 
+# service_context = ServiceContext.from_defaults(
+#    chunk_size=1024, llm=llm, embed_model=embed_model
+# )
 service_context = ServiceContext.from_defaults(
-    chunk_size=1024, llm=llm, embed_model=embed_model
+    chunk_size=512, llm=llm, embed_model=embed_model, context_window=128000
 )
 
 create_tools = CreateTools(
@@ -46,6 +49,7 @@ create_tools = CreateTools(
     logger=logger,
     embed_model=embed_model,
     chroma_db_path="./chroma_db",
+    rerank=args.rerank,
 )
 query_engine_tools, sql_query_engine_tool = create_tools.get_tools()
 
@@ -55,6 +59,7 @@ tool_retriever = ToolRetriever(
     sql_tools=sql_query_engine_tool,
     embed_model=embed_model,
     append_sql=False,
+    logger=logger,
 )
 tool_retriever.create_vector_index_from_tools()
 
@@ -86,22 +91,38 @@ async def predict(query_str, history, agent=agent):
     from llama_index.llms.base import ChatMessage
 
     # history_message = ChatMessage(content=str(history), role="user")
-    print("history: ", history)
+    logger.info("history: ", history)
 
     response = await agent.achat(message=query_str)
-    print(response)  # print the response
-    info_sources = set()
+    logger.debug("responce:", response)  # print the response
+    info_sources_pdfs = {}
+    info_sources_urls = set()
     for node in response.source_nodes:
         if "pdf_url" in node.metadata.keys():
-            info_sources.add(node.metadata["pdf_url"])
+            if not node.metadata["pdf_url"] in info_sources_pdfs.keys():
+                info_sources_pdfs[node.metadata["pdf_url"]] = set()
+            info_sources_pdfs[node.metadata["pdf_url"]].add(node.metadata["page_idx"])
         if "web_url" in node.metadata.keys():
-            info_sources.add(node.metadata["web_url"])
-    final_responce = str(response.response + "\n\n" + "Info sources: ")
-    if info_sources:
-        for info_source in info_sources:
-            final_responce += info_source + "\n"
-    else:
-        final_responce += "Local Database."
+            info_sources_urls.add(node.metadata["web_url"])
+    final_responce = str(response.response)
+    if info_sources_pdfs or info_sources_urls:
+        final_responce += "\nSources: \n"
+    if info_sources_pdfs:
+        final_responce += "PDFs: "
+        for info_source in info_sources_pdfs.keys():
+            final_responce += (
+                info_source
+                + " . "
+                + "Pages: "
+                + str(info_sources_pdfs[info_source])
+                + "\n "
+            )
+    if info_sources_urls:
+        final_responce += "URLs: "
+        for info_source in info_sources_urls:
+            final_responce += info_source + "\n "
+    # else:
+    #    final_responce += "Local Database."
     return final_responce
 
 
