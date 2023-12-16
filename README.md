@@ -145,6 +145,14 @@ To load new data to SQL and vector database use ```load_data.py```:
 python3 load_data.py -j docs/franka/production/hw/hw.json -i
 ```
 
+```bash
+python3 load_data.py -j docs/ur/ur3e/hw/hw.json -i
+```
+
+```bash
+python3 load_data.py -j docs/franka/production/sw/sw.json -i
+```
+
 #### Use json to load data
 
 To load the data from different sources for a component, create a ```json``` file with minimal information about component.
