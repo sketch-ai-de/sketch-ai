@@ -6,7 +6,25 @@
         ""
     ],
     "web_urls": [
-        "https://frankaemika.github.io/docs/"
+        "https://frankaemika.github.io/docs/",
+        "https: //frankaemika.github.io/docs/overview.html",
+        "https://frankaemika.github.io/docs/requirements.html",
+        "https://frankaemika.github.io/docs/compatibility.html",
+        "https://frankaemika.github.io/docs/installation_linux.html",
+        "https://frankaemika.github.io/docs/installation_windows.html",
+        "https://frankaemika.github.io/docs/getting_started.html",
+        "https://frankaemika.github.io/docs/libfranka.html",
+        "https://frankaemika.github.io/docs/libfranka_changelog.html",
+        "https://frankaemika.github.io/docs/franka_ros.html",
+        "https://frankaemika.github.io/docs/franka_ros_changelog.html",
+        "https://frankaemika.github.io/docs/franka_ros2.html",
+        "https://frankaemika.github.io/docs/franka_ros2_changelog.html",
+        "https://frankaemika.github.io/docs/franka_matlab/index.html",
+        "https://frankaemika.github.io/docs/franka_matlab/franka_matlab_changelog.html",
+        "https://frankaemika.github.io/docs/control_parameters.html",
+        "https://frankaemika.github.io/docs/fr3-certification-remarks.html",
+        "https://frankaemika.github.io/docs/troubleshooting.html",
+        "https://frankaemika.github.io/docs/faq.html"
     ],
     "load_pdfs": false,
     "load_urls": true
