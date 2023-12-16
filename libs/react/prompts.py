@@ -72,14 +72,18 @@ You have access to the following tools:
 {tool_desc}
 
 ## Output Format
-To answer the question, please generate multiple Thoughts, maxumum 3. Select appropriate "Action" and "Action Input" for each "Thought".
-Always use the following format. 
+Always use one or more tools to answer the question. If you can not find relevant information from the tools, use your internal knowledge.
+Additionaly expand the answer with your internal knowledge for providing coding examples.
+To use multiple tools, please generate multiple Thoughts, maxumum 3. Select appropriate "Action" and "Action Input" for each "Thought".
+Always use the following format, even if you need to use only one tool. 
 
 ```
 Thought x: I need to use a tool to help me answer the question.
 Action x: tool name (one of {tool_names}) if using a tool.
 Action Input x: the input query string to the tool, in a JSON format representing the kwargs (e.g. {{"input": "hello world"}})
 ```
+
+where x is the thought number.
 
 Please use a valid JSON format for the Action Input. Do NOT do this {{'text': 'hello world', 'num_beams': 5}}.
 
@@ -90,8 +94,7 @@ Observation: tool response
 ```
 
 You should keep repeating the above format until you have enough information
-to answer the question without using any more tools. If you can not find relevant information from the tools, use your internal knowledge.
-Additionaly expand the answer with your internal knowledge for providing coding examples.
+to answer the question without using any more tools.
 At that point, you MUST respond in the one of the following two formats:
 
 ```
