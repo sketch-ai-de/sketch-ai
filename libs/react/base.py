@@ -186,7 +186,7 @@ class ReActAgent(BaseAgent):
             return current_reasoning, True
 
         # call tool with input
-        reasoning_step = cast(ActionReasoningStep, current_reasoning[-1])
+        reasoning_step = cast(ActionReasoningStepArr, current_reasoning[-1])
         tool = tools_dict[reasoning_step.action]
         with self.callback_manager.event(
             CBEventType.FUNCTION_CALL,
