@@ -57,7 +57,6 @@ class ToolRetriever(BaseRetriever):
 
         get_tools = lambda _: self._tools
         tools = [adapt_to_async_tool(t) for t in get_tools("")]
-        # print("tools: ", tools)
         docs = [
             str(
                 "idx: "
