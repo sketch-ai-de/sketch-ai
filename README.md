@@ -138,6 +138,13 @@ python3 chat_with_data.py -s
 ```
 
 
+Use ```-r ``` to ativate re-ranking. 
+
+```bash
+python3 chat_with_data.py -r
+```
+
+
 ### Load data 
 To load new data to SQL and vector database use ```load_data.py```:
 
@@ -149,8 +156,10 @@ python3 load_data.py -j docs/franka/production/hw/hw.json -i
 python3 load_data.py -j docs/ur/ur3e/hw/hw.json -i
 ```
 
+Use ```-r ``` to ativate re-ranking. 
+
 ```bash
-python3 load_data.py -j docs/franka/production/sw/sw.json -i
+python3 load_data.py -j docs/franka/production/sw/sw.json -i -r
 ```
 
 #### Use json to load data
