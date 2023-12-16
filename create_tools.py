@@ -4,12 +4,18 @@ from typing import Any
 
 class CreateTools:
     def __init__(
-        self, embed_model: Any, service_context, chroma_db_path: str, logger
+        self,
+        embed_model: Any,
+        service_context,
+        chroma_db_path: str,
+        logger,
+        rerank=False,
     ) -> None:
         self.embed_model = embed_model
         self.service_context = service_context
         self.chroma_db_path = chroma_db_path
         self.logger = logger
+        self.rerank = rerank
 
     def get_vector_store_from_collection(self, collection_name):
         import chromadb
@@ -85,7 +91,7 @@ class CreateTools:
                 similarity_top_k=int(10),
                 logger=self.logger,
                 service_context=self.service_context,
-                rerank=True,
+                rerank=self.rerank,
             )
             _query_engine = RetrieverQueryEngine.from_args(
                 _retriever, service_context=self.service_context, use_async=True
