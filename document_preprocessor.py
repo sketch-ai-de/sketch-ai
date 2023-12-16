@@ -11,11 +11,6 @@ from metadata import Metadata
 import subprocess
 from llama_index.node_parser import SentenceSplitter
 
-
-import requests
-import PyPDF2
-import io
-
 from pathlib import Path
 from llama_hub.file.unstructured import UnstructuredReader
 import os
@@ -55,26 +50,6 @@ class DocumentPreprocessor:
                 for _ in range(length)
             )
         )
-
-    def load_urls(self):
-        """
-        Loads documents from URLs.
-        """
-        self._logger.info("Load urls \n")
-        ReadabilityWebPageReader = download_loader("ReadabilityWebPageReader")
-        loader_url = ReadabilityWebPageReader()
-        collection_name = "web_url_" + self.generate_random_string()
-        self._url_docs[collection_name] = {}
-        self._url_docs[collection_name]["docs"] = []
-        for idx, url in enumerate(self._web_urls):
-            docs = loader_url.load_data(url=url)
-            self._url_docs[collection_name]["metadata"] = self._metadata.get_dict()
-            self._url_docs[collection_name]["metadata"]["web_url"] = url
-            for doc in docs:
-                doc.metadata.update(self._url_docs[collection_name]["metadata"])
-            self._url_docs[collection_name]["docs"].append(docs)
-            self._url_docs[collection_name]["text"] = re.sub("\n\n", " ", docs[0].text)
-        self.remove_none_fields(self._url_docs)
 
     def path_generator(self, target_directory):
         url_list = []
@@ -207,6 +182,9 @@ class DocumentPreprocessor:
             self._pdf_docs_sherpa_tables[collection_name_sherpa_table_pdf]["metadata"][
                 "pdf_url"
             ] = pdf_url
+            self._pdf_docs_sherpa_tables[collection_name_sherpa_table_pdf]["metadata"][
+                "page_idx"
+            ] = (int(table.page_idx) + 1)
 
     def remove_none_fields(self, docs_dict):
         """
@@ -220,11 +198,6 @@ class DocumentPreprocessor:
                     if doc[0].metadata[meta_key] is None:
                         doc[0].metadata[meta_key] = 0
 
-    # def extract_tables_from_pdf(self):
-    #    for pdf_url in self._pdf_urls:
-    #        pdf_reader = PyMuPDFReader(pdf_url)
-    #        pdf_reader.extract_tables()
-
     def process_urls(self):
         """
         Processes sherpa PDF documents.
@@ -232,13 +205,16 @@ class DocumentPreprocessor:
         - documents (Document): a Document object.
         """
         # self.load_pdfs()
+        from llama_index.text_splitter import CodeSplitter
+
         self._logger.info("Process urls \n")
         for colection_name in self._url_docs.keys():
             self._url_docs[colection_name]["nodes"] = []
             self._collections[colection_name] = []
-            parser = SentenceSplitter()
+            # parser = SentenceSplitter()
+            node_parser = SentenceSplitter(chunk_size=1024, chunk_overlap=20)
             for doc in self._url_docs[colection_name]["docs"]:
-                nodes = parser.get_nodes_from_documents(doc)
+                nodes = node_parser.get_nodes_from_documents(doc)
                 for node in nodes:
                     node.metadata["collection_name"] = colection_name
                     # node.metadata.update(self._url_docs[colection_name]["metadata"])
@@ -260,6 +236,7 @@ class DocumentPreprocessor:
             for chunk in self._pdf_docs_sherpa[colection_name]["pdf"].chunks():
                 doc = Document(text=chunk.to_context_text(), extra_info={})
                 doc.metadata["collection_name"] = colection_name
+                doc.metadata["page_idx"] = int(chunk.page_idx) + 1
                 doc.metadata.update(self._pdf_docs_sherpa[colection_name]["metadata"])
                 self._nodes.append(doc)
                 self._collections[colection_name].append(doc)
@@ -294,7 +271,7 @@ class DocumentPreprocessor:
             self._pdf_docs[colection_name]["nodes"] = []
             self._collections[colection_name] = []
             for doc_idx, doc in enumerate(self._pdf_docs[colection_name]["pdf"]):
-                self._pdf_docs[colection_name]["metadata"] = self._metadata.get_dict()
+                # self._pdf_docs[colection_name]["metadata"] = self._metadata.get_dict()
                 if len(doc.text) > 200:
                     self._logger.info(
                         "Ask LLM to summarize page {page} from PDF {pdf} \n".format(
@@ -307,6 +284,7 @@ class DocumentPreprocessor:
                         node = TextNode(text=line)
                         node.metadata = self._pdf_docs[colection_name]["metadata"]
                         node.metadata["collection_name"] = colection_name
+                        node.metadata["page_idx"] = int(doc.metadata["source"]) + 1
                         self._pdf_docs[colection_name]["nodes"].append(node)
                         self._collections[colection_name].append(node)
                         self._nodes.append(node)
@@ -317,6 +295,7 @@ class DocumentPreprocessor:
                     )
                     node.metadata = self._pdf_docs[colection_name]["metadata"]
                     node.metadata["collection_name"] = colection_name
+                    node.metadata["page_idx"] = int(doc.metadata["source"]) + 1
                     self._nodes.append(node)
                     self._pdf_docs[colection_name]["nodes"].append(node)
                     self._logger.debug("paragraph: {}".format(doc.text))
