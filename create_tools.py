@@ -76,13 +76,14 @@ class CreateTools:
             )
             with sql_engine.connect() as conn:
                 robot_arms_descriptions[value[0]] = conn.execute(stmt).fetchall()
-        for key, value in robot_arms_collections.items():
-            vector_stores = []
-            for collection in value:
-                vector_store, storage_context = self.get_vector_store_from_collection(
-                    collection[0]
-                )
-                vector_stores.append(vector_store)
+            for key, value in robot_arms_collections.items():
+                vector_stores = []
+                for collection in value:
+                    (
+                        vector_store,
+                        storage_context,
+                    ) = self.get_vector_store_from_collection(collection[0])
+                    vector_stores.append(vector_store)
             _retriever = VectorDBRetriever(
                 vector_stores[0],  # default vector store
                 vector_stores,
@@ -181,19 +182,11 @@ class CreateTools:
         sql_engine = create_sql_engine()
 
         query_engine_tools = []
-        query_engine_tools1 = self.create_query_engine_tools(
+        query_engine_tools = self.create_query_engine_tools(
             sql_engine, "robot_arm", "robot_arm_embed", query_engine_tools
         )
-        query_engine_tools2 = self.create_query_engine_tools(
+        query_engine_tools = self.create_query_engine_tools(
             sql_engine, "software", "software_embed", query_engine_tools
         )
-        query_engine_tools.append(query_engine_tools1[0])
-        query_engine_tools.append(query_engine_tools2[0])
-        # query_engine_tools = self.create_query_engine_tools(
-        #    sql_engine,
-        #    "robot_servo_drive_joint",
-        #    "robot_servo_drive_joint_embed",
-        #    query_engine_tools,
-        # )
         sql_query_engine_tool = self.get_database_query_engine_tools(sql_engine)
         return query_engine_tools, sql_query_engine_tool
