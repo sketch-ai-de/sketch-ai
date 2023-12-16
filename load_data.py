@@ -18,7 +18,7 @@ parser = argparse.ArgumentParser(
 )
 
 parser.add_argument("-j", "--json_file", default="", type=str)
-parser.add_argument("-k", "--similarity_top_k", default=10, type=int)
+parser.add_argument("-k", "--similarity_top_k", default=15, type=int)
 parser.add_argument("-kr", "--similarity_top_k_rerank", default=15, type=int)
 parser.add_argument("-r", "--rerank", action="store_true")
 parser.add_argument("-d", "--debug", action="store_true")
@@ -37,14 +37,12 @@ streamHandler.setFormatter(formatter)
 logger.addHandler(streamHandler)
 logger.setLevel(logging.DEBUG if args.debug else logging.INFO)
 
-
 llm, embed_model = load_models(
     llm_service=args.llm_service, llm_model=args.llm_model, logger=logger
 )
 
-
 service_context = ServiceContext.from_defaults(
-    chunk_size=1024, llm=llm, embed_model=embed_model
+    chunk_size=512, llm=llm, embed_model=embed_model, context_window=16385
 )
 
 from metadata import Metadata
@@ -105,7 +103,7 @@ retriever = VectorDBRetriever(
     similarity_top_k_rerank=int(args.similarity_top_k_rerank),
     logger=logger,
     service_context=service_context,
-    rerank=True,
+    rerank=args.rerank,
 )
 # Creating a VectorStoreIndex object from the vector store
 index = VectorStoreIndex.from_vector_store(
@@ -138,31 +136,31 @@ from sketch_ai_sql_types import (
 )
 
 sql_handler_company = SQLHandlerCompany(
-    table_name="company", sql_fields=sql_fields_company
+    table_name="company", sql_fields=sql_fields_company, logger=logger
 )
 sql_handler_company.create_base()
 sql_handler_company.create_table()
 
 sql_handler_robot_arm = SQLHandlerRobotArm(
-    table_name="robot_arm", sql_fields=sql_fields_robot_arm
+    table_name="robot_arm", sql_fields=sql_fields_robot_arm, logger=logger
 )
 sql_handler_robot_arm.create_base()
 sql_handler_robot_arm.create_table()
 
 sql_handler_robot_arm_embed = SQLHandlerRobotArmEmbed(
-    table_name="robot_arm_embed", sql_fields=sql_fields_robot_arm_embed
+    table_name="robot_arm_embed", sql_fields=sql_fields_robot_arm_embed, logger=logger
 )
 sql_handler_robot_arm_embed.create_base()
 sql_handler_robot_arm_embed.create_table()
 
 sql_handler_software = SQLHandlerSoftware(
-    table_name="software", sql_fields=sql_fields_software
+    table_name="software", sql_fields=sql_fields_software, logger=logger
 )
 sql_handler_software.create_base()
 sql_handler_software.create_table()
 
 sql_handler_software_embed = SQLHandlerSoftwareEmbed(
-    table_name="software_embed", sql_fields=sql_fields_software_embed
+    table_name="software_embed", sql_fields=sql_fields_software_embed, logger=logger
 )
 sql_handler_software_embed.create_base()
 sql_handler_software_embed.create_table()
@@ -172,6 +170,15 @@ company_id = sql_handler_company.get_id(data["company_name"])
 if company_id is None or company_id == []:
     response_company_dict = get_company_data(data, fields_dict=sql_fields_company)
 
+
+# async def get_data():
+response_software_dict = {}
+response_robot_arm_dict = {}
+response_robot_arm_embed_list = None
+response_software_embed_list = None
+nodes = None
+software_id = None
+robot_arm_id = None
 if data["document_type"] == "HARDWARE":
     logger.info("Getting arm id")
     robot_arm_id = sql_handler_robot_arm.get_id(data["product_name"])
@@ -185,12 +192,10 @@ if data["document_type"] == "HARDWARE":
             data["product_name"],
             fields_dict=sql_fields_robot_arm,
         )
-
     nodes = DBLoader.get_all_nodes()
     response_robot_arm_embed_list = get_robot_arm_embed_data(
         robot_arm_id, nodes, fields_dict=sql_fields_robot_arm_embed
     )
-
 if data["document_type"] == "SOFTWARE":
     logger.info("Getting software id")
     software_id = sql_handler_software.get_id(data["product_name"])
@@ -204,7 +209,6 @@ if data["document_type"] == "SOFTWARE":
             data["product_name"],
             fields_dict=sql_fields_software,
         )
-
     nodes = DBLoader.get_all_nodes()
     response_software_embed_list = get_software_embed_data(
         software_id, nodes, fields_dict=sql_fields_software_embed
