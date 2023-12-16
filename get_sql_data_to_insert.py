@@ -40,28 +40,26 @@ def get_robot_arm_data(
     # Function implementation goes here
     response_device_dict = {"product_name": product_name}
 
-    # fields_dict = get_sql_fields_for_robot_arm()
 
     for key in fields_dict.keys():
         field = ResponseSchema(
             name=key,
-            description=fields_dict[key]["description"]
-            + ". "
-            + "Always answer informationen related to robot arm {} with the specified datatype {}".format(
-                response_device_dict["product_name"], fields_dict[key]["datatype"]
-            ),
+            description=fields_dict[key]["datatype"],
             type=fields_dict[key]["datatype"],
         )
         response_schemas = [field]
+        # query_engine = DBLoader.get_query_engine(response_schemas, retriever)
         query_engine = DBLoader.get_query_engine(response_schemas, retriever)
-        query_str = (
-            fields_dict[key]["description"]
-            + ". "
-            + "Answer always in json format. Add no comments."
+        query_str = "Extract relevant information about the field based on fields description for the product. \n \
+                Product name: {} \n \
+                Field: {} \n \
+                Field description: {}. \n \
+                    Always answer in JSON format. \n.".format(
+            key,
+            response_device_dict["product_name"],
+            fields_dict[key]["description"],
         )
-        response_device_details, response_device_details_dict = make_llm_request(
-            query_engine, query_str, logger
-        )
+        response_device_details_dict = make_llm_request(query_engine, query_str, logger)
         response_device_dict[key] = response_device_details_dict[key]
 
     return response_device_dict
