@@ -12,9 +12,17 @@ def load_models(llm_model, llm_service, logger):
     llm_temperature = 0.1
 
     if llm_model == "gpt3":
-        _llm_model = "gpt-3.5-turbo"
+        _llm_model = "gpt-35-turbo"
+        _azure_openai_key = os.getenv("AZURE_OPENAI_GPT4_KEY")
+        _azure_ada_deployment_name = "sketch-ai-gpt4-ada002"
+        _azure_endpoint = "https://open-ai-uk-south.openai.azure.com/"
+        _azure_deployment_name = "sketch-ai-gpt35turbo"
     if llm_model == "gpt4":
+        _azure_deployment_name = "sketch-ai-gpt4"
         _llm_model = "gpt-4-1106-preview"
+        _azure_openai_key = os.getenv("AZURE_OPENAI_GPT4_KEY")
+        _azure_ada_deployment_name = "sketch-ai-gpt4-ada002"
+        _azure_endpoint = "https://open-ai-uk-south.openai.azure.com/"
 
     _llm = None
     _embed_model = None
@@ -28,16 +36,14 @@ def load_models(llm_model, llm_service, logger):
 
     if llm_service == "azure":
         logger.info("Using AZURE services")
-        AZURE_OPENAI_KEY = os.getenv("AZURE_OPENAI_KEY")
 
-        azure_endpoint = "https://sketch-ai.openai.azure.com/"
         api_version = "2023-07-01-preview"
 
         _llm = AzureOpenAI(
             model=_llm_model,
-            deployment_name="sketch-ai-gpt35turbo",
-            api_key=AZURE_OPENAI_KEY,
-            azure_endpoint=azure_endpoint,
+            deployment_name=_azure_deployment_name,
+            api_key=_azure_openai_key,
+            azure_endpoint=_azure_endpoint,
             api_version=api_version,
             temperature=llm_temperature,
         )
@@ -45,9 +51,9 @@ def load_models(llm_model, llm_service, logger):
         # You need to deploy your own embedding model as well as your own chat completion model
         _embed_model = AzureOpenAIEmbedding(
             model="text-embedding-ada-002",
-            deployment_name="sketch-ai-ada002",
-            api_key=AZURE_OPENAI_KEY,
-            azure_endpoint=azure_endpoint,
+            deployment_name=_azure_ada_deployment_name,
+            api_key=_azure_openai_key,
+            azure_endpoint=_azure_endpoint,
             api_version=api_version,
         )
 
