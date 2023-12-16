@@ -91,7 +91,8 @@ async def predict(query_str, history, agent=agent):
     from llama_index.llms.base import ChatMessage
 
     # history_message = ChatMessage(content=str(history), role="user")
-    logger.info("history: ", history)
+    if history:
+        logger.info("history: ", history)
 
     response = await agent.achat(message=query_str)
     logger.debug("responce:", response)  # print the response
@@ -108,7 +109,7 @@ async def predict(query_str, history, agent=agent):
     if info_sources_pdfs or info_sources_urls:
         final_responce += "\nSources: \n"
     if info_sources_pdfs:
-        final_responce += "PDFs: "
+        final_responce += "PDFs: \n"
         for info_source in info_sources_pdfs.keys():
             final_responce += (
                 info_source
@@ -118,7 +119,7 @@ async def predict(query_str, history, agent=agent):
                 + "\n "
             )
     if info_sources_urls:
-        final_responce += "URLs: "
+        final_responce += "URLs: \n"
         for info_source in info_sources_urls:
             final_responce += info_source + "\n "
     # else:
