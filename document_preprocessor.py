@@ -78,11 +78,12 @@ class DocumentPreprocessor:
         """
         path = "tmp" + self.generate_random_string(3)
         subprocess.run(["mkdir", path], shell=False)
-        collection_name = "web_url_" + self.generate_random_string()
-        self._url_docs[collection_name] = {}
-        self._url_docs[collection_name]["docs"] = []
-        _docs = []
         for url in urls:
+            _docs = []
+            collection_name = "web_url_" + self.generate_random_string()
+            self._url_docs[collection_name] = {}
+            self._url_docs[collection_name]["docs"] = []
+            f = open(path + "/" + "test.html", "w")
             self._logger.info("Load url {} in folder {}\n".format(url, path))
             # google-chrome --headless --dump-dom --virtual-time-budget=10000 --timeout=10000 --run-all-compositor-stages-before-draw --disable-gpu --user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36" "https://franka.de/production" > file2.html
             command = [
@@ -97,7 +98,6 @@ class DocumentPreprocessor:
                 url,
             ]
             out = subprocess.check_output(command)
-            f = open(path + "/" + "test.html", "w")
             f.write(out.decode())
             f.close()
             # subprocess.run(["wget", "-q", "-r", "-l1", "-nd", "-P", path, url])
@@ -125,11 +125,9 @@ class DocumentPreprocessor:
                 self._url_docs[collection_name]["metadata"]["web_url"] = url
                 for doc in docs:
                     doc.metadata.update(self._url_docs[collection_name]["metadata"])
-                self._url_docs[collection_name]["text"] = re.sub(
-                    "\n\n", " ", docs[0].text
-                )
             self.remove_none_fields(self._url_docs)
-            subprocess.run(["rm", "-r", path])
+            subprocess.run(["rm", path + "/test.html"])
+        subprocess.run(["rm", "-r", path])
 
     def load_pdfs(self):
         """
