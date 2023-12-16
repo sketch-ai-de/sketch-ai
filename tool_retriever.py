@@ -17,6 +17,7 @@ class ToolRetriever(BaseRetriever):
         message: str = "",
         append_sql: bool = True,
         similarity_top_k: int = 5,
+        logger=None,
     ) -> None:
         self._message = message
         self._tools = tools
@@ -25,6 +26,7 @@ class ToolRetriever(BaseRetriever):
         self._append_sql = append_sql
         self._similarity_top_k = similarity_top_k
         self._embed_model = embed_model
+        self._logger = logger
 
     def _retrieve(self, query_bundle: QueryBundle) -> List[NodeWithScore]:
         """Retrieve."""
@@ -46,8 +48,8 @@ class ToolRetriever(BaseRetriever):
             tools_.append(self._sql_tools)
         #        tools_.append(self._tools[-1])  # add SQL tool
 
-        print("Tools before: ", self._tools)
-        print("Tools after: ", [adapt_to_async_tool(t) for t in tools_])
+        self._logger.debug("Tools before: ", self._tools)
+        self._logger.debug("Tools after: ", [adapt_to_async_tool(t) for t in tools_])
         return [adapt_to_async_tool(t) for t in tools_]
 
     def create_vector_index_from_tools(self):
