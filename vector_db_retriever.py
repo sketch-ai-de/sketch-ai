@@ -66,7 +66,7 @@ class VectorDBRetriever(BaseRetriever):
         for store_index, store in enumerate(self._vector_stores):
             nodes_with_scores = []
             self._vector_store = store
-            self.logger.info(
+            self.logger.debug(
                 "vector_store client: {}".format(self._vector_store.client)
             )
             query_embedding = self._embed_model.get_query_embedding(
