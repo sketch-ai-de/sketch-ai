@@ -94,5 +94,5 @@ class SQLHandlerBase:
             conn.commit()
 
         self.create_base()
-        self._logger.info("Create all tables")
+        self._logger.info("Create table: {}".format(self._table_name))
         self._base.metadata.create_all(self._engine)
