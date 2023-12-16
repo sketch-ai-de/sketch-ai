@@ -221,7 +221,7 @@ sql_fields_software = {
     },
     "product_description": {
         "datatype": "str",
-        "description": "Detialed software product, package description. Witj all the relevant information regarding libraries and usage.",
+        "description": "Detialed software product, package description. With all the relevant information regarding libraries and usage.",
         "sql_extra": {},
     },
 }
