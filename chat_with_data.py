@@ -41,7 +41,7 @@ llm, embed_model = load_models(
 #    chunk_size=1024, llm=llm, embed_model=embed_model
 # )
 service_context = ServiceContext.from_defaults(
-    chunk_size=512, llm=llm, embed_model=embed_model, context_window=128000
+    chunk_size=1024, llm=llm, embed_model=embed_model, context_window=128000
 )
 
 create_tools = CreateTools(
