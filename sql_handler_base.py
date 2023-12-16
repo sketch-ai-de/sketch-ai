@@ -24,12 +24,14 @@ class SQLHandlerBase:
         engine=None,
         table_name=None,
         sql_fields=None,
+        logger=None,
     ):
         self._engine = engine or create_engine(engine_config)
         self._sql_fields = self.get_sql_fields(sql_fields)
         self._base = None
         self._table_name = table_name
         self._sql_table = None
+        self._logger = logger
 
     def get_sql_fields(self, sql_fields):
         for field in sql_fields:
@@ -69,7 +71,6 @@ class SQLHandlerBase:
             for field in sql_fields.keys():
                 if field != "id":
                     if "ForeignKey" in sql_fields[field]["sql_extra"].keys():
-                        print(sql_fields[field])
                         locals()[field] = mapped_column(
                             Integer,
                             ForeignKey(
@@ -93,5 +94,5 @@ class SQLHandlerBase:
             conn.commit()
 
         self.create_base()
-        print("Create all tables")
+        self._logger.info("Create all tables")
         self._base.metadata.create_all(self._engine)
