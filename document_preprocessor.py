@@ -82,27 +82,53 @@ class DocumentPreprocessor:
             for file in files:
                 if any(ext in file for ext in [".html", ".htm"]):
                     url_list.append(f"{root}/{file}")
-        return url_list  # returns a list of path for each file in the directory
+        return url_list  # returns a list of path for each file in the director
 
     def get_text_from_html(self, file_path):
         loader = UnstructuredReader()
         documents = loader.load_data(file=Path(file_path))
-        return documents  # returns text and source url (metadata) from an HTML file
+        return documents  # returns text and source url (metadata) from an HTML fil
+
+    def load_from_html(self, html):
+        WebPageReader = download_loader("SimpleWebPageReader")
+        url_loader = WebPageReader()
+        docs = url_loader.load_data(url=html)
+        return docs  # returns text and source url (metadata) from an HTML file
+
+    import subprocess
 
     def load_urls_from_path(self, urls):
         """
         Loads documents from URLs.
         """
         path = "tmp" + self.generate_random_string(3)
+        subprocess.run(["mkdir", path], shell=False)
         collection_name = "web_url_" + self.generate_random_string()
         self._url_docs[collection_name] = {}
         self._url_docs[collection_name]["docs"] = []
-        docs = []
+        _docs = []
         for url in urls:
-            subprocess.run(["wget", "-q", "-r", "-l1", "-nd", "-P", path, url])
+            self._logger.info("Load url {} in folder {}\n".format(url, path))
+            # google-chrome --headless --dump-dom --virtual-time-budget=10000 --timeout=10000 --run-all-compositor-stages-before-draw --disable-gpu --user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36" "https://franka.de/production" > file2.html
+            command = [
+                "google-chrome",
+                "--headless",
+                "--dump-dom",
+                "--virtual-time-budget=10000",
+                "--timeout=10000",
+                "--run-all-compositor-stages-before-draw",
+                "--disable-gpu",
+                '--user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36"',
+                url,
+            ]
+            out = subprocess.check_output(command)
+            f = open(path + "/" + "test.html", "w")
+            f.write(out.decode())
+            f.close()
+            # subprocess.run(["wget", "-q", "-r", "-l1", "-nd", "-P", path, url])
             for file_path in self.path_generator(path):
-                docs.append(self.get_text_from_html(file_path))
-            for idx, docs in enumerate(docs):
+                _docs.append(self.get_text_from_html(file_path))
+            for idx, docs in enumerate(_docs):
                 self._url_docs[collection_name]["docs"].append(docs)
                 self._url_docs[collection_name]["metadata"] = self._metadata.get_dict()
                 self._url_docs[collection_name]["metadata"]["web_url"] = url
