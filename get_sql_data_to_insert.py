@@ -1,23 +1,22 @@
 from langchain.output_parsers import ResponseSchema
 
 import logging, json, re
+import time
 
 
 def make_llm_request(query_engine, query_str, logger):
-    response_dict = []
+    response_dict = {}
     response = query_engine.query(query_str)
-    print("response:::::::::::::::::::::\n", response)
-    response_dict = json.loads(
-        re.sub(r"json", "", re.sub(r"```", "", response.response))
-    )
-    if logger.getEffectiveLevel() == logging.DEBUG:
-        for idx, node in enumerate(response.source_nodes):
-            print(
-                "#########################################                      "
-                " Node {} with text \n: {}".format(idx, node.text)
-            )
-            print("######################################### \n")
-    return response, response_dict
+    print(response)
+    # logger.info("response:::::::::::::::::::::\n", response.response)
+    res = re.sub(r"json", "", re.sub(r"```", "", response.response))
+    if "//" in res:
+        res = res.split("//")[:-1]
+        res = res[0] + "}"
+    response_dict = json.loads(res)
+    for idx, node in enumerate(response.source_nodes):
+        logger.debug(" Node {} with text \n: {}".format(idx, node.text))
+    return response_dict
 
 
 def get_robot_arm_data(
@@ -39,7 +38,6 @@ def get_robot_arm_data(
     """
     # Function implementation goes here
     response_device_dict = {"product_name": product_name}
-
 
     for key in fields_dict.keys():
         field = ResponseSchema(
@@ -73,8 +71,8 @@ def get_robot_arm_embed_data(robot_arm_id, nodes, fields_dict=[]):
         response_device_dict = {
             "robot_arm_id": robot_arm_id,
             "document_type": node.metadata["document_type"],
-            "page_label": node.metadata["source"]
-            if "source" in node.metadata
+            "page_label": (int(node.metadata["page_idx"]))
+            if "page_idx" in node.metadata
             else None,
             "file_name": node.metadata["file_path"]
             if "file_path" in node.metadata
@@ -100,7 +98,7 @@ def get_company_data(data, fields_dict=[]):
     return response_device_dict
 
 
-def get_software_data(
+async def get_software_data(
     query_engine, retriever, DBLoader, logger, product_name=None, fields_dict=[]
 ):
     """
@@ -141,7 +139,7 @@ def get_software_data(
                 Use only provided fields.",
             )
         )
-        response_device_details, response_device_details_dict = make_llm_request(
+        response_device_details_dict = await make_llm_request(
             query_engine, query_str, logger
         )
         response_device_dict[key] = response_device_details_dict[key]
@@ -157,7 +155,7 @@ def get_software_embed_data(software_id, nodes, fields_dict=[]):
         response_device_dict = {
             "software_id": software_id,
             "document_type": node.metadata["document_type"],
-            "page_label": node.metadata["source"]
+            "page_label": node.metadata["page_idx"]
             if "source" in node.metadata
             else None,
             "file_name": node.metadata["file_path"]
