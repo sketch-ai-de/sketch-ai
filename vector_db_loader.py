@@ -61,7 +61,6 @@ class VectorDBLoader:
         Returns:
         - A list of TextNode objects.
         """
-
         for node in nodes:
             node_embedding = self.embed_model.get_text_embedding(
                 node.get_content(metadata_mode="all")
