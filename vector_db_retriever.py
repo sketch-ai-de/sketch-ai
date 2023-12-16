@@ -82,7 +82,6 @@ class VectorDBRetriever(BaseRetriever):
                 if query_result.similarities is not None:
                     score = query_result.similarities[index]
                 nodes_with_scores.append(NodeWithScore(node=node, score=score))
-            self.logger.debug("nodes_with_scores: {}".format(nodes_with_scores))
             nodes_with_scores_matrix[store_index] = nodes_with_scores
 
         nodes_with_scores_ = []
@@ -91,7 +90,7 @@ class VectorDBRetriever(BaseRetriever):
                 nodes_with_scores_.extend(store_v)  # [0:3]
             else:
                 nodes_with_scores_.extend(
-                    store_v[0:3]
+                    store_v[0 : min(len(store_v), 3)]
                 )  # take 4 results fom each store and add to nodes_with_scores_
         nodes_with_scores = nodes_with_scores_
 
