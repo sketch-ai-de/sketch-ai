@@ -12,7 +12,23 @@ To retrieve sketch drawings based on your description, export your OpenAI API ke
 2. Create a new file `.env`.
 3. Enter your OpenAI API key in the new `.env` file as shown: `OPENAI_API_KEY=sk-your-key`
 
-### Step 2: Build the docker image
+### Step 2: Prepare databases
+
+#### ChromaDB
+
+Ensure there is a database folder `chroma-db`.
+
+#### Postgresql
+
+Ensure there is a sql dump `postgresql_backup.sql`.
+
+Create a dump of local SQL database:
+
+```sh
+pg_dump -h 127.0.0.1 -U postgres -W postgres > postgresql_backup.sql
+```
+
+### Step 3: Build the docker image
 
 ```sh
 docker build -t sketch-ai .
@@ -21,23 +37,8 @@ docker build -t sketch-ai .
 ### Step 3: Run the sketch-ai with docker
 
 ```sh
-# Start the local service
-sudo service postgresql start
-
-# Create a dump of local SQL database
-pg_dump -h 127.0.0.1 -U postgres -W -F postgres > postgresql_backup.sql
-
-# Stop the local service
-sudo service postgresql stop
-
-# Prepare the local data folder of postgresql
+# Start docker container
 docker run --network host --name sketch-ai-container -ti sketch-ai
-
-# Load local SQL dump-database to container
-cat postgresql_backup.sql | docker exec -i sketch-ai-container psql postgresql://postgres:postgres@127.0.0.1/postgres
-
-# Restart docker to apply new SQL changes
-docker restart sketch-ai-container
 ```
 
 ### Step 4 [Optional]: Upload to AWS
