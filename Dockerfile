@@ -24,9 +24,11 @@ RUN pip install -r requirements.txt
 COPY ./.env /sketch-ai/
 COPY ./*.py /sketch-ai/
 COPY ./docs /sketch-ai/docs
+COPY ./libs /sketch-ai/libs
 COPY ./entrypoint.sh /sketch-ai/
 
 # TODO(qu): in mid-term sketch-ai should allow adding new data to database without rebuilding the docker image
 COPY ./chroma_db /sketch-ai/chroma_db
+COPY postgresql_backup.sql /sketch-ai/postgresql_backup.sql
 
 ENTRYPOINT ["/sketch-ai/entrypoint.sh"]
