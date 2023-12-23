@@ -12,7 +12,8 @@ def load_models(llm_model, llm_service, logger):
     llm_temperature = 0.1
 
     if llm_model == "gpt3":
-        _llm_model = "gpt-35-turbo"
+        # _llm_model = "gpt-35-turbo"
+        _llm_model = "gpt-3.5-turbo-1106"
         _azure_openai_key = os.getenv("AZURE_OPENAI_GPT4_KEY")
         _azure_ada_deployment_name = "sketch-ai-gpt4-ada002"
         _azure_endpoint = "https://open-ai-uk-south.openai.azure.com/"
@@ -20,6 +21,7 @@ def load_models(llm_model, llm_service, logger):
     if llm_model == "gpt4":
         _azure_deployment_name = "sketch-ai-gpt4"
         _llm_model = "gpt-4-1106-preview"
+        # _llm_model_oai = "gpt-4-1106-preview"
         _azure_openai_key = os.getenv("AZURE_OPENAI_GPT4_KEY")
         _azure_ada_deployment_name = "sketch-ai-gpt4-ada002"
         _azure_endpoint = "https://open-ai-uk-south.openai.azure.com/"
