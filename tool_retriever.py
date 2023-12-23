@@ -49,8 +49,11 @@ class ToolRetriever(BaseRetriever):
         #        tools_.append(self._tools[-1])  # add SQL tool
 
         self._logger.debug("Tools before: ", self._tools)
-        self._logger.debug("Tools after: ", [adapt_to_async_tool(t) for t in tools_])
-        return [adapt_to_async_tool(t) for t in tools_]
+        _tmp = set(adapt_to_async_tool(t) for t in tools_)
+        self._logger.debug("Tools after: ", list(_tmp))
+        return list(_tmp)
+
+        # return [adapt_to_async_tool(t) for t in tools_]
 
     def create_vector_index_from_tools(self):
         from llama_index.tools import adapt_to_async_tool
