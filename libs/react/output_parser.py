@@ -56,7 +56,7 @@ def extract_tool_use_3(input_text: str) -> Tuple[str, str, str]:
 
 
 def extract_final_response(input_text: str) -> Tuple[str, str]:
-    pattern = r"\s*Thought:(.*?)Answer:(.*?)(?:$)"
+    pattern = r"\s*Thought 1:(.*?)Answer:(.*?)(?:$)"
 
     match = re.search(pattern, input_text, re.DOTALL)
     if not match:
