@@ -18,8 +18,9 @@ trap cleanup EXIT INT TERM
 service postgresql start
 
 su postgres -c "psql --command \"ALTER USER postgres with encrypted password 'postgres';\""
-su postgres -c "psql --command \"CREATE DATABASE postgres;\""
+#su postgres -c "psql --command \"CREATE DATABASE postgres;\""
+su postgres -c "psql postgresql://postgres:postgres@127.0.0.1/postgres < postgresql_backup.sql"
 
 # Calls the main script to chat with data
 echo "Starting chat with data"
-python3 chat_with_data.py -g
+python3 chat_with_data.py
