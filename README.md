@@ -10,7 +10,10 @@ To retrieve sketch drawings based on your description, export your OpenAI API ke
 
 1. Go to the base directory of your project repository.
 2. Create a new file `.env`.
-3. Enter your OpenAI API key in the new `.env` file as shown: `OPENAI_API_KEY=sk-your-key`
+3. Enter your OpenAI and Azure API keys in the new `.env` file as shown: \
+    `OPENAI_API_KEY=sk-your-key` \
+    `AZURE_OPENAI_KEY=your-key` \
+    `AZURE_OPENAI_GPT4_KEY=your-key` 
 
 ### Step 2: Prepare databases
 
@@ -22,7 +25,7 @@ Ensure there is a database folder `chroma-db`.
 
 Ensure there is a sql dump `postgresql_backup.sql`.
 
-Create a dump of local SQL database:
+Or create a dump of local SQL database:
 
 ```sh
 pg_dump -h 127.0.0.1 -U postgres -W postgres > postgresql_backup.sql
