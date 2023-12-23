@@ -94,7 +94,9 @@ async def predict(query_str, history, agent=agent):
     if history:
         logger.info("history: ", history)
 
-    response = await agent.astream_chat(message=query_str)
+    response = await agent.astream_chat(
+        message=query_str + "\n Use tools and internal knowledge."
+    )
     print("Response: ", response)
 
     final_responce = ""
