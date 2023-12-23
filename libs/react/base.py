@@ -394,7 +394,13 @@ class ReActAgent(BaseAgent):
         tools = self.get_tools(message)
 
         if chat_history is not None:
-            self._memory.set(chat_history)
+            # self._memory.set = self._llm.achat(input_chat)
+            self._memory.set(
+                self._llm.achat(
+                    "Create a short summary of the history considering all the details: "
+                    + str(chat_history)
+                )
+            )
 
         self._memory.put(ChatMessage(content=message, role="user"))
 
