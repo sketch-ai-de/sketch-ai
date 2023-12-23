@@ -92,7 +92,7 @@ async def predict(query_str, history, agent=agent):
 
     # history_message = ChatMessage(content=str(history), role="user")
     if history:
-        logger.info("history: ", history)
+        logger.info(f"history: {history}")
 
     response = await agent.astream_chat(
         message=query_str + "\n Use tools and internal knowledge."
@@ -103,7 +103,7 @@ async def predict(query_str, history, agent=agent):
     async for token in response.async_response_gen():
         final_responce += token
         yield (final_responce)
-    logger.info("response:", response.response)  # print the response
+    logger.info(f"response: {response.response}")  # print the response
     info_sources_pdfs = {}
     info_sources_urls = set()
     for node in response.source_nodes:
