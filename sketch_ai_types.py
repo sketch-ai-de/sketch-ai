@@ -13,6 +13,11 @@ class DeviceType(Enum):
     COMPUTER = 9
     ROBOT_SERVO_DRIVE_JOINT = 10
     SOFTWARE = 11
+    PLC_INDUSTRIAL_PC = 12
+    PLC_INTERFACE_MODULE = 13
+    PLC_POWER_SUPPLY = 14
+    PLC_BASE_UNIT = 15
+    PLC_BUS_ADAPTER = 16
 
 
 device_type_list = [el.name for el in DeviceType]
@@ -24,6 +29,7 @@ class DocumentTypeRobotArm(Enum):
     SOFTWARE = 2
     CONTROL_BOX = 3
     GRIPPER = 4
+    PLC = 5
 
 
 document_type_robot_arm_list = [el.name for el in DocumentTypeRobotArm]

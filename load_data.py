@@ -121,18 +121,24 @@ from get_sql_data_to_insert import (
     get_company_data,
     get_software_data,
     get_software_embed_data,
+    get_plc_data,
+    get_plc_embed_data,
 )
 from sql_handler_robot_arm import SQLHandlerRobotArm
 from sql_handler_company import SQLHandlerCompany
 from sql_handler_robot_arm_embed import SQLHandlerRobotArmEmbed
 from sql_handler_software import SQLHandlerSoftware
 from sql_handler_software_embed import SQLHandlerSoftwareEmbed
+from sql_handler_plc import SQLHandlerPLC
+from sql_handler_plc_embed import SQLHandlerPLCEmbed
 from sketch_ai_sql_types import (
     sql_fields_company,
     sql_fields_robot_arm,
     sql_fields_robot_arm_embed,
     sql_fields_software,
     sql_fields_software_embed,
+    sql_fields_plc,
+    sql_fields_plc_embed,
 )
 
 sql_handler_company = SQLHandlerCompany(
@@ -164,6 +170,18 @@ sql_handler_software_embed = SQLHandlerSoftwareEmbed(
 )
 sql_handler_software_embed.create_base()
 sql_handler_software_embed.create_table()
+
+sql_handler_plc = SQLHandlerPLC(
+    table_name="plc", sql_fields=sql_fields_plc, logger=logger
+)
+sql_handler_plc.create_base()
+sql_handler_plc.create_table()
+
+sql_handler_plc_embed = SQLHandlerPLCEmbed(
+    table_name="plc_embed", sql_fields=sql_fields_plc_embed, logger=logger
+)
+sql_handler_plc_embed.create_base()
+sql_handler_plc_embed.create_table()
 
 logger.info("Getting company id")
 company_id = sql_handler_company.get_id(data["company_name"])
@@ -214,6 +232,24 @@ if data["document_type"] == "SOFTWARE":
         software_id, nodes, fields_dict=sql_fields_software_embed
     )
 
+if data["document_type"] == "PLC":
+    logger.info("Getting plc id")
+    plc_id = sql_handler_plc.get_id(data["product_name"])
+    if plc_id is None or plc_id == []:
+        logger.info("Getting plc data")
+        response_plc_dict = get_plc_data(
+            query_engine,
+            retriever,
+            DBLoader,
+            logger,
+            data["product_name"],
+            fields_dict=sql_fields_plc,
+        )
+    nodes = DBLoader.get_all_nodes()
+    response_plc_embed_list = get_plc_embed_data(
+        software_id, nodes, fields_dict=sql_fields_software_embed
+    )
+
 from sketch_ai_types import DeviceType
 
 if args.insert_in_sql:
@@ -250,6 +286,38 @@ if args.insert_in_sql:
                 )
             )
             sql_handler_software_embed.insert_into_sql(response_software_embed_list)
+
+    if data["document_type"] == "PLC":
+        response_plc_dict["company_id"] = company_id
+        if plc_id is None or plc_id == []:
+            if (
+                response_plc_dict["device_type_name"] == DeviceType.PLC_CPU.name
+                or response_plc_dict["device_type_name"]
+                == DeviceType.PLC_IO_MODULE.name
+                or response_plc_dict["device_type_name"]
+                == DeviceType.PLC_INDUSTRIAL_PC.name
+                or response_plc_dict["device_type_name"]
+                == DeviceType.PLC_IO_MODULE_SYSTEM.name
+            ):
+                logger.info(
+                    "Inserting into tables {} and {}".format(
+                        sql_handler_plc._table_name,
+                        sql_handler_plc_embed._table_name,
+                    )
+                )
+                sql_handler_plc.insert_into_sql(response_plc_dict)
+                plc_id = sql_handler_plc.get_id(data["product_name"])
+                response_plc_embed_list = get_plc_embed_data(
+                    plc_id, nodes, fields_dict=sql_fields_plc_embed
+                )
+                sql_handler_plc_embed.insert_into_sql(response_plc_embed_list)
+        else:
+            logger.info(
+                "Inserting into table {}".format(
+                    sql_handler_plc_embed._table_name,
+                )
+            )
+            sql_handler_plc_embed.insert_into_sql(response_plc_embed_list)
 
     if data["document_type"] == "HARDWARE":
         response_robot_arm_dict["company_id"] = company_id

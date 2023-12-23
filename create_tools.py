@@ -66,6 +66,13 @@ class CreateTools:
                     .where(robot_arm_embed_table.c.software_id == robot_arm_table.c.id)
                     .group_by(robot_arm_embed_table.c.collection_name)
                 )
+            if table_name == "plc":
+                stmt = (
+                    select(robot_arm_embed_table.c.collection_name)
+                    .where(robot_arm_table.c.product_name == value[0])
+                    .where(robot_arm_embed_table.c.plc_id == robot_arm_table.c.id)
+                    .group_by(robot_arm_embed_table.c.collection_name)
+                )
             self.logger.debug(stmt)
             with sql_engine.connect() as conn:
                 robot_arms_collections[value[0]] = conn.execute(stmt).fetchall()
@@ -187,6 +194,9 @@ class CreateTools:
         )
         query_engine_tools = self.create_query_engine_tools(
             sql_engine, "software", "software_embed", query_engine_tools
+        )
+        query_engine_tools = self.create_query_engine_tools(
+            sql_engine, "plc", "plc_embed", query_engine_tools
         )
         sql_query_engine_tool = self.get_database_query_engine_tools(sql_engine)
         return query_engine_tools, sql_query_engine_tool

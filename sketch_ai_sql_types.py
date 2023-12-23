@@ -280,3 +280,131 @@ sql_fields_software_embed = {
         "sql_extra": {},
     },
 }
+
+
+sql_fields_plc = {
+    "company_id": {
+        "datatype": "int",
+        "description": "The ID of the company. Default 1.",
+        "sql_extra": {"ForeignKey": "company.id", "nullable": "False"},
+    },
+    "company_name": {"datatype": "str", "description": "Company name", "sql_extra": {}},
+    "device_type_name": {
+        "datatype": "str",
+        "description": (
+            "Software device type name. List of types:{device_types}:".format(
+                device_types=device_type_dict,
+            )
+        ),
+        "sql_extra": {},
+    },
+    "device_type_id": {
+        "datatype": "int",
+        "description": (
+            "Software type id. List of types:{device_types}:".format(
+                device_types=device_type_dict,
+            )
+        ),
+        "sql_extra": {},
+    },
+    "product_name": {
+        "datatype": "str",
+        "description": "Product name. ",
+        "sql_extra": {},
+    },
+    "article_number": {
+        "datatype": "str",
+        "description": "Article number of the product. Use only one article number per product. If more available, seperate with ','.",
+        "sql_extra": {},
+    },
+    "product_description": {
+        "datatype": "str",
+        "description": "Detailed product or package overview, its design and description of technical data and specifications. Without any website links. Do not create multiline lists.",
+        "sql_extra": {},
+    },
+    "product_description_long": {
+        "datatype": "str",
+        "description": "Detailed product or package overview, its design and description of technical data and specifications. Without any website links. Do not create multiline lists.",
+        "sql_extra": {},
+    },
+    "technical_data": {
+        "datatype": "str",
+        "description": "Detailed overview of all the technical data and specifications. Without any website links. Do not create multiline lists.",
+        "sql_extra": {},
+    },
+    "related_components": {
+        "datatype": "str",
+        "description": "All similar components related to this product or can be used together with this product. Without any website links. Do not create multiline lists.",
+        "sql_extra": {},
+    },
+    "compatible_components": {
+        "datatype": "str",
+        "description": "All compatible components related this product or can be used together with this product. Without any website links. Do not create multiline lists.",
+        "sql_extra": {},
+    },
+    "must_have_components": {
+        "datatype": "str",
+        "description": "All mandatory or must have components requiered to install, deploy and start use this product. Without any website links. Do not create multiline lists.",
+        "sql_extra": {},
+    },
+    "references": {
+        "datatype": "str",
+        "description": "All references to this and other products, manuals, components, packages, libraries, etc. Without any website links. Do not create multiline lists.",
+        "sql_extra": {},
+    },
+}
+
+sql_fields_plc_embed = {
+    "plc_id": {
+        "datatype": "int",
+        "description": "The ID of the plc product",
+        "sql_extra": {"ForeignKey": "plc.id", "nullable": "False"},
+    },
+    "document_type": {
+        "datatype": "int",
+        "description": "The type of the document",
+        "sql_extra": {},
+    },
+    "page_label": {
+        "datatype": "int",
+        "description": "The label of the page",
+        "sql_extra": {},
+    },
+    "file_name": {
+        "datatype": "str",
+        "description": "The name of the file",
+        "sql_extra": {},
+    },
+    "text": {
+        "datatype": "str",
+        "description": "The text content",
+        "sql_extra": {},
+    },
+    "embedding_openai": {
+        "datatype": "vector",
+        "datatype_extra": {"dim": 1536},
+        "description": "The OpenAI embedding",
+        "sql_extra": {},
+    },
+    "embedding_all_mpnet_base_v2": {
+        "datatype": "vector",
+        "datatype_extra": {"dim": 768},
+        "description": "The embedding from the MPNet base model",
+        "sql_extra": {},
+    },
+    "collection_name": {
+        "datatype": "str",
+        "description": "The name of the collection",
+        "sql_extra": {},
+    },
+    "pdf_url": {
+        "datatype": "str",
+        "description": "The URL of the PDF",
+        "sql_extra": {},
+    },
+    "web_url": {
+        "datatype": "str",
+        "description": "The URL of the web page",
+        "sql_extra": {},
+    },
+}
