@@ -1,1 +1,28 @@
 https://www.franka.de/production/
+
+pdf: https://drive.google.com/file/d/12-9k2hkZ8scDtjSXbLt8sEjvVP4fYbLE
+
+
+from sketch_ai_types import DocumentTypeRobotArm
+from metadata import Metadata
+from document_preprocessor import DocumentPreprocessor
+
+
+pdf_urls = ["https://docs.google.com/uc?export=download&id=12-9k2hkZ8scDtjSXbLt8sEjvVP4fYbLE"]
+web_urls = ["https://www.franka.de/production/"]
+
+franka_meta = Metadata(company_name="Franka Emika", product_name="Franka Production 3", document_type=DocumentTypeRobotArm.HARDWARE.value)
+
+docx = DocumentPreprocessor(web_urls=web_urls, pdf_urls=pdf_urls, metadata=franka_meta, logger=logger, llm=llm)
+
+
+docx.load_urls()
+
+docx.process_urls()
+
+docx.load_pdfs()
+docx.process_normal_pdf()
+docx.process_sherpa_table()
+
+
+Do not generate thoughts if you find answer from the tools description. Answer directly with Observation.
