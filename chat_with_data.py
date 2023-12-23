@@ -94,8 +94,14 @@ async def predict(query_str, history, agent=agent):
     if history:
         logger.info("history: ", history)
 
-    response = await agent.achat(message=query_str)
-    logger.debug("responce:", response)  # print the response
+    response = await agent.astream_chat(message=query_str)
+    print("Response: ", response)
+
+    final_responce = ""
+    async for token in response.async_response_gen():
+        final_responce += token
+        yield (final_responce)
+    logger.info("response:", response.response)  # print the response
     info_sources_pdfs = {}
     info_sources_urls = set()
     for node in response.source_nodes:
@@ -105,7 +111,7 @@ async def predict(query_str, history, agent=agent):
             info_sources_pdfs[node.metadata["pdf_url"]].add(node.metadata["page_idx"])
         if "web_url" in node.metadata.keys():
             info_sources_urls.add(node.metadata["web_url"])
-    final_responce = str(response.response)
+    # final_responce = str(response.response)
     if info_sources_pdfs or info_sources_urls:
         final_responce += "\nSources: \n"
     if info_sources_pdfs:
@@ -124,7 +130,7 @@ async def predict(query_str, history, agent=agent):
             final_responce += info_source + "\n "
     # else:
     #    final_responce += "Local Database."
-    return final_responce
+    yield final_responce
 
 
 import gradio as gr
