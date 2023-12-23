@@ -151,20 +151,18 @@ gr.ChatInterface(
     examples=[
         "How many axes does the robot Franka Emika production have?",
         "What is the payload of the Kuka LBR iiwa 7 R800?",
-        "How many Kuka robots are present in the system? List all of them.",
         (
             "Compare the technical specifications, noting similarities and"
             " differences,  of two robot arms: KR6-R700-CR"
             " and KR6-R700-HM-SC."
         ),
         (
-            "List robot arms with a maximum payload of 3 kg that comply with EN ISO"
-            " 13849-1 (PLd Category 3) and EN ISO 10218-1."
-        ),
-        (
             "Compare the technical specifications, noting similarities and"
             " differences, of two robot arms: UR3e and Franka Emika Production."
         ),
+        "Prepare a siemens setup of all components with the followig requierements: CANopen and 8 digital inputs.",
+        "What are the input modules for siemens et200sp?",
+        "Tell me more about Frankas FCI interface.",
     ],
     retry_btn=None,
     undo_btn=None,
