@@ -9,5 +9,5 @@
         "https://www.kuka.com/en-de/products/robot-systems/industrial-robots/lbr-iiwa"
     ],
     "load_pdfs": true,
-    "load_urls": true
+    "load_urls": false
 }

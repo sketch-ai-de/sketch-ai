@@ -1,0 +1,13 @@
+{
+    "company_name": "Siemens AG",
+    "product_name": "ET 200SP Communication Module CAN",
+    "document_type": "PLC",
+    "pdf_urls": [
+        "https://docs.google.com/uc?export=download&id=1B6AmAD_JLQxstCIjg8xrOEnHKlPCFkp7"
+    ],
+    "web_urls": [
+        "https://support.industry.siemens.com/cs/document/109779453/simatic-et-200sp-cm-can?dti=0&lc=en-DE"
+    ],
+    "load_pdfs": true,
+    "load_urls": true
+}

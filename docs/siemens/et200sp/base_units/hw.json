@@ -1,0 +1,13 @@
+{
+    "company_name": "Siemens AG",
+    "product_name": "ET 200SP BaseUnits",
+    "document_type": "PLC",
+    "pdf_urls": [
+        "https://cache.industry.siemens.com/dl/files/521/59753521/att_914752/v3/et200sp_base_units_manual_en-US_en-US.pdf"
+    ],
+    "web_urls": [
+        "https://mall.industry.siemens.com/mall/en/WW/Catalog/Products/10147554?activeTab=ProductInformation#"
+    ],
+    "load_pdfs": true,
+    "load_urls": true
+}

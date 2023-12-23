@@ -1,0 +1,13 @@
+{
+    "company_name": "Siemens AG",
+    "product_name": "S7-1500 CPU 1511-1 PN",
+    "document_type": "PLC",
+    "pdf_urls": [
+        "https://support.industry.siemens.com/cs/attachments/109752841/s71500_cpu1511_1_pn_dtc_manual_en-US_en-US.pdf?download=true"
+    ],
+    "web_urls": [
+        "https://mall.industry.siemens.com/mall/en/WW/Catalog/Product/6ES7511-1AK02-0AB0"
+    ],
+    "load_pdfs": true,
+    "load_urls": true
+}

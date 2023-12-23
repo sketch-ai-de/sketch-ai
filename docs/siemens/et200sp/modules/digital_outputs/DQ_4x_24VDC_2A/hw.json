@@ -1,0 +1,13 @@
+{
+    "company_name": "Siemens AG",
+    "product_name": "ET 200SP Digital output module DQ 4x24VDC/2A ST",
+    "document_type": "PLC",
+    "pdf_urls": [
+        "https://cache.industry.siemens.com/dl/files/576/59753576/att_882653/v1/et200sp_dq_4x24vdc_2a_st_manual_en-US_en-US.pdf"
+    ],
+    "web_urls": [
+        "https://mall.industry.siemens.com/mall/en/WW/Catalog/Product/6ES7132-6BD20-0BA0"
+    ],
+    "load_pdfs": true,
+    "load_urls": true
+}

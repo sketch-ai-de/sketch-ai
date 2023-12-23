@@ -1,0 +1,13 @@
+{
+    "company_name": "Siemens AG",
+    "product_name": "ET 200SP Distributed I/O System",
+    "document_type": "PLC",
+    "pdf_urls": [
+        "https://support.industry.siemens.com/cs/attachments/58649293/et200sp_system_manual_en-US_en-US.pdf?download=true"
+    ],
+    "web_urls": [
+        "https://mall.industry.siemens.com/mall/en/ww/catalog/products/10144488?tree=CatalogTree#"
+    ],
+    "load_pdfs": true,
+    "load_urls": true
+}

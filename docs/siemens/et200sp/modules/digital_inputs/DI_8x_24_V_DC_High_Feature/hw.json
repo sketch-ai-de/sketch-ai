@@ -1,0 +1,13 @@
+{
+    "company_name": "Siemens AG",
+    "product_name": "ET 200SP Digital input module DI 8x24VDC HF",
+    "document_type": "PLC",
+    "pdf_urls": [
+        "https://cache.industry.siemens.com/dl/files/542/66912542/att_882645/v1/et200sp_di_8x24vdc_hf_manual_en-US_en-US.pdf"
+    ],
+    "web_urls": [
+        "https://mall.industry.siemens.com/mall/en/WW/Catalog/Product/6ES7131-6BF00-0CA0"
+    ],
+    "load_pdfs": true,
+    "load_urls": true
+}
