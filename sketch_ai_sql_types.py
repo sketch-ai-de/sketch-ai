@@ -37,7 +37,7 @@ sql_fields_robot_arm = {
     "product_name": {"datatype": "str", "description": "Product name", "sql_extra": {}},
     "product_description": {
         "datatype": "str",
-        "description": "Detialed product description",
+        "description": "Detialed product description. Without any website links. Do not create multiline lists.",
         "sql_extra": {},
     },
     "payload": {"datatype": "float", "description": "Payload in [kg]", "sql_extra": {}},
@@ -80,46 +80,50 @@ sql_fields_robot_arm = {
     },
     "joints_position_range": {
         "datatype": "str",
-        "description": "Joints or Axis position working range in [°]",
+        "description": "Joints or Axis position working range in [°]. Without any website links. Do not create multiline lists.",
         "sql_extra": {},
     },
     "joints_speed_range": {
         "datatype": "str",
-        "description": "Joints or Axis speed in [°/s]",
+        "description": "Joints or Axis speed in [°/s]. Without any website links. Do not create multiline lists.",
         "sql_extra": {},
     },
     "iso_safety_standard": {
         "datatype": "str",
         "description": (
-            "ISO safety, EN ISO 13849-1, PLd Category 3, EN ISO 10218-1 standards"
+            "ISO safety, EN ISO 13849-1, PLd Category 3, EN ISO 10218-1 standards. Without any website links. Do not create multiline lists."
         ),
         "sql_extra": {},
     },
     "iso_non_safety_standard": {
         "datatype": "str",
-        "description": "ISO non-safety standard",
+        "description": "ISO non-safety standard. Without any website links. Do not create multiline lists.",
         "sql_extra": {},
     },
     "safety_functions": {
         "datatype": "str",
-        "description": "Safety functions",
+        "description": "Safety functions. Without any website links. Do not create multiline lists.",
         "sql_extra": {},
     },
-    "control_box": {"datatype": "bool", "description": "Control box", "sql_extra": {}},
+    "control_box": {
+        "datatype": "bool",
+        "description": "Control box included or not. Bool. Without any website links. Do not create multiline lists.",
+        "sql_extra": {},
+    },
     "control_box_description": {
         "datatype": "str",
-        "description": "Control box description",
+        "description": "Control box description. Without any website links. Do not create multiline lists.",
         "sql_extra": {},
     },
     "tool_flange": {
         "datatype": "str",
-        "description": "Tool flange, e.g. EN ISO-9409-1-50-4-M6",
+        "description": "Tool flange, e.g. EN ISO-9409-1-50-4-M6.",
         "sql_extra": {},
     },
     "gripper": {
         "datatype": "str",
         "description": (
-            "Description of the default gripper shipped with the robot arm., if any"
+            "Description of the default gripper shipped with the robot arm., if any. Without any website links. Do not create multiline lists."
         ),
         "sql_extra": {},
     },
