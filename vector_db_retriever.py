@@ -124,18 +124,12 @@ class VectorDBRetriever(BaseRetriever):
             #    nodes_with_scores, query_str=query_bundle.query_str
             # )
 
-            self.logger.debug("nodes_with_scores MERGED: {}".format(nodes_with_scores))
-
-            # self.logger.debug("reranked_nodes MERGED: {}".format(reranked_nodes))
-
-            self.logger.debug(
-                "nodes_with_scores MERGED: {}".format(nodes_with_scores[0:10])
-            )
+            self.logger.debug(f"nodes_with_scores MERGED: {nodes_with_scores}")
             return reranked_nodes
         else:
             return nodes_with_scores[0 : self._similarity_top_k]
 
-        # self.logger.debug("reranked_nodes MERGED: {}".format(reranked_nodes))
-        # self.logger.info("reranked_nodes MERGED: {}".format(reranked_nodes))
+        # self.logger.debug(f"reranked_nodes MERGED: {reranked_nodes}")
+        # self.logger.info(f"reranked_nodes MERGED: {reranked_nodes}")
         return reranked_nodes  # 4 results with one store, 8 with 2 stores
         # return nodes_with_scores[0:15]  # 4 results with one store, 8 with 2 stores

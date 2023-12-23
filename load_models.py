@@ -59,7 +59,7 @@ def load_models(llm_model, llm_service, logger):
             api_version=api_version,
         )
 
-    logger.info("Loading embedded model {} \n".format(_embed_model.model_name))
-    logger.info("Loading llm model {} \n".format(_llm.model))
+    logger.info(f"Loading embedded model {_embed_model.model_name} \n")
+    logger.info(f"Loading llm model {_llm.model} \n")
 
     return _llm, _embed_model

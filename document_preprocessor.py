@@ -84,7 +84,7 @@ class DocumentPreprocessor:
             self._url_docs[collection_name] = {}
             self._url_docs[collection_name]["docs"] = []
             f = open(path + "/" + "test.html", "w")
-            self._logger.info("Load url {} in folder {}\n".format(url, path))
+            self._logger.info(f"Load url {url} in folder {path}\n")
             # google-chrome --headless --dump-dom --virtual-time-budget=10000 --timeout=10000 --run-all-compositor-stages-before-draw --disable-gpu --user-agent="Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.93 Safari/537.36" "https://franka.de/production" > file2.html
             command = [
                 "google-chrome",
@@ -136,7 +136,7 @@ class DocumentPreprocessor:
         loader_pdf = PyMuPDFReader()
         for idx, pdf_url in enumerate(self._pdf_urls):
             if pdf_url:
-                self._logger.info("Load PDF document {} \n".format(pdf_url))
+                self._logger.info(f"Load PDF document {pdf_url} \n")
                 subprocess.run(["wget", "-O", self._pdf_name, pdf_url])
                 collection_name = "pdf_url_" + str(idx) + self.generate_random_string()
                 self._pdf_docs[collection_name] = {}
@@ -302,7 +302,7 @@ class DocumentPreprocessor:
                         self._pdf_docs[colection_name]["nodes"].append(node)
                         self._collections[colection_name].append(node)
                         self._nodes.append(node)
-                        self._logger.debug("paragraph: {}".format(line))
+                        self._logger.debug(f"paragraph: {line}")
                 else:
                     node = TextNode(
                         text=doc.text,
@@ -312,7 +312,7 @@ class DocumentPreprocessor:
                     node.metadata["page_idx"] = int(doc.metadata["source"]) + 1
                     self._nodes.append(node)
                     self._pdf_docs[colection_name]["nodes"].append(node)
-                    self._logger.debug("paragraph: {}".format(doc.text))
+                    self._logger.debug(f"paragraph: {doc.text}")
 
     def process_sherpa_table(self):
         """
@@ -369,7 +369,7 @@ class DocumentPreprocessor:
                     self._nodes.append(doc)
                     self._collections[colection_name].append(doc)
                     self._pdf_docs_sherpa_tables[colection_name]["nodes"].append(doc)
-                    self._logger.debug("text: {}".format(text))
+                    self._logger.debug(f"text: {text}")
 
     def get_collections(self):
         """

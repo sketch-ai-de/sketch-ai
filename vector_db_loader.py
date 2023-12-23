@@ -147,21 +147,19 @@ class VectorDBLoader:
             ) = self.get_collection_from_db(coll_name)
 
             if len(chroma_collection.get()["ids"]) == 0:
-                self.logger.info("Load data to collection {} \n".format(coll_name))
+                self.logger.info(f"Load data to collection {coll_name} \n")
 
                 self.load_documents_to_db(
                     vector_store,
                     nodes=self.collection_dict[coll_name],
                 )
             else:
-                self.logger.info(
-                    "Data already exist in collection  {} \n".format(coll_name)
-                )
+                self.logger.info(f"Data already exist in collection {coll_name} \n")
 
             vector_stores.append(vector_store)
 
         for v in vector_stores:
-            self.logger.debug("vector_stores client\n{}".format(v.client))
+            self.logger.debug(f"vector_stores client {v.client} \n")
 
         return vector_stores, storage_context
 
