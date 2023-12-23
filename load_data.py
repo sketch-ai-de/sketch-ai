@@ -22,7 +22,7 @@ parser.add_argument("-k", "--similarity_top_k", default=15, type=int)
 parser.add_argument("-kr", "--similarity_top_k_rerank", default=15, type=int)
 parser.add_argument("-r", "--rerank", action="store_true")
 parser.add_argument("-d", "--debug", action="store_true")
-parser.add_argument("-i", "--insert_in_sql", action="store_true")
+parser.add_argument("-i", "--insert_in_sql", action="store_false")
 parser.add_argument("-m", "--llm-model", default="gpt3", type=str, help="gpt3 or gpt4")
 parser.add_argument(
     "-l", "--llm-service", default="azure", type=str, help="azure or openai"
