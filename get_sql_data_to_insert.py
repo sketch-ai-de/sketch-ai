@@ -13,7 +13,6 @@ def make_llm_request(query_engine, query_str, logger):
     if " // " in res:
         res = res.split("//")[:-1]
         res = res[0] + "}"
-    print("res:", res)
     try:
         response_dict = json.loads(res)
     except ValueError:
