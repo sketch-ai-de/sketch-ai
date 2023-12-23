@@ -7,13 +7,18 @@ import time
 def make_llm_request(query_engine, query_str, logger):
     response_dict = {}
     response = query_engine.query(query_str)
-    print(response)
+    print("response:", response)
     # logger.info("response:::::::::::::::::::::\n", response.response)
     res = re.sub(r"json", "", re.sub(r"```", "", response.response))
-    if "//" in res:
+    if " // " in res:
         res = res.split("//")[:-1]
         res = res[0] + "}"
-    response_dict = json.loads(res)
+    print("res:", res)
+    try:
+        response_dict = json.loads(res)
+    except ValueError:
+        response_dict = {}
+        print("Decoding JSON has failed")
     for idx, node in enumerate(response.source_nodes):
         logger.debug(" Node {} with text \n: {}".format(idx, node.text))
     return response_dict
