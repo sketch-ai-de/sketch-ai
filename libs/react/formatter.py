@@ -3,7 +3,11 @@
 from abc import abstractmethod
 from typing import List, Optional, Sequence
 
-from libs.react.prompts import REACT_CHAT_SYSTEM_HEADER, PRE_REACT_CHAT_SYSTEM_HEADER
+from libs.react.prompts import (
+    REACT_CHAT_SYSTEM_HEADER,
+    PRE_REACT_CHAT_SYSTEM_HEADER,
+    REACT_ADVISOR_SYSTEM_HEADER,
+)
 from libs.react.types import BaseReasoningStep, ObservationReasoningStep
 from llama_index.bridge.pydantic import BaseModel
 from llama_index.llms.base import ChatMessage, MessageRole
@@ -43,7 +47,7 @@ class BaseAgentChatFormatter(BaseModel):
 class ReActChatFormatter(BaseAgentChatFormatter):
     """ReAct chat formatter."""
 
-    system_header: str = PRE_REACT_CHAT_SYSTEM_HEADER
+    system_header: str = REACT_ADVISOR_SYSTEM_HEADER
 
     def format(
         self,
