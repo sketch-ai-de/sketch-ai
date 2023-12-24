@@ -13,7 +13,7 @@ To retrieve sketch drawings based on your description, export your OpenAI API ke
 3. Enter your OpenAI and Azure API keys in the new `.env` file as shown: \
     `OPENAI_API_KEY=sk-your-key` \
     `AZURE_OPENAI_KEY=your-key` \
-    `AZURE_OPENAI_GPT4_KEY=your-key` 
+    `AZURE_OPENAI_GPT4_KEY=your-key`
 
 ### Step 2: Prepare databases
 
@@ -38,6 +38,39 @@ docker build -t sketch-ai .
 ```
 
 ### Step 3: Run the sketch-ai with docker
+
+#### Quick Start
+
+* Start chatbot
+
+```sh
+./run.sh
+```
+
+* Ask one question from terminal with default LLM (GPT-4, Azure)
+
+```sh
+./run.sh chat_with_data.py -p "How many axes does the robot Franka Emika production have?"
+```
+
+* Ask one question from terminal with local LLM
+
+```sh
+# On macOS
+./run.sh chat_with_data.py -l local -m local --local-llm-address host.docker.internal --local-llm-port 8080 -p "How many axes does the robot Franka Emika production have?"
+
+# On linux
+./run.sh chat_with_data.py -l local -m local --local-llm-address localhost --local-llm-port 8080 -p "How many axes does the robot Franka Emika production have?"
+```
+
+* Run an arbitrary python script in the docker container
+
+```sh
+# Run an example script (This works only on macOS. To make it work on linux, you need to change the host.docker.internal to localhost.)
+./run.sh examples/open_ai_like.py
+```
+
+#### Manual
 
 ```sh
 # Start docker container
@@ -142,14 +175,14 @@ python3 chat_with_data.py -s
 ```
 
 
-Use ```-r ``` to ativate re-ranking. 
+Use ```-r ``` to ativate re-ranking.
 
 ```bash
 python3 chat_with_data.py -r
 ```
 
 
-### Load data 
+### Load data
 To load new data to SQL and vector database use ```load_data.py```:
 
 ```bash
@@ -160,7 +193,7 @@ python3 load_data.py -j docs/franka/production/hw/hw.json -i
 python3 load_data.py -j docs/ur/ur3e/hw/hw.json -i
 ```
 
-Use ```-r ``` to ativate re-ranking. 
+Use ```-r ``` to ativate re-ranking.
 
 ```bash
 python3 load_data.py -j docs/franka/production/sw/sw.json -i -r

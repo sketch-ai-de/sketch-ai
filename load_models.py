@@ -2,12 +2,21 @@ from llama_index.llms import AzureOpenAI
 from llama_index.embeddings import AzureOpenAIEmbedding
 from llama_index.embeddings import OpenAIEmbedding
 from llama_index.llms import OpenAI
+from llama_index.embeddings import HuggingFaceEmbedding
+from llama_index.llms import LlamaCPP
+from llama_index.llms.llama_utils import (
+    messages_to_prompt,
+    completion_to_prompt,
+)
+
 import openai
 import os
 from dotenv import load_dotenv
 
 
-def load_models(llm_model, llm_service, logger):
+def load_models(args, logger):
+    llm_service = args.llm_service
+    llm_model = args.llm_model
     load_dotenv()
     llm_temperature = 0.1
 
@@ -18,13 +27,22 @@ def load_models(llm_model, llm_service, logger):
         _azure_ada_deployment_name = "sketch-ai-gpt4-ada002"
         _azure_endpoint = "https://open-ai-uk-south.openai.azure.com/"
         _azure_deployment_name = "sketch-ai-gpt35turbo"
-    if llm_model == "gpt4":
+    elif llm_model == "gpt4":
         _azure_deployment_name = "sketch-ai-gpt4"
         _llm_model = "gpt-4-1106-preview"
         # _llm_model_oai = "gpt-4-1106-preview"
         _azure_openai_key = os.getenv("AZURE_OPENAI_GPT4_KEY")
         _azure_ada_deployment_name = "sketch-ai-gpt4-ada002"
         _azure_endpoint = "https://open-ai-uk-south.openai.azure.com/"
+    elif llm_model == "local":
+        # TODO: Replace these once I figure out how to get local embedding server working
+        _azure_deployment_name = "sketch-ai-gpt4"
+        _azure_openai_key = os.getenv("AZURE_OPENAI_GPT4_KEY")
+        _azure_ada_deployment_name = "sketch-ai-gpt4-ada002"
+        _azure_endpoint = "https://open-ai-uk-south.openai.azure.com/"
+        api_version = "2023-07-01-preview"
+    else:
+        raise ValueError(f"Model {llm_model} not supported")
 
     _llm = None
     _embed_model = None
@@ -35,8 +53,7 @@ def load_models(llm_model, llm_service, logger):
 
         openai.api_key = os.getenv("OPENAI_API_KEY")
         _llm = OpenAI(temperature=llm_temperature, model=_llm_model)
-
-    if llm_service == "azure":
+    elif llm_service == "azure":
         logger.info("Using AZURE services")
 
         api_version = "2023-07-01-preview"
@@ -58,6 +75,31 @@ def load_models(llm_model, llm_service, logger):
             azure_endpoint=_azure_endpoint,
             api_version=api_version,
         )
+    elif llm_service == "local":
+        from llama_index.llms import OpenAILike
+
+        MAC_M1_LUNADEMO_CONSERVATIVE_TIMEOUT = 10 * 60  # sec
+        _llm = OpenAILike(
+            max_tokens=4096,
+            temperature=0.9,
+            api_key="localai_fake",
+            api_version="localai_fake",
+            api_base=f"http://{args.local_llm_address}:{args.local_llm_port}/v1",
+            model="local llm",
+            is_chat_model=True,
+            timeout=MAC_M1_LUNADEMO_CONSERVATIVE_TIMEOUT,
+            messages_to_prompt=messages_to_prompt,
+        )
+        # TODO(qu): _embed_model = HuggingFaceEmbedding(model_name="WhereIsAI/UAE-Large-V1")
+        _embed_model = AzureOpenAIEmbedding(
+            model="text-embedding-ada-002",
+            deployment_name=_azure_ada_deployment_name,
+            api_key=_azure_openai_key,
+            azure_endpoint=_azure_endpoint,
+            api_version=api_version,
+        )
+    else:
+        raise ValueError(f"Service {llm_service} not supported")
 
     logger.info(f"Loading embedded model {_embed_model.model_name} \n")
     logger.info(f"Loading llm model {_llm.model} \n")
