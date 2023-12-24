@@ -13,4 +13,4 @@ docker build -t sketch-ai .
 docker rm -f sketch-ai-container || true
 
 # Run the docker container with all arguments
-docker run  -p 7860:7860 -p 8080:8080 --name sketch-ai-container -ti sketch-ai $@
+docker run  -p 7860:7860 -p 8080:8080 --name sketch-ai-container -ti sketch-ai "$@"

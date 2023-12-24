@@ -13,11 +13,8 @@ if [[ ! "$script" =~ \.py$ ]]; then
     exit 1
 fi
 
-# The rest of the arguments are passed to the python script
-args="${@:2}"
-
 if [[ "$script" == "chat_with_data.py" ]]; then
-    echo "Starting chat with data"
+    echo "Configure postgresql"
     # Required by postgresql
     chown -R postgres:postgres /var/lib/postgresql/16/main
 
@@ -41,8 +38,7 @@ if [[ "$script" == "chat_with_data.py" ]]; then
     echo "Create database and tables"
     su postgres -c "psql postgresql://postgres:postgres@127.0.0.1/postgres < postgresql_backup.sql" > /dev/null
 
-    # Calls the main script to chat with data
-    echo "Starting chat with data"
 fi
 
-python3 "$script" "$args"
+python3 "$script" "${@:2}"
+exit 0
