@@ -45,4 +45,4 @@ if [[ "$script" == "chat_with_data.py" ]]; then
     echo "Starting chat with data"
 fi
 
-python3 $script $args
+python3 "$script" "$args"
