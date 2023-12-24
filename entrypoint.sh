@@ -31,15 +31,15 @@ if [[ "$script" == "chat_with_data.py" ]]; then
     service postgresql start
 
     echo "Drop postgres database"
-    su postgres -c "psql -U postgres -c \"DROP SCHEMA public CASCADE;\""
-    su postgres -c "psql -U postgres -c \"CREATE SCHEMA public;\""
-    su postgres -c "psql -U postgres -c \"GRANT ALL ON SCHEMA public TO postgres;\""
-    su postgres -c "psql -U postgres -c \"GRANT ALL ON SCHEMA public TO public;\""
+    su postgres -c "psql -U postgres -c \"DROP SCHEMA public CASCADE;\"" > /dev/null
+    su postgres -c "psql -U postgres -c \"CREATE SCHEMA public;\"" > /dev/null
+    su postgres -c "psql -U postgres -c \"GRANT ALL ON SCHEMA public TO postgres;\"" > /dev/null
+    su postgres -c "psql -U postgres -c \"GRANT ALL ON SCHEMA public TO public;\"" > /dev/null
 
-    su postgres -c "psql --command \"ALTER USER postgres with encrypted password 'postgres';\""
+    su postgres -c "psql --command \"ALTER USER postgres with encrypted password 'postgres';\"" > /dev/null
     #su postgres -c "psql --command \"CREATE DATABASE postgres;\""
     echo "Create database and tables"
-    su postgres -c "psql postgresql://postgres:postgres@127.0.0.1/postgres < postgresql_backup.sql"
+    su postgres -c "psql postgresql://postgres:postgres@127.0.0.1/postgres < postgresql_backup.sql" > /dev/null
 
     # Calls the main script to chat with data
     echo "Starting chat with data"
