@@ -25,6 +25,7 @@ COPY ./.env /sketch-ai/
 COPY ./*.py /sketch-ai/
 COPY ./docs /sketch-ai/docs
 COPY ./libs /sketch-ai/libs
+COPY ./examples /sketch-ai/examples
 COPY ./entrypoint.sh /sketch-ai/
 
 # TODO(qu): in mid-term sketch-ai should allow adding new data to database without rebuilding the docker image
