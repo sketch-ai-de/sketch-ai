@@ -12,7 +12,7 @@ from tool_retriever import ToolRetriever
 from load_models import load_models
 
 
-def main():
+async def main():
     parser = argparse.ArgumentParser(
         prog="RagLlamaindex",
         description="Retrieve information from different soures - PDFs and Web-Links",
@@ -195,4 +195,7 @@ def main():
 
 
 if __name__ == "__main__":
-    main()
+    import asyncio
+
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(main())
