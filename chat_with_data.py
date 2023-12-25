@@ -76,9 +76,11 @@ def main():
     )
     tool_retriever.create_vector_index_from_tools()
 
-    if args.seq_react:
+    if args.seq_react or args.llm_model == "local":
+        logger.info("Using standard ReActAgent")
         from llama_index.agent import ReActAgent
     else:
+        logger.info("Using customized ReActAgent from libs.react.base")
         from libs.react.base import ReActAgent
 
     agent_sys_promt = f"""\
@@ -144,7 +146,12 @@ def main():
 
     if args.prompt:
         tic = time.perf_counter()
-        response = agent.chat(args.prompt)
+        if args.seq_react or args.llm_model == "local":
+            logger.info("Ask local llm with standard sequential ReActAgent")
+            response = agent.chat(args.prompt)
+        else:
+            logger.info("Ask customized parallel ReActAgent")
+            response = await agent.achat(args.prompt)
         toc = time.perf_counter()
         print("\n==========================================\n")
         print("\033[92m{}\033[00m".format("Prompt: "), args.prompt)
