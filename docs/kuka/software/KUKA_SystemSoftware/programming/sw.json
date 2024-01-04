@@ -1,0 +1,14 @@
+{
+    "company_name": "Kuka",
+    "product_name": "KUKA.SystemSoftware",
+    "document_type": "SOFTWARE",
+    "pdf_urls": [
+        "https://yazelin.github.io/ntcri/data/phase1/KUKA_Basic/doc/en/KUKA%20Robot%20Programming%201.pdf"
+    ],
+    "web_urls": [
+        "https://www.kuka.com/en-de/products/robot-systems/software/system-software",
+        "https://www.kuka.com/en-de/products/robot-systems/software/system-software/kuka_systemsoftware"
+    ],
+    "load_pdfs": true,
+    "load_urls": true
+}

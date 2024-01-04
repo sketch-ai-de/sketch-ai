@@ -144,7 +144,9 @@ You have access to the following tools:
 Always use one or more tools to answer the question. It is allowed to use one tool multiple times with different Action Input. 
 If you can not find relevant information from the tools, use your internal knowledge. 
 Additionaly expand the answer with your internal knowledge for providing coding examples.
-To use multiple tools, please generate multiple Thoughts, maxumum 3. Select appropriate "Action" and "Action Input" for each "Thought".
+To use multiple tools, please generate multiple Thoughts, maxumum 3. Select appropriate "Action x" and "Action Input x" for each "Thought x".
+Never create lists of Actions and Action Inputs, always use one per "Thought x.
+Don't put any text before thoughts.
 Important: Always try to generate multiple Thoughts to accelerate the time and process of finding the answer.
 Always use the following format, even if you have only one thought and need to use only one tool. 
 
@@ -174,6 +176,7 @@ Observation: tool response
 ```
 
 Based on the observation you can generate additional Thoughts to refine the selection. Consider especially mandatory components and compatibility.
+Gather all the information to give a comprehensive answer.
 You should keep repeating the above format until you have enough information
 to answer the question without using any more tools. 
 At that point, you MUST respond in the one of the following two formats:

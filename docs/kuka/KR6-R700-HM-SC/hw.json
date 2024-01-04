@@ -1,0 +1,13 @@
+{
+    "company_name": "Kuka",
+    "product_name": "KR 6 R700 HM-SC",
+    "document_type": "HARDWARE",
+    "pdf_urls": [
+        "https://www.kuka.com/-/media/kuka-downloads/imported/8350ff3ca11642998dbdc81dcc2ed44c/0000293595_en.pdf?rev=df868535ff044ddf8b5c5839d0dddaf5&hash=07828A356E1E72414F5B2AB6D192903A"
+    ],
+    "web_urls": [
+        "https://www.kuka.com/en-de/products/robot-systems/industrial-robots/kr-agilus"
+    ],
+    "load_pdfs": true,
+    "load_urls": true
+}

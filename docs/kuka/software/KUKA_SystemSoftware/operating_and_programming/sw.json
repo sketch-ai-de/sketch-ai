@@ -1,0 +1,14 @@
+{
+    "company_name": "Kuka",
+    "product_name": "KUKA.SystemSoftware",
+    "document_type": "SOFTWARE",
+    "pdf_urls": [
+        "http://www.wtech.com.tw/public/download/manual/kuka/krc4/KUKA%20KSS-8.3-Programming-Manual-for-SI.pdf"
+    ],
+    "web_urls": [
+        "https://www.kuka.com/en-de/products/robot-systems/software/system-software",
+        "https://www.kuka.com/en-de/products/robot-systems/software/system-software/kuka_systemsoftware"
+    ],
+    "load_pdfs": true,
+    "load_urls": true
+}

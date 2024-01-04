@@ -74,6 +74,7 @@ class ReActAgent(BaseAgent):
         self._output_parser = output_parser or ReActOutputParser()
         self._verbose = verbose
         self.sources: List[ToolOutput] = []
+        self._selected_tools = []
 
         if len(tools) > 0 and tool_retriever is not None:
             raise ValueError("Cannot specify both tools and tool_retriever")
@@ -498,6 +499,10 @@ class ReActAgent(BaseAgent):
         # TODO: do get tools dynamically at every iteration of the agent loop
         self.sources = []
         tools = self.get_tools(message)
+        tools_ = set(tools)
+        if len(self._selected_tools) != 0:
+            tools_.union(self._selected_tools[0:2])
+        tools = list(tools_)
 
         if chat_history is not None:
             self._memory.set(chat_history)
@@ -534,6 +539,13 @@ class ReActAgent(BaseAgent):
             reasoning_steps, _ = await self._aprocess_actions(
                 tools=tools, output=full_response, is_streaming=True
             )
+            if type(reasoning_steps[0]) == ActionReasoningStepArr:
+                _tools = set()
+                for thought in reasoning_steps[0].get_thoughts():
+                    _tools_for_thought = self.get_tools(thought)
+                    for _tool in _tools_for_thought:
+                        _tools.add(_tool)
+                tools = list(_tools)
             current_reasoning.extend(reasoning_steps)
 
         # Get the response in a separate thread so we can yield the response
@@ -549,6 +561,7 @@ class ReActAgent(BaseAgent):
             chat_stream_response.awrite_response_to_history(self._memory)
         )
         # thread.start()
+        self._selected_tools = tools
         return chat_stream_response
 
     # def get_tools(self, message: str) -> List[AsyncBaseTool]:

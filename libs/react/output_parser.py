@@ -89,8 +89,10 @@ class ReActOutputParser(BaseOutputParser):
             ```
         """
 
-        # print("output_xxxxxxxxxxxxxxxxx: ", output)
-        if "Thought 1:" not in output and not "Answer:" in output:
+        print("output_xxxxxxxxxxxxxxxxx: ", output)
+        if (
+            "Thought 1" or "Thought 2" or "Thought 3"
+        ) not in output and not "Answer:" in output:
             # NOTE: handle the case where the agent directly outputs the answer
             # instead of following the thought-answer format
             return ResponseReasoningStep(
@@ -111,6 +113,9 @@ class ReActOutputParser(BaseOutputParser):
         if "Action 1:" in output:
             # thought, action, action_input = extract_tool_use(output)
             thought1, action1, action_input1 = extract_tool_use_1(output)
+            print("action_input1: ", action_input1)
+            print("thought1: ", thought1)
+            print("action1: ", action1)
             json_str1 = extract_json_str(action_input1)
 
             # First we try json, if this fails we use ast

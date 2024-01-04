@@ -87,7 +87,7 @@ class VectorDBRetriever(BaseRetriever):
         nodes_with_scores_ = []
         for store_v in nodes_with_scores_matrix:
             if self._rerank:
-                nodes_with_scores_.extend(store_v)  # [0:3]
+                nodes_with_scores_.extend(store_v[0 : min(len(store_v), 10)])  # [0:3]
             else:
                 nodes_with_scores_.extend(
                     store_v[0 : min(len(store_v), 3)]
@@ -105,7 +105,7 @@ class VectorDBRetriever(BaseRetriever):
         # )
 
         if self._rerank and len(nodes_with_scores) > self._similarity_top_k_rerank:
-            from llama_index.postprocessor import FlagEmbeddingReranker
+            from libs.reranker.flag_embedding_reranker import FlagEmbeddingReranker
 
             self.logger.info(
                 "start reranking {} nodes to {} nodes. ".format(

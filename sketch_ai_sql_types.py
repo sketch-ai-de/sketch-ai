@@ -40,9 +40,21 @@ sql_fields_robot_arm = {
         "description": "Detialed product description. Without any website links. Do not create multiline lists.",
         "sql_extra": {},
     },
-    "payload": {"datatype": "float", "description": "Payload in [kg]", "sql_extra": {}},
-    "reach": {"datatype": "float", "description": "Reach in [mm]", "sql_extra": {}},
-    "weight": {"datatype": "float", "description": "Weight in [kg]", "sql_extra": {}},
+    "payload": {
+        "datatype": "float",
+        "description": "Payload in [kg]. 0 if not provided.",
+        "sql_extra": {},
+    },
+    "reach": {
+        "datatype": "float",
+        "description": "Reach in [mm]. 0 if not provided.",
+        "sql_extra": {},
+    },
+    "weight": {
+        "datatype": "float",
+        "description": "Weight in [kg]. 0 if not provided.",
+        "sql_extra": {},
+    },
     "number_of_joints": {
         "datatype": "str",
         "description": "Number of joints and Dimension of freedom",
@@ -60,7 +72,7 @@ sql_fields_robot_arm = {
     },
     "power_consumption": {
         "datatype": "float",
-        "description": "Power consumption in [W]",
+        "description": "Power consumption in [W]. 0 if not provided.",
         "sql_extra": {},
     },
     "ip_classification": {
@@ -70,7 +82,7 @@ sql_fields_robot_arm = {
     },
     "tcp_speed": {
         "datatype": "float",
-        "description": "TCP, Cartesian speed in [m/s]",
+        "description": "TCP, Cartesian speed in [m/s]. 0 if not provided.",
         "sql_extra": {},
     },
     "pose_repeatability": {
@@ -107,7 +119,7 @@ sql_fields_robot_arm = {
     },
     "control_box": {
         "datatype": "bool",
-        "description": "Control box included or not. Bool. Without any website links. Do not create multiline lists.",
+        "description": "Control box or Cabinet included or not. Bool value. Without any website links. Do not create multiline lists.",
         "sql_extra": {},
     },
     "control_box_description": {
@@ -134,7 +146,7 @@ sql_fields_robot_arm = {
     },
     "force_sensing": {
         "datatype": "str",
-        "description": "Force sensing, tool or robot or guiding force [Nm]",
+        "description": "Force or torque sensing, tool or robot or guiding force [Nm]",
         "sql_extra": {},
     },
 }
@@ -338,22 +350,22 @@ sql_fields_plc = {
     },
     "related_components": {
         "datatype": "str",
-        "description": "All similar components related to this product or can be used together with this product. Without any website links. Do not create multiline lists.",
+        "description": "Hardware and software components related to this product or can be used together with this product. Without any website links. Do not create multiline lists.",
         "sql_extra": {},
     },
     "compatible_components": {
         "datatype": "str",
-        "description": "All compatible components related this product or can be used together with this product. Without any website links. Do not create multiline lists.",
+        "description": "Compatible hardware and software components related this product or can be used together with this product. Without any website links. Do not create multiline lists.",
         "sql_extra": {},
     },
     "must_have_components": {
         "datatype": "str",
-        "description": "All mandatory or must have components requiered to install, deploy and start use this product. Without any website links. Do not create multiline lists.",
+        "description": "Mandatory/must have hardware and software components and requierements requiered to use this product. Without any website links. Do not create multiline lists.",
         "sql_extra": {},
     },
     "references": {
         "datatype": "str",
-        "description": "All references to this and other products, manuals, components, packages, libraries, etc. Without any website links. Do not create multiline lists.",
+        "description": "References to this and other products, manuals, components, packages, libraries, etc. Without any website links. Do not create multiline lists.",
         "sql_extra": {},
     },
 }

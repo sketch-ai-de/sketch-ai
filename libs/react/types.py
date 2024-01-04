@@ -33,6 +33,10 @@ class ActionReasoningStep(BaseReasoningStep):
             f"Action Input: {self.action_input}"
         )
 
+    def get_thoughts(self) -> str:
+        """Get thoughts."""
+        return self.thought
+
     @property
     def is_done(self) -> bool:
         """Is the reasoning step the last one."""
@@ -52,6 +56,10 @@ class ActionReasoningStepArr(BaseReasoningStep):
             f"Thoughts: {self.thoughts}\nActions: {self.actions}\n"
             f"Action Inputs: {self.action_inputs}"
         )
+
+    def get_thoughts(self) -> str:
+        """Get thoughts."""
+        return self.thoughts
 
     @property
     def is_done(self) -> bool:

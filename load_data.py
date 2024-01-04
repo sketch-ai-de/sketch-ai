@@ -37,9 +37,7 @@ streamHandler.setFormatter(formatter)
 logger.addHandler(streamHandler)
 logger.setLevel(logging.DEBUG if args.debug else logging.INFO)
 
-llm, embed_model = load_models(
-    llm_service=args.llm_service, llm_model=args.llm_model, logger=logger
-)
+llm, embed_model = load_models(args, logger=logger)
 
 service_context = ServiceContext.from_defaults(
     chunk_size=512, llm=llm, embed_model=embed_model, context_window=16385
@@ -298,6 +296,8 @@ if args.insert_in_sql:
                 == DeviceType.PLC_INDUSTRIAL_PC.name
                 or response_plc_dict["device_type_name"]
                 == DeviceType.PLC_IO_MODULE_SYSTEM.name
+                or response_plc_dict["device_type_name"]
+                == DeviceType.PLC_BASE_UNIT.name
             ):
                 logger.info(
                     "Inserting into tables {} and {}".format(

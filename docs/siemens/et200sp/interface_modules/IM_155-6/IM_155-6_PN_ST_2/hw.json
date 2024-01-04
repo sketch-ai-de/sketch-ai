@@ -1,0 +1,13 @@
+{
+    "company_name": "Siemens AG",
+    "product_name": "ET 200SP IM 155-6 PN ST Interface Module (6ES7155-6AU02-0BN0)",
+    "document_type": "PLC",
+    "pdf_urls": [
+        "https://cache.industry.siemens.com/dl/files/046/109826046/att_1160534/v1/et200sp_im_155_6_pn_st_manual_en-US_en-US.pdf"
+    ],
+    "web_urls": [
+        "https://mall.industry.siemens.com/mall/en/WW/Catalog/Product/6ES7155-6AU02-0BN0"
+    ],
+    "load_pdfs": true,
+    "load_urls": true
+}

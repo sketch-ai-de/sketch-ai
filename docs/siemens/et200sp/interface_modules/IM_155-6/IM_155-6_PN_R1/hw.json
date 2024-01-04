@@ -1,0 +1,13 @@
+{
+    "company_name": "Siemens AG",
+    "product_name": "ET 200SP Interface Module IM 155-6 PN R1 (6ES7155-6AU00-0HM0)",
+    "document_type": "PLC",
+    "pdf_urls": [
+        "https://cache.industry.siemens.com/dl/files/341/109815341/att_1122903/v2/et200sp_im_155_6_pn_r1_en-US_en-US.pdf"
+    ],
+    "web_urls": [
+        "https://mall.industry.siemens.com/mall/en/WW/Catalog/Product/6ES7155-6AU00-0HM0"
+    ],
+    "load_pdfs": true,
+    "load_urls": true
+}
