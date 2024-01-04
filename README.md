@@ -186,17 +186,17 @@ python3 chat_with_data.py -r
 To load new data to SQL and vector database use ```load_data.py```:
 
 ```bash
-python3 load_data.py -j docs/franka/production/hw/hw.json -i
+python3 load_data.py -j docs/franka/production/hw/hw.json
 ```
 
 ```bash
-python3 load_data.py -j docs/ur/ur3e/hw/hw.json -i
+python3 load_data.py -j docs/ur/ur3e/hw/hw.json
 ```
 
 Use ```-r ``` to ativate re-ranking.
 
 ```bash
-python3 load_data.py -j docs/franka/production/sw/sw.json -i -r
+python3 load_data.py -j docs/franka/production/sw/sw.json -r
 ```
 
 #### Use json to load data
