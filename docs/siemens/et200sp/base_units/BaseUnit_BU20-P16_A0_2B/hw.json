@@ -1,0 +1,13 @@
+{
+    "company_name": "Siemens AG",
+    "product_name": "SIMATIC ET 200SP, BaseUnit BU20-P16+A0+2B, BU-TYPE U0, 6ES7193-6BP00-0BU0",
+    "document_type": "PLC",
+    "pdf_urls": [
+        "https://docs.rs-online.com/b505/A700000006984932.pdf"
+    ],
+    "web_urls": [
+        "https://mall.industry.siemens.com/mall/en/WW/Catalog/Product/6ES7193-6BP00-0BU0"
+    ],
+    "load_pdfs": true,
+    "load_urls": true
+}

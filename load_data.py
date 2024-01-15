@@ -48,80 +48,23 @@ from sketch_ai_types import document_type_robot_arm_dict
 
 f = open(args.json_file)
 data = json.load(f)
-
 document_metadata = Metadata(
     company_name=data["company_name"],
     product_name=data["product_name"],
     document_type=document_type_robot_arm_dict[data["document_type"]],
 )
 
-Docs = DocumentPreprocessor(
-    web_urls=data["web_urls"],
-    pdf_urls=data["pdf_urls"],
-    metadata=document_metadata,
-    logger=logger,
-    llm=llm,
-)
+from get_sql_data_to_insert import GetSQLDataToInsert
 
-
-if data["load_urls"]:
-    Docs.load_urls_from_path(data["web_urls"])
-    Docs.process_urls()
-
-if data["load_pdfs"]:
-    Docs.load_pdfs()
-    Docs.process_sherpa_pdf()
-    Docs.process_normal_pdf()
-    Docs.process_sherpa_table()
-
-
-# Creating a VectorDBLoader object to load the vectors into the database
-DBLoader = VectorDBLoader(
-    llm=llm,
-    logger=logger,
-    service_context=service_context,
-    collection_dict=Docs.get_collections(),
-    embed_model=embed_model,
-    verbose=True,
-)
-# Getting the vector stores, storage context and chroma collection from the VectorDBLoader object
-vector_stores, storage_context = DBLoader.get_vector_stores()
-if len(vector_stores) == 0:
-    logger.error("No vector store exists.")
-    exit(1)
-# Getting the first vector store from the vector stores
-vector_store = vector_stores[0]
-# Creating a VectorDBRetriever object to retrieve the vectors from the database
-retriever = VectorDBRetriever(
-    vector_store,  # default vector store
-    vector_stores,
-    embed_model,
-    query_mode="default",
-    similarity_top_k=int(args.similarity_top_k),
-    similarity_top_k_rerank=int(args.similarity_top_k_rerank),
-    logger=logger,
-    service_context=service_context,
-    rerank=args.rerank,
-)
-# Creating a VectorStoreIndex object from the vector store
-index = VectorStoreIndex.from_vector_store(
-    vector_store, service_context=service_context, storage_context=storage_context
-)
-# Creating a query engine from the VectorStoreIndex object
-# query_engine = index.as_query_engine(
-#    chroma_collection=chroma_collection, retriever=retriever
+# from get_sql_data_to_insert import (
+#    get_robot_arm_data,
+#    get_robot_arm_embed_data,
+#    get_company_data,
+#    get_software_data,
+#    get_software_embed_data,
+#    get_plc_data,
+#    get_plc_embed_data,
 # )
-query_engine = index.as_query_engine(retriever=retriever)
-
-from get_sql_data_to_insert import (
-    get_robot_arm_data,
-    get_robot_arm_embed_data,
-    get_company_data,
-    get_software_data,
-    get_software_embed_data,
-    get_plc_data,
-    get_plc_embed_data,
-)
 from sql_handler_robot_arm import SQLHandlerRobotArm
 from sql_handler_company import SQLHandlerCompany
 from sql_handler_robot_arm_embed import SQLHandlerRobotArmEmbed
@@ -181,75 +124,120 @@ sql_handler_plc_embed = SQLHandlerPLCEmbed(
 sql_handler_plc_embed.create_base()
 sql_handler_plc_embed.create_table()
 
-logger.info("Getting company id")
-company_id = sql_handler_company.get_id(data["company_name"])
-if company_id is None or company_id == []:
-    response_company_dict = get_company_data(data, fields_dict=sql_fields_company)
-
-
 # async def get_data():
-response_software_dict = {}
-response_robot_arm_dict = {}
-response_robot_arm_embed_list = None
-response_software_embed_list = None
+sql_data_to_insert_dict = {}
+sql_data_embed_to_insert_list = []
 nodes = None
-software_id = None
-robot_arm_id = None
-if data["document_type"] == "HARDWARE":
-    logger.info("Getting arm id")
-    robot_arm_id = sql_handler_robot_arm.get_id(data["product_name"])
-    if robot_arm_id is None or robot_arm_id == []:
-        logger.info("Getting robot arm data")
-        response_robot_arm_dict = get_robot_arm_data(
-            query_engine,
-            retriever,
-            DBLoader,
-            logger,
-            data["product_name"],
-            fields_dict=sql_fields_robot_arm,
-        )
-    nodes = DBLoader.get_all_nodes()
-    response_robot_arm_embed_list = get_robot_arm_embed_data(
-        robot_arm_id, nodes, fields_dict=sql_fields_robot_arm_embed
-    )
+id = None
+sql_handler = None
+
+if data["document_type"] == "ROBOT_ARM":
+    logger.info("Getting robot_arm id")
+    sql_handler = sql_handler_robot_arm
+    sql_handler_embed = sql_handler_robot_arm_embed
+    fields_dict = sql_fields_robot_arm
+    fields_dict_embed = sql_fields_robot_arm_embed
+    id = sql_handler.get_id(data["product_name"])
 if data["document_type"] == "SOFTWARE":
     logger.info("Getting software id")
-    software_id = sql_handler_software.get_id(data["product_name"])
-    if software_id is None or software_id == []:
-        logger.info("Getting software data")
-        response_software_dict = get_software_data(
-            query_engine,
-            retriever,
-            DBLoader,
-            logger,
-            data["product_name"],
-            fields_dict=sql_fields_software,
-        )
-    nodes = DBLoader.get_all_nodes()
-    response_software_embed_list = get_software_embed_data(
-        software_id, nodes, fields_dict=sql_fields_software_embed
-    )
-
+    sql_handler = sql_handler_software
+    sql_handler_embed = sql_handler_software_embed
+    fields_dict = sql_fields_software
+    fields_dict_embed = sql_fields_software_embed
 if data["document_type"] == "PLC":
     logger.info("Getting plc id")
-    plc_id = sql_handler_plc.get_id(data["product_name"])
-    if plc_id is None or plc_id == []:
-        logger.info("Getting plc data")
-        response_plc_dict = get_plc_data(
-            query_engine,
-            retriever,
-            DBLoader,
-            logger,
-            data["product_name"],
-            fields_dict=sql_fields_plc,
-        )
-    nodes = DBLoader.get_all_nodes()
-    response_plc_embed_list = get_plc_embed_data(
-        software_id, nodes, fields_dict=sql_fields_software_embed
-    )
+    sql_handler = sql_handler_plc
+    sql_handler_embed = sql_handler_plc_embed
+    fields_dict = sql_fields_plc
+    fields_dict_embed = sql_fields_plc_embed
 
-from sketch_ai_types import DeviceType
+id = sql_handler.get_id(data["product_name"])
+if id:
+    logger.info("Product name already exists in SQL table")
+    exit(1)
 
+logger.info("Getting company id")
+company_id = sql_handler_company.get_id(data["company_name"])
+
+
+Docs = DocumentPreprocessor(
+    web_urls=data["web_urls"],
+    pdf_urls=data["pdf_urls"],
+    metadata=document_metadata,
+    logger=logger,
+    llm=llm,
+)
+
+
+if data["load_urls"]:
+    Docs.load_urls_from_path(data["web_urls"])
+    Docs.process_urls()
+
+if data["load_pdfs"]:
+    Docs.load_pdfs()
+    Docs.process_sherpa_pdf()
+    Docs.process_normal_pdf()
+    Docs.process_sherpa_table()
+
+
+# Creating a VectorDBLoader object to load the vectors into the database
+DBLoader = VectorDBLoader(
+    llm=llm,
+    logger=logger,
+    service_context=service_context,
+    collection_dict=Docs.get_collections(),
+    embed_model=embed_model,
+    verbose=True,
+)
+# Getting the vector stores, storage context and chroma collection from the VectorDBLoader object
+vector_stores, storage_context = DBLoader.get_vector_stores()
+if len(vector_stores) == 0:
+    logger.error("No vector store exists.")
+    exit(1)
+# Getting the first vector store from the vector stores
+vector_store = vector_stores[0]
+# Creating a VectorDBRetriever object to retrieve the vectors from the database
+retriever = VectorDBRetriever(
+    vector_store,  # default vector store
+    vector_stores,
+    embed_model,
+    query_mode="default",
+    similarity_top_k=int(args.similarity_top_k),
+    similarity_top_k_rerank=int(args.similarity_top_k_rerank),
+    logger=logger,
+    service_context=service_context,
+    rerank=args.rerank,
+)
+# Creating a VectorStoreIndex object from the vector store
+index = VectorStoreIndex.from_vector_store(
+    vector_store, service_context=service_context, storage_context=storage_context
+)
+# Creating a query engine from the VectorStoreIndex object
+# query_engine = index.as_query_engine(
+#    chroma_collection=chroma_collection, retriever=retriever
+# )
+query_engine = index.as_query_engine(retriever=retriever)
+
+sql_data_getter = GetSQLDataToInsert(
+    DBLoader=DBLoader,
+    logger=logger,
+    retriever=retriever,
+    product_name=data["product_name"],
+    fields_dict=fields_dict,
+    fields_dict_embed=fields_dict_embed,
+    fields_dict_company=sql_fields_company,
+)
+
+if id is None or id == []:
+    logger.info("Getting data")
+    sql_data_to_insert_dict = sql_data_getter.get_data()
+nodes = DBLoader.get_all_nodes()
+sql_data_embed_to_insert_list = sql_data_getter.get_embed_data(id, nodes)
+
+if company_id is None or company_id == []:
+    response_company_dict = sql_data_getter.get_company_data(data)
+
+# Inserting into SQL
 if args.insert_in_sql:
     logger.info("Inserting into SQL")
     if company_id is None or company_id == []:
@@ -261,87 +249,22 @@ if args.insert_in_sql:
         sql_handler_company.insert_into_sql(response_company_dict)
     logger.info("Getting company id")
     company_id = sql_handler_company.get_id(data["company_name"])
-    if data["document_type"] == "SOFTWARE":
-        response_software_dict["company_id"] = company_id
-        if software_id is None or software_id == []:
-            if response_software_dict["device_type_name"] == DeviceType.SOFTWARE.name:
-                logger.info(
-                    "Inserting into tables {} and {}".format(
-                        sql_handler_software._table_name,
-                        sql_handler_software_embed._table_name,
-                    )
-                )
-                sql_handler_software.insert_into_sql(response_software_dict)
-                software_id = sql_handler_software.get_id(data["product_name"])
-                response_software_embed_list = get_software_embed_data(
-                    software_id, nodes, fields_dict=sql_fields_software_embed
-                )
-                sql_handler_software_embed.insert_into_sql(response_software_embed_list)
-        else:
-            logger.info(
-                "Inserting into table {}".format(
-                    sql_handler_software_embed._table_name,
-                )
+    sql_data_to_insert_dict["company_id"] = company_id
+    if id is None or id == []:
+        logger.info(
+            "Inserting into tables {} and {}".format(
+                sql_handler._table_name,
+                sql_handler_embed._table_name,
             )
-            sql_handler_software_embed.insert_into_sql(response_software_embed_list)
-
-    if data["document_type"] == "PLC":
-        response_plc_dict["company_id"] = company_id
-        if plc_id is None or plc_id == []:
-            if (
-                response_plc_dict["device_type_name"] == DeviceType.PLC_CPU.name
-                or response_plc_dict["device_type_name"]
-                == DeviceType.PLC_IO_MODULE.name
-                or response_plc_dict["device_type_name"]
-                == DeviceType.PLC_INDUSTRIAL_PC.name
-                or response_plc_dict["device_type_name"]
-                == DeviceType.PLC_IO_MODULE_SYSTEM.name
-                or response_plc_dict["device_type_name"]
-                == DeviceType.PLC_BASE_UNIT.name
-            ):
-                logger.info(
-                    "Inserting into tables {} and {}".format(
-                        sql_handler_plc._table_name,
-                        sql_handler_plc_embed._table_name,
-                    )
-                )
-                sql_handler_plc.insert_into_sql(response_plc_dict)
-                plc_id = sql_handler_plc.get_id(data["product_name"])
-                response_plc_embed_list = get_plc_embed_data(
-                    plc_id, nodes, fields_dict=sql_fields_plc_embed
-                )
-                sql_handler_plc_embed.insert_into_sql(response_plc_embed_list)
-        else:
-            logger.info(
-                "Inserting into table {}".format(
-                    sql_handler_plc_embed._table_name,
-                )
+        )
+        sql_handler.insert_into_sql(sql_data_to_insert_dict)
+        id = sql_handler.get_id(data["product_name"])
+        sql_data_embed_to_insert_list = sql_data_getter.get_embed_data(id, nodes)
+        sql_handler_embed.insert_into_sql(sql_data_embed_to_insert_list)
+    else:
+        logger.info(
+            "Inserting into table {}".format(
+                sql_handler._table_name,
             )
-            sql_handler_plc_embed.insert_into_sql(response_plc_embed_list)
-
-    if data["document_type"] == "HARDWARE":
-        response_robot_arm_dict["company_id"] = company_id
-        if robot_arm_id is None or robot_arm_id == []:
-            if response_robot_arm_dict["device_type_name"] == DeviceType.ROBOT_ARM.name:
-                logger.info(
-                    "Inserting into tables {} and {}".format(
-                        sql_handler_robot_arm._table_name,
-                        sql_handler_robot_arm_embed._table_name,
-                    )
-                )
-                sql_handler_robot_arm.insert_into_sql(response_robot_arm_dict)
-                logger.info("Getting arm id")
-                robot_arm_id = sql_handler_robot_arm.get_id(data["product_name"])
-                response_robot_arm_embed_list = get_robot_arm_embed_data(
-                    robot_arm_id, nodes, fields_dict=sql_fields_robot_arm_embed
-                )
-                sql_handler_robot_arm_embed.insert_into_sql(
-                    response_robot_arm_embed_list
-                )
-        else:
-            logger.info(
-                "Inserting into table {}".format(
-                    sql_handler_robot_arm_embed._table_name,
-                )
-            )
-            sql_handler_robot_arm_embed.insert_into_sql(response_robot_arm_embed_list)
+        )
+        sql_handler_embed.insert_into_sql(sql_data_embed_to_insert_list)

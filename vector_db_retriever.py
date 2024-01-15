@@ -32,8 +32,8 @@ class VectorDBRetriever(BaseRetriever):
         vector_stores: [],
         embed_model: Any,
         query_mode: str = "default",
-        similarity_top_k: int = 10,
-        similarity_top_k_rerank: int = 15,
+        similarity_top_k: int = 15,
+        similarity_top_k_rerank: int = 6,
         logger: Any = None,
         service_context=None,
         rerank: bool = False,
@@ -90,7 +90,7 @@ class VectorDBRetriever(BaseRetriever):
                 nodes_with_scores_.extend(store_v[0 : min(len(store_v), 10)])  # [0:3]
             else:
                 nodes_with_scores_.extend(
-                    store_v[0 : min(len(store_v), 3)]
+                    store_v[0 : min(len(store_v), 10)]
                 )  # take 4 results fom each store and add to nodes_with_scores_
         nodes_with_scores = nodes_with_scores_
 
@@ -104,7 +104,7 @@ class VectorDBRetriever(BaseRetriever):
         #    service_context=self.service_context,
         # )
 
-        if self._rerank and len(nodes_with_scores) > self._similarity_top_k_rerank:
+        if self._rerank:  # and len(nodes_with_scores) > self._similarity_top_k_rerank:
             from libs.reranker.flag_embedding_reranker import FlagEmbeddingReranker
 
             self.logger.info(
@@ -123,11 +123,14 @@ class VectorDBRetriever(BaseRetriever):
             # reranked_nodes = reranker.postprocess_nodes(
             #    nodes_with_scores, query_str=query_bundle.query_str
             # )
-
-            self.logger.debug(f"nodes_with_scores MERGED: {nodes_with_scores}")
+            print(reranked_nodes)
             return reranked_nodes
         else:
-            return nodes_with_scores[0 : self._similarity_top_k]
+            nodes_with_scores_sorted = sorted(
+                nodes_with_scores, key=lambda d: d.score, reverse=True
+            )
+            print(nodes_with_scores_sorted)
+            return nodes_with_scores_sorted[0 : self._similarity_top_k]
 
         # self.logger.debug(f"reranked_nodes MERGED: {reranked_nodes}")
         # self.logger.info(f"reranked_nodes MERGED: {reranked_nodes}")

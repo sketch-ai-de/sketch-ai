@@ -1,7 +1,7 @@
 {
     "company_name": "Kuka",
     "product_name": "KR 6",
-    "document_type": "HARDWARE",
+    "document_type": "ROBOT_ARM",
     "pdf_urls": [
         "https://www.kuka.com/-/media/kuka-downloads/imported/8350ff3ca11642998dbdc81dcc2ed44c/db_kr_6_en.pdf"
     ],

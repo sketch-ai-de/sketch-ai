@@ -1,0 +1,13 @@
+{
+    "company_name": "Siemens AG",
+    "product_name": "SIMATIC bus adapter: BA LC/RJ45, media converter glass FOC/CU 1x LC FO connection and 1x RJ45 connection,  6ES7193-6AG20-0AA0 ",
+    "document_type": "PLC",
+    "pdf_urls": [
+        "https://docs.rs-online.com/adc6/A700000006984816.pdf"
+    ],
+    "web_urls": [
+        "https://mall.industry.siemens.com/mall/en/WW/Catalog/Product/6ES7193-6AG20-0AA0"
+    ],
+    "load_pdfs": true,
+    "load_urls": true
+}

@@ -37,7 +37,7 @@ sql_fields_robot_arm = {
     "product_name": {"datatype": "str", "description": "Product name", "sql_extra": {}},
     "product_description": {
         "datatype": "str",
-        "description": "Detialed product description. Without any website links. Do not create multiline lists.",
+        "description": "About Product - Detailed product description with key technical data and features. Without any website links. Do not create multiline lists.",
         "sql_extra": {},
     },
     "payload": {
@@ -124,7 +124,7 @@ sql_fields_robot_arm = {
     },
     "control_box_description": {
         "datatype": "str",
-        "description": "Control box description. Without any website links. Do not create multiline lists.",
+        "description": "Detailed Description of Control box or Control Cabinet. Without any website links. Do not create multiline lists.",
         "sql_extra": {},
     },
     "tool_flange": {
@@ -151,7 +151,7 @@ sql_fields_robot_arm = {
     },
 }
 sql_fields_robot_arm_embed = {
-    "robot_arm_id": {
+    "parent_id": {
         "datatype": "int",
         "description": "The ID of the robot arm",
         "sql_extra": {"ForeignKey": "robot_arm.id", "nullable": "False"},
@@ -243,7 +243,7 @@ sql_fields_software = {
 }
 
 sql_fields_software_embed = {
-    "software_id": {
+    "parent_id": {
         "datatype": "int",
         "description": "The ID of the software product",
         "sql_extra": {"ForeignKey": "software.id", "nullable": "False"},
@@ -350,17 +350,17 @@ sql_fields_plc = {
     },
     "related_components": {
         "datatype": "str",
-        "description": "Hardware and software components related to this product or can be used together with this product. Without any website links. Do not create multiline lists.",
+        "description": "System (hardware and software) components related to this product or can be used together with this product. Without any website links. Do not create multiline lists.",
         "sql_extra": {},
     },
     "compatible_components": {
         "datatype": "str",
-        "description": "Compatible hardware and software components related this product or can be used together with this product. Without any website links. Do not create multiline lists.",
+        "description": "Compatible system (hardware and software) components related this product or can be used together with this product. Without any website links. Do not create multiline lists.",
         "sql_extra": {},
     },
     "must_have_components": {
         "datatype": "str",
-        "description": "Mandatory/must have hardware and software components and requierements requiered to use this product. Without any website links. Do not create multiline lists.",
+        "description": "Mandatory/must have system (hardware and software) components and requierements needed to use this product. Without any website links. Do not create multiline lists.",
         "sql_extra": {},
     },
     "references": {
@@ -371,7 +371,7 @@ sql_fields_plc = {
 }
 
 sql_fields_plc_embed = {
-    "plc_id": {
+    "parent_id": {
         "datatype": "int",
         "description": "The ID of the plc product",
         "sql_extra": {"ForeignKey": "plc.id", "nullable": "False"},

@@ -1,7 +1,7 @@
 {
     "company_name": "Franka Emika",
     "product_name": "Franka Production 3",
-    "document_type": "HARDWARE",
+    "document_type": "ROBOT_ARM",
     "pdf_urls": [
         "https://docs.google.com/uc?export=download&id=12-9k2hkZ8scDtjSXbLt8sEjvVP4fYbLE"
     ],

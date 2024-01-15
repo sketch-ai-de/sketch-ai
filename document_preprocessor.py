@@ -327,8 +327,8 @@ class DocumentPreprocessor:
             Extract relevant technical information from the provided PDF table. \
             If necessary, provide a translation into English. \
 
-            Identify and summarize the specific data that can be condensed. \
-            Put condensed data with all the context information into paragraphs. \
+            Identify and summarize the specific data that can be compound. \
+            Put compounded data with all the context information into paragraphs. \
             Put an empty line after each paragraph. \
             IMPORTANT NOTE: avoid using bullet points of any form, instead put all the related data in the paragraphs in sentences. \
                             
@@ -343,9 +343,12 @@ class DocumentPreprocessor:
             including any accompanying units of measurement and context. \
         """
         self._logger.info("Process sherpa table \n")
+        _collection_name = "sherpa_table_pdf_url_" + self.generate_random_string()
+        self._logger.info("Number of tables: " + str(len(self._pdf_docs_sherpa_tables)))
         for colection_name in self._pdf_docs_sherpa_tables.keys():
             self._pdf_docs_sherpa_tables[colection_name]["nodes"] = []
-            self._collections[colection_name] = []
+            # self._collections[colection_name] = []
+            self._collections[_collection_name] = []
             self._logger.info("Process sherpa table PDF \n")
             table_text = self._pdf_docs_sherpa_tables[colection_name]["text"]
             fmt_qa_prompt = qa_prompt.format(table=table_text)
@@ -365,9 +368,11 @@ class DocumentPreprocessor:
                     doc.metadata = self._pdf_docs_sherpa_tables[colection_name][
                         "metadata"
                     ]
-                    doc.metadata["collection_name"] = colection_name
+                    # doc.metadata["collection_name"] = colection_name
+                    doc.metadata["collection_name"] = _collection_name
                     self._nodes.append(doc)
-                    self._collections[colection_name].append(doc)
+                    # self._collections[colection_name].append(doc)
+                    self._collections[_collection_name].append(doc)
                     self._pdf_docs_sherpa_tables[colection_name]["nodes"].append(doc)
                     self._logger.debug(f"text: {text}")
 

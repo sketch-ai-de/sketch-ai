@@ -102,9 +102,7 @@ async def main():
         if history:
             logger.info(f"history: {history}")
 
-        response = await agent.astream_chat(
-            message=query_str + "\n Use tools and internal knowledge."
-        )
+        response = await agent.astream_chat(message=query_str + "\n Use tools.")
         print("Response: ", response)
 
         final_responce = ""

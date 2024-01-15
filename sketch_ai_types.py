@@ -25,7 +25,7 @@ device_type_dict = {el.name: el.value for el in DeviceType}
 
 
 class DocumentTypeRobotArm(Enum):
-    HARDWARE = 1
+    ROBOT_ARM = 1
     SOFTWARE = 2
     CONTROL_BOX = 3
     GRIPPER = 4

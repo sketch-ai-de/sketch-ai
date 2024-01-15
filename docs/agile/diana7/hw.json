@@ -1,7 +1,7 @@
 {
     "company_name": "Agile Robots AG",
     "product_name": "Diana 7",
-    "document_type": "HARDWARE",
+    "document_type": "ROBOT_ARM",
     "pdf_urls": [
         "https://www.agile-robots.com/media/files/products/diana-7/FINAL_05_AGS_Diana7_TechDataSheet_SCREEN__8_.pdf",
         "https://www.agile-robots.com/media/files/products/diana-7/FINAL_04_AGS_Diana7_Productflyer_sp_SCREEN__2_.pdf"

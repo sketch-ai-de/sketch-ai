@@ -209,7 +209,7 @@ To load the data from different sources for a component, create a ```json``` fil
 {
     "company_name": "Franka Emika",
     "product_name": "Franka Production 3",
-    "document_type": "HARDWARE",
+    "document_type": "ROBOT_ARM",
     "pdf_urls": [
         "https://docs.google.com/uc?export=download&id=12-9k2hkZ8scDtjSXbLt8sEjvVP4fYbLE"
     ],
@@ -238,6 +238,12 @@ To load the data from different sources for a component, create a ```json``` fil
     "load_pdfs": false,
     "load_urls": true
 }
+```
+
+##### Batch load
+
+```bash
+python3 batch_load.py
 ```
 
 

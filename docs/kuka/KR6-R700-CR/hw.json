@@ -1,7 +1,7 @@
 {
     "company_name": "Kuka",
     "product_name": "KR 6 R700 CR",
-    "document_type": "HARDWARE",
+    "document_type": "ROBOT_ARM",
     "pdf_urls": [
         "https://www.kuka.com/-/media/kuka-downloads/imported/8350ff3ca11642998dbdc81dcc2ed44c/0000293590_en.pdf?rev=fc8b894278714ce39c916a98ea377ce2&hash=71325FBD61F13CDE9E8E41B9508C430F"
     ],

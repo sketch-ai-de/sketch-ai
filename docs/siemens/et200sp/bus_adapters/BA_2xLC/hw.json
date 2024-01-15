@@ -1,0 +1,13 @@
+{
+    "company_name": "Siemens AG",
+    "product_name": "SIMATIC bus adapter BA 2xLC, 2x LC glass FOC connections, 6ES7193-6AG00-0AA0",
+    "document_type": "PLC",
+    "pdf_urls": [
+        "https://docs.rs-online.com/ea42/A700000006986712.pdf"
+    ],
+    "web_urls": [
+        "https://mall.industry.siemens.com/mall/en/WW/Catalog/Product/6ES7193-6AG00-0AA0"
+    ],
+    "load_pdfs": true,
+    "load_urls": true
+}

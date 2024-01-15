@@ -14,7 +14,7 @@ from sqlalchemy.orm import declarative_base, mapped_column
 
 from sqlalchemy import create_engine, PrimaryKeyConstraint
 
-from sqlalchemy import String, Float, Boolean
+from sqlalchemy import String, Float, Boolean, MetaData, Table, select
 
 
 class SQLHandlerBase:
@@ -96,3 +96,15 @@ class SQLHandlerBase:
         self.create_base()
         self._logger.info(f"Create table: {self._table_name}")
         self._base.metadata.create_all(self._engine)
+
+    def get_id(self, name):
+        id = None
+        with self._engine.connect() as connection:
+            connection.commit()
+            metadata = MetaData()
+            table = Table(self._table_name, metadata, autoload_with=self._engine)
+            stmt = select(table.c.id).where(table.c.product_name == name)
+            with self._engine.connect() as conn:
+                id = conn.execute(stmt).fetchall()
+
+        return id[0][0] if id else None

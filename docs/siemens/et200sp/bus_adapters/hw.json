@@ -1,0 +1,13 @@
+{
+    "company_name": "Siemens AG",
+    "product_name": "ET 200SP BusAdapter",
+    "document_type": "PLC",
+    "pdf_urls": [
+        "https://cache.industry.siemens.com/dl/files/716/109751716/att_942092/v1/et200sp_busadapter_manual_en-US_en-US.pdf"
+    ],
+    "web_urls": [
+        "https://mall.industry.siemens.com/mall/en/WW/Catalog/Products/10147556#"
+    ],
+    "load_pdfs": true,
+    "load_urls": true
+}

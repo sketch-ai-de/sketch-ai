@@ -56,21 +56,21 @@ class CreateTools:
                 stmt = (
                     select(robot_arm_embed_table.c.collection_name)
                     .where(robot_arm_table.c.product_name == value[0])
-                    .where(robot_arm_embed_table.c.robot_arm_id == robot_arm_table.c.id)
+                    .where(robot_arm_embed_table.c.parent_id == robot_arm_table.c.id)
                     .group_by(robot_arm_embed_table.c.collection_name)
                 )
             if table_name == "software":
                 stmt = (
                     select(robot_arm_embed_table.c.collection_name)
                     .where(robot_arm_table.c.product_name == value[0])
-                    .where(robot_arm_embed_table.c.software_id == robot_arm_table.c.id)
+                    .where(robot_arm_embed_table.c.parent_id == robot_arm_table.c.id)
                     .group_by(robot_arm_embed_table.c.collection_name)
                 )
             if table_name == "plc":
                 stmt = (
                     select(robot_arm_embed_table.c.collection_name)
                     .where(robot_arm_table.c.product_name == value[0])
-                    .where(robot_arm_embed_table.c.plc_id == robot_arm_table.c.id)
+                    .where(robot_arm_embed_table.c.parent_id == robot_arm_table.c.id)
                     .group_by(robot_arm_embed_table.c.collection_name)
                 )
             self.logger.debug(stmt)
@@ -91,12 +91,13 @@ class CreateTools:
                         storage_context,
                     ) = self.get_vector_store_from_collection(collection[0])
                     vector_stores.append(vector_store)
+            if not vector_stores:
+                continue
             _retriever = VectorDBRetriever(
                 vector_stores[0],  # default vector store
                 vector_stores,
                 self.embed_model,
                 query_mode="default",
-                similarity_top_k=int(10),
                 logger=self.logger,
                 service_context=self.service_context,
                 rerank=self.rerank,

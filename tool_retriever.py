@@ -16,7 +16,7 @@ class ToolRetriever(BaseRetriever):
         index: VectorStoreIndex = None,
         message: str = "",
         append_sql: bool = True,
-        similarity_top_k: int = 5,
+        similarity_top_k: int = 8,
         logger=None,
     ) -> None:
         self._message = message

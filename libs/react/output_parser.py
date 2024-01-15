@@ -55,6 +55,32 @@ def extract_tool_use_3(input_text: str) -> Tuple[str, str, str]:
     return thought, action, action_input
 
 
+def extract_tool_use_4(input_text: str) -> Tuple[str, str, str]:
+    pattern = r"\s*Thought 4:(.*?)Action 4:(.*?)Action Input 4:(.*?)(?:\n|$)"
+
+    match = re.search(pattern, input_text, re.DOTALL)
+    if not match:
+        raise ValueError(f"Could not extract tool use from input text: {input_text}")
+
+    thought = match.group(1).strip()
+    action = match.group(2).strip()
+    action_input = match.group(3).strip()
+    return thought, action, action_input
+
+
+def extract_tool_use_5(input_text: str) -> Tuple[str, str, str]:
+    pattern = r"\s*Thought 5:(.*?)Action 5:(.*?)Action Input 5:(.*?)(?:\n|$)"
+
+    match = re.search(pattern, input_text, re.DOTALL)
+    if not match:
+        raise ValueError(f"Could not extract tool use from input text: {input_text}")
+
+    thought = match.group(1).strip()
+    action = match.group(2).strip()
+    action_input = match.group(3).strip()
+    return thought, action, action_input
+
+
 def extract_final_response(input_text: str) -> Tuple[str, str]:
     pattern = r"\s*Thought 1:(.*?)Answer:(.*?)(?:$)"
 
@@ -157,6 +183,36 @@ class ReActOutputParser(BaseOutputParser):
             thoughts.append(thought3)
             actions.append(action3)
             action_inputs.append(action_input_dict3)
+
+        if "Action 4:" in output:
+            # thought, action, action_input = extract_tool_use(output)
+            thought4, action4, action_input4 = extract_tool_use_4(output)
+            json_str4 = extract_json_str(action_input4)
+
+            # First we try json, if this fails we use ast
+            try:
+                action_input_dict4 = json.loads(json_str4)
+            except json.JSONDecodeError:
+                action_input_dict4 = ast.literal_eval(json_str4)
+
+            thoughts.append(thought4)
+            actions.append(action4)
+            action_inputs.append(action_input_dict4)
+
+        if "Action 5:" in output:
+            # thought, action, action_input = extract_tool_use(output)
+            thought5, action5, action_input5 = extract_tool_use_5(output)
+            json_str5 = extract_json_str(action_input5)
+
+            # First we try json, if this fails we use ast
+            try:
+                action_input_dict5 = json.loads(json_str5)
+            except json.JSONDecodeError:
+                action_input_dict5 = ast.literal_eval(json_str5)
+
+            thoughts.append(thought5)
+            actions.append(action5)
+            action_inputs.append(action_input_dict5)
 
         return ActionReasoningStepArr(
             thoughts=thoughts, actions=actions, action_inputs=action_inputs
