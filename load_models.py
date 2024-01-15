@@ -91,13 +91,7 @@ def load_models(args, logger):
             messages_to_prompt=messages_to_prompt,
         )
         # TODO(qu): _embed_model = HuggingFaceEmbedding(model_name="WhereIsAI/UAE-Large-V1")
-        _embed_model = AzureOpenAIEmbedding(
-            model="text-embedding-ada-002",
-            deployment_name=_azure_ada_deployment_name,
-            api_key=_azure_openai_key,
-            azure_endpoint=_azure_endpoint,
-            api_version=api_version,
-        )
+        _embed_model = OpenAIEmbedding()
     else:
         raise ValueError(f"Service {llm_service} not supported")
 

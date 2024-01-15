@@ -29,7 +29,7 @@ class GetSQLDataToInsert:
     def make_llm_request(self, query_engine, query_str):
         response_dict = {}
         response = query_engine.query(query_str)
-        print("response:", response)
+        self.logger.info(f"response: {response}")
         # logger.info("response:::::::::::::::::::::\n", response.response)
         res = re.sub(r"json", "", re.sub(r"```", "", response.response))
         if " // " in res:
@@ -39,7 +39,7 @@ class GetSQLDataToInsert:
             response_dict = json.loads(res)
         except ValueError:
             response_dict = {}
-            print("Decoding JSON has failed")
+            self.logger.error("Decoding JSON has failed")
         for idx, node in enumerate(response.source_nodes):
             self.logger.debug(" Node {} with text \n: {}".format(idx, node.text))
         return response_dict

@@ -13,7 +13,7 @@ if [[ ! "$script" =~ \.py$ ]]; then
     exit 1
 fi
 
-if [[ "$script" == "chat_with_data.py" ]]; then
+if [[ "$script" == "chat_with_data.py" || "$script" == "load_data.py" ]]; then
     echo "Configure postgresql"
     # Required by postgresql
     chown -R postgres:postgres /var/lib/postgresql/16/main

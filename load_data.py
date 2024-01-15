@@ -27,6 +27,15 @@ parser.add_argument("-m", "--llm-model", default="gpt3", type=str, help="gpt3 or
 parser.add_argument(
     "-l", "--llm-service", default="azure", type=str, help="azure or openai"
 )
+parser.add_argument(
+    "--local-llm-address",
+    default="localhost",  # host.docker.internal for using docker under macOS
+    type=str,
+    help="address for local llm",
+)
+parser.add_argument(
+    "--local-llm-port", default="8080", type=str, help="port for local llm"
+)
 
 args = parser.parse_args()
 
