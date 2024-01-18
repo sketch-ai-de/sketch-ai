@@ -237,6 +237,7 @@ class ReActAgent(BaseAgent):
 
         # call tool with input
         reasoning_step = cast(ActionReasoningStepArr, current_reasoning[-1])
+        # print("reasoning_step: ", reasoning_step)
         steps = []
         for i in range(len(reasoning_step.actions)):
             steps.append(self._atool_request(tools_dict, reasoning_step, i))
@@ -498,6 +499,7 @@ class ReActAgent(BaseAgent):
         # get tools
         # TODO: do get tools dynamically at every iteration of the agent loop
         self.sources = []
+        # print("message: ", message)
         tools = self.get_tools(message)
         tools_ = set(tools)
         if len(self._selected_tools) != 0:
@@ -522,6 +524,7 @@ class ReActAgent(BaseAgent):
                 current_reasoning=current_reasoning,
             )
             # send prompt
+            # print("input_chat: ", input_chat)
             chat_stream = await self._llm.astream_chat(input_chat)
 
             # iterate over stream, break out if is final answer
@@ -540,12 +543,16 @@ class ReActAgent(BaseAgent):
                 tools=tools, output=full_response, is_streaming=True
             )
             if type(reasoning_steps[0]) == ActionReasoningStepArr:
+                # print("reasoning_steps thoughts: ", reasoning_steps[0].get_thoughts())
                 _tools = set()
                 for thought in reasoning_steps[0].get_thoughts():
                     _tools_for_thought = self.get_tools(thought)
                     for _tool in _tools_for_thought:
                         _tools.add(_tool)
+                # print("appending done")
+                # print("tools_before: ", tools)
                 tools = list(_tools)
+                # print("tools_after: ", tools)
             current_reasoning.extend(reasoning_steps)
 
         # Get the response in a separate thread so we can yield the response
