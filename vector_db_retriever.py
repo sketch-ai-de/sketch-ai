@@ -123,13 +123,13 @@ class VectorDBRetriever(BaseRetriever):
             # reranked_nodes = reranker.postprocess_nodes(
             #    nodes_with_scores, query_str=query_bundle.query_str
             # )
-            print(reranked_nodes)
+            # print(reranked_nodes)
             return reranked_nodes
         else:
             nodes_with_scores_sorted = sorted(
                 nodes_with_scores, key=lambda d: d.score, reverse=True
             )
-            print(nodes_with_scores_sorted)
+            # print(nodes_with_scores_sorted)
             return nodes_with_scores_sorted[0 : self._similarity_top_k]
 
         # self.logger.debug(f"reranked_nodes MERGED: {reranked_nodes}")
