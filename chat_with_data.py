@@ -157,9 +157,15 @@ async def main():
         print(f"Elapsed time: {toc - tic:0.4f} seconds")
     else:
         import gradio as gr
+        from gradio.components import Button
+
+        generate = Button(value="Generate Project")
+        stock = Button(value="Check Stock")
+        order = Button(value="Order")
 
         chatbot = gr.Chatbot(height=600, label="Sketch-AI Hardware Selection Advisor")
         gr.ChatInterface(
+            title="Sketch-AI Hardware Selection Advisor",
             chatbot=chatbot,
             fn=predict,
             textbox=gr.Textbox(
@@ -170,6 +176,7 @@ async def main():
                 scale=5,
             ),
             examples=[
+                "List of all robots with a payload of 3 kg or more.",
                 "How many axes does the robot Franka Emika production have?",
                 "What is the payload of the Kuka LBR iiwa 7 R800?",
                 (
@@ -185,11 +192,16 @@ async def main():
                 "What are the input modules for siemens et200sp?",
                 "Tell me more about Frankas FCI interface.",
             ],
-            retry_btn=None,
-            undo_btn=None,
-            clear_btn=None,
+            retry_btn=stock,
+            undo_btn=order,
+            clear_btn=generate,
             css="footer{display:none !important}",
-        ).queue().launch(server_name="0.0.0.0", show_api=False, auth=("admin", "admin"))
+        ).queue().launch(
+            server_name="0.0.0.0",
+            show_api=False,
+            auth=("user", "user"),
+            favicon_path="/home/dimi/repos/sketch-ai/images/favicon.ico",
+        )
 
 
 if __name__ == "__main__":
