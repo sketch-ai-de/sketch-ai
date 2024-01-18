@@ -71,7 +71,7 @@ async def main():
         tools=query_engine_tools,
         sql_tools=sql_query_engine_tool,
         embed_model=embed_model,
-        append_sql=False,
+        append_sql=True,
         logger=logger,
     )
     tool_retriever.create_vector_index_from_tools()
