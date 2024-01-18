@@ -162,24 +162,25 @@ class CreateTools:
             metadata=ToolMetadata(
                 name="database",
                 description="""This query engine provides access to the database. Use it to query the database directly.
-                    The table "robot_arm" represents different robots. It contains the following columns: \
-                                id: identifier \
-                                device_type_name: name of the device type \
-                                device_type_id: identifier of the device type \
-                                company_name: name of the company \
-                                product_name: name of the product \
-                                product_description: description of the product \
-                                payload: payload in kg \
-                                reach: reachability in mm \
-                                weight: weight in kg \
-                    IMPORTANT NOTE: For the search in the columns company_name and product_name and product_description, use SQL ILIKE operator instead. \
-                    Do not select all the columns, only relevant ones, e.g. company_name and product_name. \
-                    Seach case insensitive by using SQL ILIKE operator. \
-                    Always use wildcards % before and after the search string. \
-                    If you count number of tables in the database, use SQL COUNT function with AS keyword. \
-                    Never use column names in the query that do not exist in the table description. \
-                    Be sparing when creating SQL queries. Minimize the number of selected columns. \
-                        """,
+                The table "robot_arm" represents different robots and contains the following columns: 
+                - id: identifier
+                - device_type_name: name of the device type
+                - device_type_id: identifier of the device type
+                - company_name: name of the company
+                - product_name: name of the product
+                - product_description: description of the product
+                - payload: payload in kg
+                - reach: reachability in mm
+                - weight: weight in kg \
+
+                IMPORTANT NOTE: 
+                - For searching in the columns company_name, product_name, and product_description, use SQL ILIKE operator instead.
+                - Use SQL ILIKE operator for case-insensitive search by using wildcards (%) before and after the search string.
+                - Only select relevant columns, such as company_name and product_name.
+                - When counting the number of tables in the database, use SQL COUNT function with AS keyword.
+                - Avoid using column names in the query that do not exist in the table description.
+                - Minimize the number of selected columns in SQL queries.
+                """,
             ),
         )
         return query_engine_tool
