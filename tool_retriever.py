@@ -48,9 +48,9 @@ class ToolRetriever(BaseRetriever):
             tools_.append(self._sql_tools)
         #        tools_.append(self._tools[-1])  # add SQL tool
 
-        self._logger.debug("Tools before: ", self._tools)
+        self._logger.debug(f"Tools before: {self._tools}")
         _tmp = set(adapt_to_async_tool(t) for t in tools_)
-        self._logger.debug("Tools after: ", list(_tmp))
+        self._logger.debug(f"Tools after: {list(_tmp)}")
         return list(_tmp)
 
         # return [adapt_to_async_tool(t) for t in tools_]
