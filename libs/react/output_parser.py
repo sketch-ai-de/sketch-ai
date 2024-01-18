@@ -23,59 +23,74 @@ def extract_tool_use_1(input_text: str) -> Tuple[str, str, str]:
     if not match:
         raise ValueError(f"Could not extract tool use from input text: {input_text}")
 
-    thought = match.group(1).strip()
+    try:
+        thought = match.group(1).strip()
+    except:
+        thought = ""
     action = match.group(2).strip()
     action_input = match.group(3).strip()
     return thought, action, action_input
 
 
 def extract_tool_use_2(input_text: str) -> Tuple[str, str, str]:
-    pattern = r"\s*Thought 2:(.*?)Action 2:(.*?)Action Input 2:(.*?)(?:\n|$)"
+    pattern = r"\s*(?:Thought 2:)?(.*?)Action 2:(.*?)Action Input 2:(.*?)(?:\n|$)"
 
     match = re.search(pattern, input_text, re.DOTALL)
     if not match:
         raise ValueError(f"Could not extract tool use from input text: {input_text}")
 
-    thought = match.group(1).strip()
+    try:
+        thought = match.group(1).strip()
+    except:
+        thought = ""
     action = match.group(2).strip()
     action_input = match.group(3).strip()
     return thought, action, action_input
 
 
 def extract_tool_use_3(input_text: str) -> Tuple[str, str, str]:
-    pattern = r"\s*Thought 3:(.*?)Action 3:(.*?)Action Input 3:(.*?)(?:\n|$)"
+    pattern = r"\s*(?:Thought 3:)?(.*?)Action 3:(.*?)Action Input 3:(.*?)(?:\n|$)"
 
     match = re.search(pattern, input_text, re.DOTALL)
     if not match:
         raise ValueError(f"Could not extract tool use from input text: {input_text}")
 
-    thought = match.group(1).strip()
+    try:
+        thought = match.group(1).strip()
+    except:
+        thought = ""
     action = match.group(2).strip()
     action_input = match.group(3).strip()
     return thought, action, action_input
 
 
 def extract_tool_use_4(input_text: str) -> Tuple[str, str, str]:
-    pattern = r"\s*Thought 4:(.*?)Action 4:(.*?)Action Input 4:(.*?)(?:\n|$)"
+    pattern = r"\s*(?:Thought 4:)?(.*?)Action 4:(.*?)Action Input 4:(.*?)(?:\n|$)"
 
     match = re.search(pattern, input_text, re.DOTALL)
     if not match:
         raise ValueError(f"Could not extract tool use from input text: {input_text}")
 
-    thought = match.group(1).strip()
+    try:
+        thought = match.group(1).strip()
+    except:
+        thought = ""
     action = match.group(2).strip()
     action_input = match.group(3).strip()
     return thought, action, action_input
 
 
 def extract_tool_use_5(input_text: str) -> Tuple[str, str, str]:
-    pattern = r"\s*Thought 5:(.*?)Action 5:(.*?)Action Input 5:(.*?)(?:\n|$)"
+    pattern = r"\s*(?:Thought 5:)?(.*?)Action 5:(.*?)Action Input 5:(.*?)(?:\n|$)"
 
     match = re.search(pattern, input_text, re.DOTALL)
     if not match:
         raise ValueError(f"Could not extract tool use from input text: {input_text}")
 
-    thought = match.group(1).strip()
+    try:
+        thought = match.group(1).strip()
+    except:
+        thought = ""
     action = match.group(2).strip()
     action_input = match.group(3).strip()
     return thought, action, action_input
@@ -115,10 +130,14 @@ class ReActOutputParser(BaseOutputParser):
             ```
         """
 
-        print("output_xxxxxxxxxxxxxxxxx: ", output)
+        # print("output_xxxxxxxxxxxxxxxxx: ", output)
         if (
-            "Thought 1" or "Thought 2" or "Thought 3"
-        ) not in output and not "Answer:" in output:
+            all(
+                thought not in output
+                for thought in ["Thought 1", "Thought 2", "Thought 3"]
+            )
+            and "Answer:" not in output
+        ):
             # NOTE: handle the case where the agent directly outputs the answer
             # instead of following the thought-answer format
             return ResponseReasoningStep(
@@ -139,9 +158,9 @@ class ReActOutputParser(BaseOutputParser):
         if "Action 1:" in output:
             # thought, action, action_input = extract_tool_use(output)
             thought1, action1, action_input1 = extract_tool_use_1(output)
-            print("action_input1: ", action_input1)
-            print("thought1: ", thought1)
-            print("action1: ", action1)
+            # print("action_input1: ", action_input1)
+            # print("thought1: ", thought1)
+            # print("action1: ", action1)
             json_str1 = extract_json_str(action_input1)
 
             # First we try json, if this fails we use ast
