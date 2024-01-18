@@ -108,7 +108,7 @@ class CreateTools:
             query_engine_tool = QueryEngineTool(
                 query_engine=_query_engine,
                 metadata=ToolMetadata(
-                    name=key.replace(" ", "-").replace(",", "-"),
+                    name=key.replace(" ", "-").replace(",", "-").replace("--", "-"),
                     description=(
                         str(robot_arms_descriptions[key][0][0])
                         # +"\n Use a detailed plain text question as input to the tool."
