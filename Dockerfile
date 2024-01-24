@@ -28,8 +28,4 @@ COPY ./libs /sketch-ai/libs
 COPY ./examples /sketch-ai/examples
 COPY ./entrypoint.sh /sketch-ai/
 
-# TODO(qu): in mid-term sketch-ai should allow adding new data to database without rebuilding the docker image
-COPY ./chroma_db /sketch-ai/chroma_db
-COPY postgresql_backup.sql /sketch-ai/postgresql_backup.sql
-
 ENTRYPOINT ["/sketch-ai/entrypoint.sh"]
