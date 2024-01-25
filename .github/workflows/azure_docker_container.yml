@@ -9,6 +9,10 @@ jobs:
         - name: 'Checkout GitHub Action'
           uses: actions/checkout@main
 
+        - name: 'Create env file'
+          run: |
+            echo "${{ secrets.ENV_FILE }}" > .env
+
         - name: 'Login via Azure CLI'
           uses: azure/login@v1
           with:
