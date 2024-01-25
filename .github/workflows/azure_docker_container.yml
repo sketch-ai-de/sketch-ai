@@ -38,4 +38,4 @@ jobs:
             registry-username: ${{ secrets.REGISTRY_USERNAME }}
             registry-password: ${{ secrets.REGISTRY_PASSWORD }}
             name: aci-sketch-ai
-            location: 'west us'
+            location: 'West Europe'
