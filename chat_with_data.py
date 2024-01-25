@@ -1,15 +1,13 @@
+import argparse
 import logging
 import sys
-import argparse
 import time
 
 from llama_index.service_context import ServiceContext
 
 from create_tools import CreateTools
-
-from tool_retriever import ToolRetriever
-
 from load_models import load_models
+from tool_retriever import ToolRetriever
 
 
 async def main():
@@ -62,7 +60,7 @@ async def main():
         service_context=service_context,
         logger=logger,
         embed_model=embed_model,
-        chroma_db_path="./chroma_db",
+        chroma_db_path="./db/chroma_db",
         rerank=args.rerank,
     )
     query_engine_tools, sql_query_engine_tool = create_tools.get_tools()

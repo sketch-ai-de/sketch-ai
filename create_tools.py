@@ -1,5 +1,6 @@
-from vector_db_retriever import VectorDBRetriever
 from typing import Any
+
+from vector_db_retriever import VectorDBRetriever
 
 
 class CreateTools:
@@ -22,7 +23,7 @@ class CreateTools:
         from llama_index.storage.storage_context import StorageContext
         from llama_index.vector_stores import ChromaVectorStore
 
-        chroma_db_path = self.chroma_db_path  # "./chroma_db"
+        chroma_db_path = self.chroma_db_path  # "./db/chroma_db"
         db = chromadb.PersistentClient(path=chroma_db_path)
         chroma_collection = db.get_or_create_collection(collection_name)
         vector_store = ChromaVectorStore(chroma_collection=chroma_collection)
@@ -34,7 +35,6 @@ class CreateTools:
     ):
         from llama_index.query_engine import RetrieverQueryEngine
         from llama_index.tools import QueryEngineTool, ToolMetadata
-
         # sql_engine, RobotSQLTable = create_sql_engine()
         from sqlalchemy import MetaData, Table, select
 

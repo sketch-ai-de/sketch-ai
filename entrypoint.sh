@@ -36,7 +36,7 @@ if [[ "$script" == "chat_with_data.py" || "$script" == "load_data.py" ]]; then
     su postgres -c "psql --command \"ALTER USER postgres with encrypted password 'postgres';\"" > /dev/null
     #su postgres -c "psql --command \"CREATE DATABASE postgres;\""
     echo "Create database and tables"
-    su postgres -c "psql postgresql://postgres:postgres@127.0.0.1/postgres < postgresql_backup.sql" > /dev/null
+    su postgres -c "psql postgresql://postgres:postgres@127.0.0.1/postgres < db/postgresql_backup.sql" > /dev/null
 
 fi
 

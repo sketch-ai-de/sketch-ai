@@ -3,10 +3,8 @@ from typing import List, Tuple
 import chromadb
 from langchain.output_parsers import StructuredOutputParser
 from llama_index.output_parsers import LangchainOutputParser
-from llama_index.prompts.default_prompts import (
-    DEFAULT_REFINE_PROMPT_TMPL,
-    DEFAULT_TEXT_QA_PROMPT_TMPL,
-)
+from llama_index.prompts.default_prompts import (DEFAULT_REFINE_PROMPT_TMPL,
+                                                 DEFAULT_TEXT_QA_PROMPT_TMPL)
 from llama_index.prompts.prompts import QuestionAnswerPrompt, RefinePrompt
 from llama_index.query_engine import RetrieverQueryEngine
 from llama_index.schema import TextNode
@@ -118,7 +116,7 @@ class VectorDBLoader:
         Returns:
         - A tuple containing a ChromaVectorStore object, a StorageContext object, and a chromadb Collection object.
         """
-        chroma_db_path = "./chroma_db"
+        chroma_db_path = "./db/chroma_db"
         db = chromadb.PersistentClient(path=chroma_db_path)
         chroma_collection = db.get_or_create_collection(collection)
         vector_store = ChromaVectorStore(chroma_collection=chroma_collection)

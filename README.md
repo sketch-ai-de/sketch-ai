@@ -19,16 +19,16 @@ To retrieve sketch drawings based on your description, export your OpenAI API ke
 
 #### ChromaDB
 
-Ensure there is a database folder `chroma-db`.
+Ensure there is a database folder `db/chroma-db`.
 
 #### Postgresql
 
-Ensure there is a sql dump `postgresql_backup.sql`.
+Ensure there is a sql dump `db/postgresql_backup.sql`.
 
 Or create a dump of local SQL database:
 
 ```sh
-pg_dump -h 127.0.0.1 -U postgres -W postgres > postgresql_backup.sql
+pg_dump -h 127.0.0.1 -U postgres -W postgres > db/postgresql_backup.sql
 ```
 
 ### Step 3: Build the docker image

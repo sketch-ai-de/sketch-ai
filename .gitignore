@@ -1,7 +1,6 @@
 .env
 openai-env/*
-chroma_db
-postgresql_data
+db
 *__pycache__*
 *.db
 settings.json
