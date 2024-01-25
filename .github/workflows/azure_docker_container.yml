@@ -28,14 +28,10 @@ jobs:
             docker build . -t ${{ secrets.REGISTRY_LOGIN_SERVER }}/sketch-ai:${{ github.sha }}
             docker push ${{ secrets.REGISTRY_LOGIN_SERVER }}/sketch-ai:${{ github.sha }}
 
-        - name: 'Deploy to Azure Container Instances'
-          uses: 'azure/aci-deploy@v1'
+        - name: 'Deploy to Azure Container App'
+          uses: azure/container-apps-deploy-action@v1
           with:
-            resource-group: ${{ secrets.RESOURCE_GROUP }}
-            dns-name-label: ${{ secrets.RESOURCE_GROUP }}${{ github.run_number }}
-            image: ${{ secrets.REGISTRY_LOGIN_SERVER }}/sketch-ai:${{ github.sha }}
-            registry-login-server: ${{ secrets.REGISTRY_LOGIN_SERVER }}
-            registry-username: ${{ secrets.REGISTRY_USERNAME }}
-            registry-password: ${{ secrets.REGISTRY_PASSWORD }}
-            name: aci-sketch-ai
-            location: 'West Europe'
+            acrName: sketchai
+            containerAppName: container-app-sketch-ai
+            resourceGroup: ContainerApp-Sketch-AI
+            imageToDeploy: sketchai.azurecr.io/sketch-ai:${{ github.sha }}
