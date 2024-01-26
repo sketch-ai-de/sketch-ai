@@ -23,13 +23,7 @@ Ensure there is a database folder `db/chroma-db`.
 
 #### Postgresql
 
-Ensure there is a sql dump `db/postgresql_backup.sql`.
-
-Or create a dump of local SQL database:
-
-```sh
-pg_dump -h 127.0.0.1 -U postgres -W postgres > db/postgresql_backup.sql
-```
+For now, we hard code the login credentials to connect to our Azure Database for PostgreSQL flexible server.
 
 ### Step 3: Build the docker image
 

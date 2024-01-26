@@ -1,26 +1,14 @@
-from sqlalchemy import (
-    Float,
-    ForeignKey,
-    Integer,
-    String,
-    Boolean,
-    create_engine,
-    text,
-)
-
 from pgvector.sqlalchemy import Vector
-
+from sqlalchemy import (Boolean, Float, ForeignKey, Integer, MetaData,
+                        PrimaryKeyConstraint, String, Table, create_engine,
+                        select, text)
 from sqlalchemy.orm import declarative_base, mapped_column
-
-from sqlalchemy import create_engine, PrimaryKeyConstraint
-
-from sqlalchemy import String, Float, Boolean, MetaData, Table, select
 
 
 class SQLHandlerBase:
     def __init__(
         self,
-        engine_config="postgresql+psycopg2://postgres:postgres@localhost:5432/postgres",
+        engine_config="postgresql+psycopg2://postgres:P0$tgres@sketch-ai-postgres.postgres.database.azure.com:5432/postgres",
         engine=None,
         table_name=None,
         sql_fields=None,

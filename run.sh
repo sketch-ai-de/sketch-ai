@@ -20,14 +20,6 @@ if [ ! -d "${SCRIPT_DIR}/db/chroma_db" ]; then
     mkdir ${SCRIPT_DIR}/db/chroma_db
 fi
 
-# TODO(qu): Remove this after we set up the connection to the postgresql database on Azure
-# Check if db/postgresql_backup.sql file exists
-if [ ! -f "${SCRIPT_DIR}/db/postgresql_backup.sql" ]; then
-    echo "Error:"
-    echo "    db/postgresql_backup.sql file not found. Please place the file in the same directory as this script."
-    exit 1
-fi
-
 # Run the docker container with all arguments
 docker run -v ${SCRIPT_DIR}/db:/sketch-ai/db \
        -p 7860:7860 -p 8080:8080 --name sketch-ai-container -ti sketch-ai "$@"
