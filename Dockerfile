@@ -13,6 +13,7 @@ RUN apt-get update -y && DEBIAN_FRONTEND=noninteractive apt-get install -y \
     postgresql \
     postgresql-16-pgvector \
     postgresql-contrib \
+    vim \
     && rm -rf /var/lib/apt/lists/*
 
 RUN localedef -f UTF-8 -i en_US en_US.UTF-8
