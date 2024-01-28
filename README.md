@@ -19,7 +19,18 @@ To retrieve sketch drawings based on your description, export your OpenAI API ke
 
 #### ChromaDB
 
-Ensure there is a database folder `db/chroma-db`.
+Ensure there is a database folder `db/chroma_db`.
+
+In order to make it work with Azure - "File Share", you have to prepare the chroma.sqlite3 with the following command before uploading it to Azure.
+
+```sh
+sqlite3 db/chroma_db 'PRAGMA journal_mode=wal;'
+```
+
+For more information, see:
+
+* https://github.com/sketch-ai-de/sketch-ai/issues/2
+* https://stackoverflow.com/a/66567897/6018272
 
 #### Postgresql
 
