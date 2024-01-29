@@ -1,10 +1,7 @@
-from langchain.output_parsers import ResponseSchema
-
-import json, re
-
-
 import json
 import re
+
+from langchain.output_parsers import ResponseSchema
 
 
 class GetSQLDataToInsert:
@@ -20,7 +17,7 @@ class GetSQLDataToInsert:
     ):
         self.logger = logger
         self.retriever = retriever
-        self.DBLoader = DBLoader
+        self.db_loader = DBLoader
         self.product_name = product_name
         self.fields_dict = fields_dict
         self.fields_dict_embed = fields_dict_embed
@@ -41,7 +38,7 @@ class GetSQLDataToInsert:
             response_dict = {}
             self.logger.error("Decoding JSON has failed")
         for idx, node in enumerate(response.source_nodes):
-            self.logger.debug(" Node {} with text \n: {}".format(idx, node.text))
+            self.logger.debug(f"Node {idx} with text \n: {node.text}")
         return response_dict
 
     def get_data(self):
@@ -61,14 +58,10 @@ class GetSQLDataToInsert:
                 type=self.fields_dict[key]["datatype"],
             )
             response_schemas = [field]
-            query_engine = self.DBLoader.get_query_engine(
+            query_engine = self.db_loader.get_query_engine(
                 response_schemas, self.retriever
             )
-            query_str = "For the field {} get all the relevant and detailed information for the product {} based on fields description: {}".format(
-                key,
-                self.product_name,
-                self.fields_dict[key]["description"],
-            )
+            query_str = f"For the field {key} get all the relevant and detailed information for the product {self.product_name} based on fields description: {self.fields_dict[key]['description']}"
             response_device_details_dict = self.make_llm_request(
                 query_engine, query_str
             )
@@ -83,13 +76,13 @@ class GetSQLDataToInsert:
 
         return response_device_dict
 
-    def get_embed_data(self, id, nodes):
+    def get_embed_data(self, product_name_id, nodes):
         response_device_list = []
 
         for node in nodes:
             response_device_dict = self.fields_dict_embed
             response_device_dict = {
-                "parent_id": id,
+                "parent_id": product_name_id,
                 "document_type": node.metadata["document_type"],
                 "page_label": (int(node.metadata["page_idx"]))
                 if "page_idx" in node.metadata

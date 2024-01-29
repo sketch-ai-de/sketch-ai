@@ -53,7 +53,7 @@ class SQLHandlerBase:
                 Integer,
                 primary_key=True,
                 autoincrement=True,
-                comment="Unique identifier for the {}".format(self._table_name),
+                comment=f"Unique identifier for the {self._table_name}",
             )
             # print("sql_fields: ", sql_fields)
             for field in sql_fields.keys():
@@ -86,13 +86,13 @@ class SQLHandlerBase:
         self._base.metadata.create_all(self._engine)
 
     def get_id(self, name):
-        id = None
+        name_id = None
         with self._engine.connect() as connection:
             connection.commit()
             metadata = MetaData()
             table = Table(self._table_name, metadata, autoload_with=self._engine)
             stmt = select(table.c.id).where(table.c.product_name == name)
             with self._engine.connect() as conn:
-                id = conn.execute(stmt).fetchall()
+                name_id = conn.execute(stmt).fetchall()
 
-        return id[0][0] if id else None
+        return name_id[0][0] if name_id else None

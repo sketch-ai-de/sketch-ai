@@ -18,20 +18,12 @@ sql_fields_robot_arm = {
     "company_name": {"datatype": "str", "description": "Company name", "sql_extra": {}},
     "device_type_name": {
         "datatype": "str",
-        "description": (
-            "Device type name. List of device types:{device_types}:".format(
-                device_types=device_type_dict,
-            )
-        ),
+        "description": f"Device type name. List of device types:{device_type_dict}:",
         "sql_extra": {},
     },
     "device_type_id": {
         "datatype": "int",
-        "description": (
-            "Device type id. List of device types:{device_types}:".format(
-                device_types=device_type_dict,
-            )
-        ),
+        "description": (f"Device type id. List of device types:{device_type_dict}:"),
         "sql_extra": {},
     },
     "product_name": {"datatype": "str", "description": "Product name", "sql_extra": {}},
@@ -215,19 +207,13 @@ sql_fields_software = {
     "device_type_name": {
         "datatype": "str",
         "description": (
-            "Software device type name. List of types:{device_types}:".format(
-                device_types=device_type_dict,
-            )
+            f"Software device type name. List of types:{device_type_dict}:"
         ),
         "sql_extra": {},
     },
     "device_type_id": {
         "datatype": "int",
-        "description": (
-            "Software type id. List of types:{device_types}:".format(
-                device_types=device_type_dict,
-            )
-        ),
+        "description": (f"Software type id. List of types:{device_type_dict}:"),
         "sql_extra": {},
     },
     "product_name": {
@@ -308,19 +294,13 @@ sql_fields_plc = {
     "device_type_name": {
         "datatype": "str",
         "description": (
-            "Software device type name. List of types:{device_types}:".format(
-                device_types=device_type_dict,
-            )
+            f"Software device type name. List of types:{device_type_dict}:"
         ),
         "sql_extra": {},
     },
     "device_type_id": {
         "datatype": "int",
-        "description": (
-            "Software type id. List of types:{device_types}:".format(
-                device_types=device_type_dict,
-            )
-        ),
+        "description": (f"Software type id. List of types:{device_type_dict}:"),
         "sql_extra": {},
     },
     "product_name": {

@@ -1,20 +1,23 @@
+import os
+import random
 import re
+import string
+import subprocess
+from pathlib import Path
 
 from llama_hub.file.pymu_pdf.base import PyMuPDFReader
+from llama_hub.file.unstructured import UnstructuredReader
 from llama_index import Document, download_loader
+from llama_index.node_parser import SentenceSplitter
 from llama_index.prompts import PromptTemplate
+from llama_index.readers.schema.base import Document
 from llama_index.schema import TextNode
-
 from llmsherpa.readers import LayoutPDFReader
 
 from metadata import Metadata
-import subprocess
-from llama_index.node_parser import SentenceSplitter
 
-from pathlib import Path
-from llama_hub.file.unstructured import UnstructuredReader
-import os
-import random, string
+# TODO(qu): Consider using this for splitting code
+# from llama_index.text_splitter import CodeSplitter
 
 
 class DocumentPreprocessor:
@@ -32,13 +35,13 @@ class DocumentPreprocessor:
         self._metadata = metadata
         self._logger = logger
         self._llm = llm
-        self._nodes = list()
+        self._nodes = []
         self._embedding = None
-        self._collections = dict()
-        self._url_docs = dict()
-        self._pdf_docs = dict()
-        self._pdf_docs_sherpa = dict()
-        self._pdf_docs_sherpa_tables = dict()
+        self._collections = {}
+        self._url_docs = {}
+        self._pdf_docs = {}
+        self._pdf_docs_sherpa = {}
+        self._pdf_docs_sherpa_tables = {}
 
         self._pdf_name = "temp.pdf"
         self._load_sherpa = load_sherpa
@@ -53,7 +56,7 @@ class DocumentPreprocessor:
 
     def path_generator(self, target_directory):
         url_list = []
-        for root, dirs, files in os.walk(target_directory):
+        for root, _, files in os.walk(target_directory):
             for file in files:
                 if any(ext in file for ext in [".html", ".htm"]):
                     url_list.append(f"{root}/{file}")
@@ -65,19 +68,17 @@ class DocumentPreprocessor:
         return documents  # returns text and source url (metadata) from an HTML fil
 
     def load_from_html(self, html):
-        WebPageReader = download_loader("SimpleWebPageReader")
-        url_loader = WebPageReader()
+        web_page_reader = download_loader("SimpleWebPageReader")
+        url_loader = web_page_reader()
         docs = url_loader.load_data(url=html)
         return docs  # returns text and source url (metadata) from an HTML file
-
-    import subprocess
 
     def load_urls_from_path(self, urls):
         """
         Loads documents from URLs.
         """
         path = "tmp" + self.generate_random_string(3)
-        subprocess.run(["mkdir", path], shell=False)
+        subprocess.run(["mkdir", path], shell=False, check=True)
         for url in urls:
             _docs = []
             collection_name = "web_url_" + self.generate_random_string()
@@ -126,7 +127,7 @@ class DocumentPreprocessor:
                 for doc in docs:
                     doc.metadata.update(self._url_docs[collection_name]["metadata"])
             self.remove_none_fields(self._url_docs)
-            subprocess.run(["rm", path + "/test.html"])
+            subprocess.run(["rm", path + "/test.html"], check=True)
         subprocess.run(["rm", "-r", path])
 
     def load_pdfs(self):
@@ -151,7 +152,7 @@ class DocumentPreprocessor:
 
                 if self._load_sherpa:
                     self.load_sherpa_pdfs(idx, pdf_url)
-                subprocess.run(["rm", "", self._pdf_name])
+                subprocess.run(["rm", "", self._pdf_name], check=True)
 
     def load_sherpa_pdfs(self, idx, pdf_url):
         """
@@ -198,7 +199,9 @@ class DocumentPreprocessor:
             ] = pdf_url
             self._pdf_docs_sherpa_tables[collection_name_sherpa_table_pdf]["metadata"][
                 "page_idx"
-            ] = (int(table.page_idx) + 1)
+            ] = (
+                int(table.page_idx) + 1
+            )  # pylint: disable=superfluous-parens
 
     def remove_none_fields(self, docs_dict):
         """
@@ -219,7 +222,6 @@ class DocumentPreprocessor:
         - documents (Document): a Document object.
         """
         # self.load_pdfs()
-        from llama_index.text_splitter import CodeSplitter
 
         self._logger.info("Process urls \n")
         for colection_name in self._url_docs.keys():
@@ -284,7 +286,7 @@ class DocumentPreprocessor:
         for colection_name in self._pdf_docs.keys():
             self._pdf_docs[colection_name]["nodes"] = []
             self._collections[colection_name] = []
-            for doc_idx, doc in enumerate(self._pdf_docs[colection_name]["pdf"]):
+            for _, doc in enumerate(self._pdf_docs[colection_name]["pdf"]):
                 # self._pdf_docs[colection_name]["metadata"] = self._metadata.get_dict()
                 if len(doc.text) > 200:
                     self._logger.info(
@@ -319,9 +321,6 @@ class DocumentPreprocessor:
         Processes sherpa table PDF documents.
 
         """
-        from llama_index.prompts import PromptTemplate
-        from llama_index.readers.schema.base import Document
-
         qa_prompt = PromptTemplate(
             """\
             Extract relevant technical information from the provided PDF table. \
@@ -331,7 +330,7 @@ class DocumentPreprocessor:
             Put compounded data with all the context information into paragraphs. \
             Put an empty line after each paragraph. \
             IMPORTANT NOTE: avoid using bullet points of any form, instead put all the related data in the paragraphs in sentences. \
-                            
+
             IMPORTANT NOTE: Preserve all technical information data, including any accompanying units of measurement and context. \
 
             PDF page: '{table}'

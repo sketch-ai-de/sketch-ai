@@ -1,17 +1,10 @@
-from llama_index.llms import AzureOpenAI
-from llama_index.embeddings import AzureOpenAIEmbedding
-from llama_index.embeddings import OpenAIEmbedding
-from llama_index.llms import OpenAI
-from llama_index.embeddings import HuggingFaceEmbedding
-from llama_index.llms import LlamaCPP
-from llama_index.llms.llama_utils import (
-    messages_to_prompt,
-    completion_to_prompt,
-)
+import os
 
 import openai
-import os
 from dotenv import load_dotenv
+from llama_index.embeddings import AzureOpenAIEmbedding, OpenAIEmbedding
+from llama_index.llms import AzureOpenAI, OpenAI, OpenAILike
+from llama_index.llms.llama_utils import messages_to_prompt
 
 
 def load_models(args, logger):
@@ -78,8 +71,6 @@ def load_models(args, logger):
             api_version=api_version,
         )
     elif llm_service == "local":
-        from llama_index.llms import OpenAILike
-
         MAC_M1_LUNADEMO_CONSERVATIVE_TIMEOUT = 10 * 60  # sec
         _llm = OpenAILike(
             max_tokens=4096,

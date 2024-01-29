@@ -3,6 +3,7 @@ import logging
 import sys
 import time
 
+import gradio
 from llama_index.service_context import ServiceContext
 
 from create_tools import CreateTools
@@ -38,12 +39,12 @@ async def main():
     args = parser.parse_args()
 
     logger = logging.getLogger(__name__)
-    streamHandler = logging.StreamHandler(sys.stdout)
+    stream_handler = logging.StreamHandler(sys.stdout)
     formatter = logging.Formatter(
         "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
     )
-    streamHandler.setFormatter(formatter)
-    logger.addHandler(streamHandler)
+    stream_handler.setFormatter(formatter)
+    logger.addHandler(stream_handler)
 
     logger.setLevel(logging.DEBUG if args.debug else logging.INFO)
 
@@ -76,12 +77,14 @@ async def main():
 
     if args.seq_react or args.llm_model == "local":
         logger.info("Using standard ReActAgent")
+
         from llama_index.agent import ReActAgent
     else:
         logger.info("Using customized ReActAgent from libs.react.base")
-        from libs.react.base import ReActAgent
+        from libs.react.base import \
+            ReActAgent  # pylint: disable=import-outside-toplevel
 
-    agent_sys_promt = f"""\
+    agent_sys_promt = """\
                                 You are a specialized agent designed to provide specific technical information about robot arms or compare robot arms. \
                                 Try to use different requests to find out which one gives you the best results. \
                                 Rewrite Action Input to get the best results.
@@ -98,7 +101,7 @@ async def main():
     async def predict(query_str, history, agent=agent):
         # history_message = ChatMessage(content=str(history), role="user")
         if history:
-            logger.info(f"history: {history}")
+            logger.info("history: %s", history)
 
         response = await agent.astream_chat(message=query_str + "\n Use tools.")
         print("Response: ", response)
@@ -106,7 +109,7 @@ async def main():
         final_responce = ""
         async for token in response.async_response_gen():
             final_responce += token
-            yield (final_responce)
+            yield final_responce
         logger.info(f"response: {response.response}")  # print the response
         info_sources_pdfs = {}
         info_sources_urls = set()
@@ -150,18 +153,18 @@ async def main():
             response = await agent.achat(args.prompt)
         toc = time.perf_counter()
         print("\n==========================================\n")
-        print("\033[92m{}\033[00m".format("Prompt: "), args.prompt)
-        print("\033[91m{}\033[00m".format("Response: "), response)
+        print(f"\033[92mPrompt: \033[00m{args.prompt}")
+        print(f"\033[91mResponse: \033[00m{response}")
         print(f"Elapsed time: {toc - tic:0.4f} seconds")
     else:
-        import gradio as gr
-
-        chatbot = gr.Chatbot(height=600, label="Sketch-AI - Hardware Selection Advisor")
-        gr.ChatInterface(
+        chatbot = gradio.Chatbot(
+            height=600, label="Sketch-AI - Hardware Selection Advisor"
+        )
+        gradio.ChatInterface(
             title="Sketch-AI - Hardware Selection Advisor",
             chatbot=chatbot,
             fn=predict,
-            textbox=gr.Textbox(
+            textbox=gradio.Textbox(
                 placeholder=(
                     "Ask me aquestion about robot arms, drives, sensors and other components."
                 ),
@@ -188,11 +191,12 @@ async def main():
             undo_btn=None,
             clear_btn=None,
             css="footer{display:none !important}",
-        ).queue().launch(server_name="0.0.0.0", 
-                         show_api=False, 
-                         auth=("admin", "admin"), 
-                         favicon_path="images/favicon.ico",
-                         )
+        ).queue().launch(
+            server_name="0.0.0.0",
+            show_api=False,
+            auth=("admin", "admin"),
+            favicon_path="images/favicon.ico",
+        )
 
 
 if __name__ == "__main__":

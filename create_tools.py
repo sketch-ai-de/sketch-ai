@@ -1,5 +1,16 @@
 from typing import Any
 
+import chromadb
+from llama_index import SQLDatabase
+from llama_index.prompts import PromptTemplate
+from llama_index.query_engine import (PGVectorSQLQueryEngine,
+                                      RetrieverQueryEngine)
+from llama_index.storage.storage_context import StorageContext
+from llama_index.tools import QueryEngineTool, ToolMetadata
+from llama_index.vector_stores import ChromaVectorStore
+from sqlalchemy import MetaData, Table, select
+
+from create_sql_engine import create_sql_engine
 from vector_db_retriever import VectorDBRetriever
 
 
@@ -19,10 +30,6 @@ class CreateTools:
         self.rerank = rerank
 
     def get_vector_store_from_collection(self, collection_name):
-        import chromadb
-        from llama_index.storage.storage_context import StorageContext
-        from llama_index.vector_stores import ChromaVectorStore
-
         chroma_db_path = self.chroma_db_path  # "./db/chroma_db"
         db = chromadb.PersistentClient(path=chroma_db_path)
         chroma_collection = db.get_or_create_collection(collection_name)
@@ -33,10 +40,7 @@ class CreateTools:
     def create_query_engine_tools(
         self, sql_engine, table_name, table_embed_name, query_engine_tools
     ):
-        from llama_index.query_engine import RetrieverQueryEngine
-        from llama_index.tools import QueryEngineTool, ToolMetadata
         # sql_engine, RobotSQLTable = create_sql_engine()
-        from sqlalchemy import MetaData, Table, select
 
         metadata = MetaData()
         robot_arm_table = Table(table_name, metadata, autoload_with=sql_engine)
@@ -119,11 +123,6 @@ class CreateTools:
         return query_engine_tools
 
     def get_database_query_engine_tools(self, sql_engine):
-        from llama_index import SQLDatabase
-        from llama_index.prompts import PromptTemplate
-        from llama_index.query_engine import PGVectorSQLQueryEngine
-        from llama_index.tools import QueryEngineTool, ToolMetadata
-
         sql_database = SQLDatabase(sql_engine, include_tables=["robot_arm"])
         table_desc = """\
             This table represents text chunks about different robots. Each row contains the following columns: \
@@ -185,8 +184,6 @@ class CreateTools:
         return query_engine_tool
 
     def get_tools(self):
-        from create_sql_engine import create_sql_engine
-
         sql_engine = create_sql_engine()
 
         query_engine_tools = []
