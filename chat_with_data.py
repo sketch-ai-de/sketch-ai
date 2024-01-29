@@ -158,6 +158,7 @@ async def main():
 
         chatbot = gr.Chatbot(height=600, label="Sketch-AI - Hardware Selection Advisor")
         gr.ChatInterface(
+            title="Sketch-AI - Hardware Selection Advisor",
             chatbot=chatbot,
             fn=predict,
             textbox=gr.Textbox(
