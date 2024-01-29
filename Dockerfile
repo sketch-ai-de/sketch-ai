@@ -27,6 +27,7 @@ COPY ./*.py /sketch-ai/
 COPY ./docs /sketch-ai/docs
 COPY ./libs /sketch-ai/libs
 COPY ./examples /sketch-ai/examples
+COPY ./images /sketch-ai/images
 COPY ./entrypoint.sh /sketch-ai/
 
 ENTRYPOINT ["/sketch-ai/entrypoint.sh"]
