@@ -156,7 +156,7 @@ async def main():
     else:
         import gradio as gr
 
-        chatbot = gr.Chatbot(height=600, label="Sketch-AI Hardware Selection Advisor")
+        chatbot = gr.Chatbot(height=600, label="Sketch-AI - Hardware Selection Advisor")
         gr.ChatInterface(
             chatbot=chatbot,
             fn=predict,
@@ -187,7 +187,11 @@ async def main():
             undo_btn=None,
             clear_btn=None,
             css="footer{display:none !important}",
-        ).queue().launch(server_name="0.0.0.0", show_api=False, auth=("admin", "admin"), favicon_path="images/favicon.ico",)
+        ).queue().launch(server_name="0.0.0.0", 
+                         show_api=False, 
+                         auth=("admin", "admin"), 
+                         favicon_path="images/favicon.ico",
+                         )
 
 
 if __name__ == "__main__":
