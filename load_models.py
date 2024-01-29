@@ -19,6 +19,7 @@ def load_models(args, logger):
     llm_model = args.llm_model
     load_dotenv()
     llm_temperature = 0.1
+    timeout = 120.0
 
     if llm_model == "gpt3":
         # _llm_model = "gpt-35-turbo"
@@ -52,7 +53,7 @@ def load_models(args, logger):
         _embed_model = OpenAIEmbedding()
 
         openai.api_key = os.getenv("OPENAI_API_KEY")
-        _llm = OpenAI(temperature=llm_temperature, model=_llm_model)
+        _llm = OpenAI(temperature=llm_temperature, model=_llm_model, timeout=timeout)
     elif llm_service == "azure":
         logger.info("Using AZURE services")
 
@@ -65,6 +66,7 @@ def load_models(args, logger):
             azure_endpoint=_azure_endpoint,
             api_version=api_version,
             temperature=llm_temperature,
+            timeout=timeout,
         )
 
         # You need to deploy your own embedding model as well as your own chat completion model
