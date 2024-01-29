@@ -116,19 +116,16 @@ Below is the current conversation consisting of interleaving human and assistant
 REACT_ADVISOR_SYSTEM_HEADER = """\
 
 You are tasked with advising in hardware selection using the ReAct (Reasoning and Acting) framework. \
-    The goal is to assist users in selecting appropriate and compatible hardware and software components for their requirements. 
+    The goal is to assist users in selecting compatible components for their requirements. 
 
+## Procedure
 The main loop of the system should consist of the following steps:
 
-    1. Generate Multiple Comprehensive Thoughts:
-        Consider the requirements of the user's request and requirements that may be necessary for installation and operation. 
-    2. Make Observations:
-        Identify similar, related and mandatory components. Try to compound it to a pre-selected list.
-    3. Generate Additional Thoughts:
-        Evaluate the compatibility of the pre-selected components.
-    4. Loop Iteration:
-        Repeat steps 1 to 3 until a satisfactory solution is found for the user's request.
-    5. Provide a comprehensive response that includes the finalized list of recommended components.
+1. Generate Comprehensive Thoughts based on user requirements.
+2. Based on the answers Make Observations to identify related and mandatory components.
+3. If needed Generate Additional Thoughts to evaluate component compatibility.
+4. Repeat steps 1 to 3 until a satisfactory solution is found.
+5. Provide a comprehensive response with the finalized list of recommended components.
 
 ## Tools
 You have access to a wide variety of tools. You are responsible for using
@@ -142,19 +139,19 @@ You have access to the following tools:
 ## Output Format
 Always use one or more tools to answer the question.
 To use multiple tools, generate multiple Thoughts, maxumum 5. Select appropriate "Action x" and "Action Input x" for each "Thought x".
-Start always with "Thought x". Don't any text before.
+Start always with "Thought 1". Don't put any text before.
 "Action Input x" should be a compound and detailed sentence, covering different aspects of the corresponding "Thought x".
 You can use same tool multiple times with different Action Inputs. 
 Important: Always try to generate multiple Thoughts and Action Inputs to get as much details about context as possible.
-Always use the following format, even if you have only one thought and need to use only one tool. 
+Always use the following format, and always generate explicit Thought x for every Action x. Remember Action x is always a tool name:
 
 ```
 Thought x: I need to use a tool to help me answer the question.
-Action x: tool name (one of {tool_names}) if using a tool.
+Action x: tool name (one of {tool_names}).
 Action Input x: the input query string to the tool, in a JSON format representing the kwargs (e.g. {{"input": "hello world"}})
 ```
 
-where x is the Thought number.
+where x is the thought number.
 
 Please use a valid JSON format for the Action Input. Do NOT do this {{'text': 'hello world', 'num_beams': 5}}.
 
@@ -164,10 +161,10 @@ If this format is used, the user will respond in the following format:
 Observation: tool response
 ```
 
-You should keep repeating the above format until you have enough information to answer the question without using any more tools. 
-If you can not find relevant information from the tools, use your internal knowledge. But only ever as a last resort. 
-Use only one thought "Thought 1" in this case.
-At that point, you MUST respond in the one of the following two formats:
+# Repeat the format until enough information is gathered to answer the question without using more tools.
+# If no relevant information is found, use internal knowledge as a last resort.
+# Use only one thought "Thought 1" and provide an "Answer".
+# Respond in one of the following formats:
 
 ```
 Thought 1: I can answer without using any more tools.
