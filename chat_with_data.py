@@ -187,7 +187,7 @@ async def main():
             undo_btn=None,
             clear_btn=None,
             css="footer{display:none !important}",
-        ).queue().launch(server_name="0.0.0.0", show_api=False, auth=("admin", "admin"))
+        ).queue().launch(server_name="0.0.0.0", show_api=False, auth=("admin", "admin"), favicon_path="images/favicon.ico",)
 
 
 if __name__ == "__main__":
