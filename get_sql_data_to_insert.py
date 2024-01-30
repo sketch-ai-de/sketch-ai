@@ -84,23 +84,27 @@ class GetSQLDataToInsert:
             response_device_dict = {
                 "parent_id": product_name_id,
                 "document_type": node.metadata["document_type"],
-                "page_label": (int(node.metadata["page_idx"]))
-                if "page_idx" in node.metadata
-                else None,
-                "file_name": node.metadata["file_path"]
-                if "file_path" in node.metadata
-                else None,
+                "page_label": (
+                    (int(node.metadata["page_idx"]))
+                    if "page_idx" in node.metadata
+                    else None
+                ),
+                "file_name": (
+                    node.metadata["file_path"] if "file_path" in node.metadata else None
+                ),
                 "text": node.get_content(),
                 "embedding_openai": node.embedding,
-                "collection_name": node.metadata["collection_name"]
-                if "collection_name" in node.metadata
-                else None,
-                "pdf_url": node.metadata["pdf_url"]
-                if "pdf_url" in node.metadata
-                else None,
-                "web_url": node.metadata["web_url"]
-                if "web_url" in node.metadata
-                else None,
+                "collection_name": (
+                    node.metadata["collection_name"]
+                    if "collection_name" in node.metadata
+                    else None
+                ),
+                "pdf_url": (
+                    node.metadata["pdf_url"] if "pdf_url" in node.metadata else None
+                ),
+                "web_url": (
+                    node.metadata["web_url"] if "web_url" in node.metadata else None
+                ),
             }
             response_device_list.append(response_device_dict)
 

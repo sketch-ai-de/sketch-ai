@@ -101,7 +101,7 @@ class VectorDBLoader:
             retriever,
             service_context=self.service_context,
             text_qa_template=qa_prompt,
-            verbose=self.verbose
+            verbose=self.verbose,
             # refine_template=refine_prompt,
         )
 

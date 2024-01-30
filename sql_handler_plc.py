@@ -1,4 +1,4 @@
-from sqlalchemy import MetaData, Table, insert, select
+from sqlalchemy import insert
 
 from sql_handler_base import SQLHandlerBase
 
