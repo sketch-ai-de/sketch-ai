@@ -2,6 +2,14 @@
 
 This document provides instructions for the installation and usage of Sketch-AI, an OpenAI based Project.
 
+## Development Setup
+
+In order to set up the pre-commit hooks, install [pre-commit](https://pre-commit.com/) and then execute the command below in the root directory of the repository:
+
+```sh
+pre-commit install
+```
+
 ## Docker Guide
 
 ### Step 1: Export your OpenAI API Key
