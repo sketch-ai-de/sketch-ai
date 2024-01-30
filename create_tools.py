@@ -3,8 +3,7 @@ from typing import Any
 import chromadb
 from llama_index import SQLDatabase
 from llama_index.prompts import PromptTemplate
-from llama_index.query_engine import (PGVectorSQLQueryEngine,
-                                      RetrieverQueryEngine)
+from llama_index.query_engine import PGVectorSQLQueryEngine, RetrieverQueryEngine
 from llama_index.storage.storage_context import StorageContext
 from llama_index.tools import QueryEngineTool, ToolMetadata
 from llama_index.vector_stores import ChromaVectorStore

@@ -3,8 +3,10 @@ from typing import List, Tuple
 import chromadb
 from langchain.output_parsers import StructuredOutputParser
 from llama_index.output_parsers import LangchainOutputParser
-from llama_index.prompts.default_prompts import (DEFAULT_REFINE_PROMPT_TMPL,
-                                                 DEFAULT_TEXT_QA_PROMPT_TMPL)
+from llama_index.prompts.default_prompts import (
+    DEFAULT_REFINE_PROMPT_TMPL,
+    DEFAULT_TEXT_QA_PROMPT_TMPL,
+)
 from llama_index.prompts.prompts import QuestionAnswerPrompt, RefinePrompt
 from llama_index.query_engine import RetrieverQueryEngine
 from llama_index.schema import TextNode

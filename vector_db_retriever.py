@@ -1,6 +1,7 @@
 from typing import Any, List, Optional
 
 from llama_index import QueryBundle
+from llama_index.postprocessor import LLMRerank
 from llama_index.retrievers import BaseRetriever
 from llama_index.schema import NodeWithScore
 from llama_index.vector_stores import ChromaVectorStore, VectorStoreQuery
@@ -8,8 +9,6 @@ from llama_index.vector_stores import ChromaVectorStore, VectorStoreQuery
 # from llama_index.postprocessor import SentenceTransformerRerank
 
 # reranker = SentenceTransformerRerank(top_n=10, model="BAAI/bge-reranker-base")
-
-from llama_index.postprocessor import LLMRerank
 
 
 class VectorDBRetriever(BaseRetriever):

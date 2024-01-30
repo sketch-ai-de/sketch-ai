@@ -1,10 +1,10 @@
+from typing import Any, List, Sequence
+
+from llama_index import Document, QueryBundle, VectorStoreIndex
 from llama_index.retrievers import BaseRetriever
-from llama_index import QueryBundle
 from llama_index.schema import NodeWithScore
-from llama_index.vector_stores import VectorStoreQuery
-from typing import List, Sequence, Any
 from llama_index.tools import BaseTool, adapt_to_async_tool
-from llama_index import Document, VectorStoreIndex
+from llama_index.vector_stores import VectorStoreQuery
 
 
 class ToolRetriever(BaseRetriever):

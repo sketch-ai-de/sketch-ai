@@ -11,15 +11,20 @@ from document_preprocessor import DocumentPreprocessor
 from get_sql_data_to_insert import GetSQLDataToInsert
 from load_models import load_models
 from metadata import Metadata
-from sketch_ai_sql_types import (sql_fields_company, sql_fields_plc,
-                                 sql_fields_plc_embed, sql_fields_robot_arm,
-                                 sql_fields_robot_arm_embed,
-                                 sql_fields_software,
-                                 sql_fields_software_embed)
+from sketch_ai_sql_types import (
+    sql_fields_company,
+    sql_fields_plc,
+    sql_fields_plc_embed,
+    sql_fields_robot_arm,
+    sql_fields_robot_arm_embed,
+    sql_fields_software,
+    sql_fields_software_embed,
+)
 from sketch_ai_types import document_type_robot_arm_dict
 from sql_handler_company import SQLHandlerCompany
 from sql_handler_plc import SQLHandlerPLC
 from sql_handler_plc_embed import SQLHandlerPLCEmbed
+
 # from get_sql_data_to_insert import (
 #    get_robot_arm_data,
 #    get_robot_arm_embed_data,

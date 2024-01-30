@@ -1,7 +1,17 @@
 from pgvector.sqlalchemy import Vector
-from sqlalchemy import (Boolean, Float, ForeignKey, Integer, MetaData,
-                        PrimaryKeyConstraint, String, Table, create_engine,
-                        select, text)
+from sqlalchemy import (
+    Boolean,
+    Float,
+    ForeignKey,
+    Integer,
+    MetaData,
+    PrimaryKeyConstraint,
+    String,
+    Table,
+    create_engine,
+    select,
+    text,
+)
 from sqlalchemy.orm import declarative_base, mapped_column
 
 

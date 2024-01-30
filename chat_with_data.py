@@ -81,8 +81,9 @@ async def main():
         from llama_index.agent import ReActAgent
     else:
         logger.info("Using customized ReActAgent from libs.react.base")
-        from libs.react.base import \
-            ReActAgent  # pylint: disable=import-outside-toplevel
+        from libs.react.base import (  # pylint: disable=import-outside-toplevel
+            ReActAgent,
+        )
 
     agent_sys_promt = """\
                                 You are a specialized agent designed to provide specific technical information about robot arms or compare robot arms. \
