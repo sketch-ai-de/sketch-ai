@@ -15,7 +15,7 @@ Please refer to the respective files for more information on how to use them.
 
 ### Load Data
 
-Loading happens with `load_data.py` that processes unstructured data, such as PDFs and websites. It takes as input a JSON file with the links to PDFs, websites, and some additional information, as well as the model provider to use. For example:
+Loading happens with `load_data.py` that processes unstructured data, such as PDFs and websites. It takes as input a JSON file with the links to PDFs, websites, and some additional information, as well as the LLM model provider to use. For example:
 
 ```sh 
 $ python3 load_data.py -l "openai" -j docs/MOTOR_DRIVE/maxon/IDX_56_M/hw.json
@@ -23,6 +23,7 @@ $ python3 load_data.py -l "openai" -j docs/MOTOR_DRIVE/maxon/IDX_56_M/hw.json
 
 The loading process can be summarized with this diagram:
 
+![load_data](images/load_data.jpg)
 
 
 ### Chat with Data
