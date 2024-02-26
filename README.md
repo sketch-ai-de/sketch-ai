@@ -25,6 +25,29 @@ The loading process can be summarized with this diagram:
 
 ![load_data](images/load_data.jpg)
 
+#### Data Preprocessing
+
+PDFs will be preprocessed in the following way:
+- The tables will be extracted.
+    - For each table, an LLM will be asked to summarize the table data into a list of sentences.
+- Each page will be summarized by LLM into a list of sentences.
+- Each page will be chunked.
+- Each web page will be downloaded and chunked.
+
+#### Embed and Store 
+
+The lists of sentences and chunks will be embedded and stored into collections on ChromaDB.
+For each type - table summary, page summary, page chunks, web page chunks - there is an extra collection.
+
+#### Retrieve Device-Specific Data for SQL
+
+To trace the collections belonging to a specific device, the names of the collections are stored next to the device in SQL (and will be used later).
+
+Additionally, device-dependent information will be extracted to be stored in an SQL database, e.g., the degree of freedom for a robot arm.
+The information to be extracted is matched to the columns of a device type (e.g., robot arm). 
+The fields for each SQL table and the questions for retrieval are in `sketch_ai_sql_types.py`.
+The device type is defined in `hw.json`.
+
 
 ### Chat with Data
 
