@@ -1,6 +1,34 @@
 # Sketch-AI
 
-This document provides instructions for the installation and usage of Sketch-AI, an OpenAI based Project.
+## About
+
+Sketch-AI is a RAG and ReAct based advisor designed for hardware selection in robotics and automation projects, but it can also be adapted to other domains. It utilizes LlamaIndex for orchestration and ChromaDB for embeddings. The model has been tested on OpenAI's GPT-3.5/GPT-4 and locally with the Mixtral 8x7B model. Summarization works well with GPT-3.5 and Mixtral 8x7B. However, for ReAct, GPT-4 provides the best performance.
+
+## Usage
+
+There are 2 files available for working with the data:
+
+1. `load_data.py`: This file is used to load the data.
+2. `chat_with_data.py`: This file is used to chat with the loaded data.
+
+Please refer to the respective files for more information on how to use them.
+
+### Load Data
+
+Loading happens with `load_data.py` that processes unstructured data, such as PDFs and websites. It takes as input a JSON file with the links to PDFs, websites, and some additional information, as well as the model provider to use. For example:
+
+```sh 
+$ python3 load_data.py -l "openai" -j docs/MOTOR_DRIVE/maxon/IDX_56_M/hw.json
+```
+
+The loading process can be summarized with this diagram:
+
+
+
+### Chat with Data
+
+With `chat_with_data.py` it possible to talk to loaded data 
+
 
 ## Development Setup
 
