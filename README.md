@@ -1,6 +1,58 @@
 # Sketch-AI
 
-This document provides instructions for the installation and usage of Sketch-AI, an OpenAI based Project.
+## About
+
+Sketch-AI is a RAG and ReAct based advisor designed for hardware selection in robotics and automation projects, but it can also be adapted to other domains. It utilizes LlamaIndex for orchestration and ChromaDB for embeddings. The model has been tested on OpenAI's GPT-3.5/GPT-4 and locally with the Mixtral 8x7B model. Summarization works well with GPT-3.5 and Mixtral 8x7B. However, for ReAct, GPT-4 provides the best performance.
+
+## Usage
+
+There are 2 files available for working with the data:
+
+1. `load_data.py`: This file is used to load the data.
+2. `chat_with_data.py`: This file is used to chat with the loaded data.
+
+Please refer to the respective files for more information on how to use them.
+
+### Load Data
+
+Loading happens with `load_data.py` that processes unstructured data, such as PDFs and websites. It takes as input a JSON file with the links to PDFs, websites, and some additional information, as well as the LLM model provider to use. For example:
+
+```sh 
+$ python3 load_data.py -l "openai" -j docs/MOTOR_DRIVE/maxon/IDX_56_M/hw.json
+```
+
+The loading process can be summarized with this diagram:
+
+![load_data](images/load_data.jpg)
+
+#### Data Preprocessing
+
+PDFs will be preprocessed in the following way:
+- The tables will be extracted.
+    - For each table, an LLM will be asked to summarize the table data into a list of sentences.
+- Each page will be summarized by LLM into a list of sentences.
+- Each page will be chunked.
+- Each web page will be downloaded and chunked.
+
+#### Embed and Store 
+
+The lists of sentences and chunks will be embedded and stored into collections on ChromaDB.
+For each type - table summary, page summary, page chunks, web page chunks - there is an extra collection.
+
+#### Retrieve Device-Specific Data for SQL
+
+To trace the collections belonging to a specific device, the names of the collections are stored next to the device in SQL (and will be used later).
+
+Additionally, device-dependent information will be extracted to be stored in an SQL database, e.g., the degree of freedom for a robot arm.
+The information to be extracted is matched to the columns of a device type (e.g., robot arm). 
+The fields for each SQL table and the questions for retrieval are in `sketch_ai_sql_types.py`.
+The device type is defined in `hw.json`.
+
+
+### Chat with Data
+
+With `chat_with_data.py` it possible to talk to loaded data 
+
 
 ## Development Setup
 
