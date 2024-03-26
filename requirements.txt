@@ -1,7 +1,7 @@
 PyMuPDF==1.23.5
 SQLAlchemy==2.0.22
 asyncpg==0.29.0
-black==23.11.0
+black==24.3.0
 chromadb==0.4.14
 frontend==0.0.3
 gradio==4.19.2
