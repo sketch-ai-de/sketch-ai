@@ -16,7 +16,7 @@ pgvector==0.2.3
 playwright==1.30
 psycopg2-binary==2.9.9
 #psycopg2==2.9.9
-transformers==4.36.0
+transformers==4.38.0
 huggingface-hub==0.17.3
 starlette==0.36.2
 dataclasses-json==0.5.14
